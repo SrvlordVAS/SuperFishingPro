@@ -109,7 +109,39 @@ const varas = {
   "Adamantium":[{level:1, chance:50, price:0, maxRarity:"Mítico"}]
 };
 
-// Peixes e preços
+// Box chances
+const boxChances = {
+  "Comum":[
+    {name:"Fibra", chance:70},
+    {name:"Grafite", chance:20},
+    {name:"Carbono", chance:7},
+    {name:"Titânio", chance:2},
+    {name:"Platina", chance:1}
+  ],
+  "Rara":[
+    {name:"Fibra", chance:50},
+    {name:"Grafite", chance:25},
+    {name:"Carbono", chance:15},
+    {name:"Titânio", chance:8},
+    {name:"Platina", chance:2}
+  ],
+  "Epica":[
+    {name:"Fibra", chance:40},
+    {name:"Grafite", chance:30},
+    {name:"Carbono", chance:20},
+    {name:"Titânio", chance:8},
+    {name:"Platina", chance:2}
+  ],
+  "Lendaria":[
+    {name:"Fibra", chance:30},
+    {name:"Grafite", chance:25},
+    {name:"Carbono", chance:20},
+    {name:"Titânio", chance:15},
+    {name:"Platina", chance:10}
+  ]
+};
+
+// Peixes
 const fishes = [
   {name:"Sardinha", value:0.005, rarity:"Muito Comum", time:3000},
   {name:"Robalo", value:0.01, rarity:"Comum", time:4000},
@@ -140,51 +172,186 @@ function getRandomFishByVara(vara){
   return allowed[Math.floor(Math.random()*allowed.length)];
 }
 
-// Pescar
+function rarityClass(rarity){
+  switch(rarity){
+    case "Muito Comum": return "fish-muito-comum";
+    case "Comum": return "fish-comum";
+    case "Incomum": return "fish-incomum";
+    case "Raro": return "fish-raro";
+    case "Épico": return "fish-epico";
+    case "Lendário": return "fish-lendario";
+    case "Mítico": return "fish-mitico";
+    default: return "";
+  }
+}
+
+// ----------------- FUNÇÕES DE BOLSA E UPGRADE -----------------
+function updateBolsa(){
+  const bolsaDiv = document.getElementById("bolsa");
+  bolsaDiv.innerHTML = "";
+  const raridadeOrdem = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+  raridadeOrdem.forEach(rar=>{
+    const subset = bolsa.filter(v=>varas[v.name][0].maxRarity===rar);
+    if(subset.length>0){
+      const header = document.createElement("div");
+      header.classList.add("bag-header");
+      header.innerText = rar;
+      const submenu = document.createElement("div");
+      submenu.classList.add("submenu");
+      header.onclick = ()=>{ submenu.style.display = submenu.style.display==="none"?"block":"none"; };
+      const names = {};
+      subset.forEach(v=>{
+        const key = v.name+" Nível "+v.level;
+        if(!names[key]) names[key]=0;
+        names[key]++;
+      });
+      for(const k in names){
+        const btn = document.createElement("button");
+        btn.innerText = `${k} x${names[k]}`;
+        btn.onclick = ()=>{
+          if(confirm(`Deseja tornar ${k} a vara ativa?`)){
+            bolsa.push(getCurrentVara());
+            currentVaraIndex = inventory.length;
+            inventory.push({name:k.split(" Nível ")[0], level:parseInt(k.split(" Nível ")[1])});
+            bolsa = bolsa.filter(b=>!(b.name===k.split(" Nível ")[0] && b.level===parseInt(k.split(" Nível ")[1])));
+            document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
+            document.getElementById("chanceInfo").innerText = `Chance de falha: ${varas[getCurrentVara().name][0].chance}%`;
+            updateBolsa();
+            updateUpgrade();
+          }
+        };
+        submenu.appendChild(btn);
+      }
+      bolsaDiv.appendChild(header);
+      bolsaDiv.appendChild(submenu);
+    }
+  });
+}
+
+function updateUpgrade(){
+  const upgradeDiv = document.getElementById("upgrade");
+  upgradeDiv.innerHTML = "";
+  const counts = {};
+  bolsa.forEach(v=>{
+    const key = v.name+"|"+v.level;
+    counts[key] = counts[key]?counts[key]+1:1;
+  });
+  for(const k in counts){
+    const [name, level] = k.split("|");
+    if(counts[k]>=2 && name!=="Bambu"){
+      const btn = document.createElement("button");
+      btn.innerText = `${name} (Nível ${level}) → Upgrade`;
+      btn.onclick = ()=>{
+        if(confirm(`Deseja usar 2 varas ${name} Nível ${level} para criar 1 Nível ${parseInt(level)+1}?`)){
+          let removed=0;
+          for(let i=bolsa.length-1;i>=0;i--){
+            if(bolsa[i].name===name && bolsa[i].level===parseInt(level) && removed<2){
+              bolsa.splice(i,1);
+              removed++;
+            }
+          }
+          const failChance = parseInt(level)*10;
+          if(Math.random()*100 < failChance){
+            bolsa.push({name:name, level:parseInt(level)});
+            alert("Upgrade falhou! Você perdeu apenas uma vara.");
+          } else {
+            bolsa.push({name:name, level:parseInt(level)+1});
+            alert("Upgrade realizado!");
+          }
+          updateBolsa();
+          updateUpgrade();
+        }
+      };
+      upgradeDiv.appendChild(btn);
+    }
+  }
+}
+
+// ----------------- LOJA -----------------
+function getVarasForBox(type){
+  const chances = boxChances[type];
+  const rand = Math.random()*100;
+  let cumulative = 0;
+  for(const v of chances){
+    cumulative += v.chance;
+    if(rand <= cumulative){
+      return {name:v.name, level:1};
+    }
+  }
+  return {name:chances[chances.length-1].name, level:1};
+}
+
+document.getElementById("boxComum").onclick = ()=>openBox("Comum",81);
+document.getElementById("boxRara").onclick = ()=>openBox("Rara",135);
+document.getElementById("boxEpica").onclick = ()=>openBox("Epica",162);
+document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria",189);
+
+function openBox(type, price){
+  if(money < price){ alert("Saldo insuficiente!"); return; }
+  const chances = boxChances[type];
+  let msg = `Você vai abrir uma box ${type}.\nPreço: ${price}\nPossíveis varas e suas chances:\n\n`;
+  chances.forEach(v=>{
+    msg += `${v.name}: ${v.chance}%\n`;
+  });
+  msg += `\nDeseja continuar?`;
+
+  if(confirm(msg)){
+    money -= price;
+    document.getElementById("money").innerText = money;
+    const selected = getVarasForBox(type);
+    bolsa.push(selected);
+    updateBolsa();
+    updateUpgrade();
+    alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
+  }
+}
+
+// ----------------- PESCA -----------------
 const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
 
-function attemptCatch() {
-    dailyCatch++; // conta tentativa sempre
-    updateDailyCatchInfo();
-    const vara = getCurrentVara();
-    const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < varas[vara.name][0].chance){
-        alert("O peixe escapou! 😢");
-    } else {
-        aquario.push(fish);
-        updateAquario();
-        alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
-    }
+function attemptCatch(){
+  dailyCatch++;
+  updateDailyCatchInfo();
+  const vara = getCurrentVara();
+  const fish = getRandomFishByVara(vara);
+  if(Math.random()*100 < varas[vara.name][0].chance){
+    alert("O peixe escapou! 😢");
+  } else {
+    aquario.push(fish);
+    updateAquario();
+    alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
+  }
 }
 
 fishButton.onclick = function(){
-    if(dailyCatch >= dailyLimit){
-        alert("Você atingiu o limite de 15 tentativas hoje! Volte amanhã 😢");
-        return;
-    }
-    fishButton.disabled = true;
-    skipButton.style.display = "inline-block";
-    result.innerText = "Esperando o peixe morder a isca...";
-    fishingTimeout = setTimeout(()=>{
-        attemptCatch();
-        fishButton.disabled = false;
-        skipButton.style.display = "none";
-    }, getRandomFishByVara(getCurrentVara()).time);
+  if(dailyCatch >= dailyLimit){
+    alert("Você atingiu o limite de 15 tentativas hoje! Volte amanhã 😢");
+    return;
+  }
+  fishButton.disabled = true;
+  skipButton.style.display = "inline-block";
+  result.innerText = "Esperando o peixe morder a isca...";
+  const fish = getRandomFishByVara(getCurrentVara());
+  fishingTimeout = setTimeout(()=>{
+    attemptCatch();
+    fishButton.disabled = false;
+    skipButton.style.display = "none";
+  }, fish.time);
 };
 
 skipButton.onclick = function(){
-    if(fishingTimeout){
-        clearTimeout(fishingTimeout);
-        fishingTimeout = null;
-        attemptCatch();
-        fishButton.disabled = false;
-        skipButton.style.display = "none";
-    }
+  if(fishingTimeout){
+    clearTimeout(fishingTimeout);
+    fishingTimeout = null;
+    attemptCatch();
+    fishButton.disabled = false;
+    skipButton.style.display = "none";
+  }
 };
 
-// Aquário
+// ----------------- AQUÁRIO -----------------
 function updateAquario(){
   const div = document.getElementById("aquario");
   div.innerHTML = "";
@@ -203,9 +370,22 @@ function updateAquario(){
   });
 }
 
-// Inicializações
+// ----------------- ABAS -----------------
+document.querySelectorAll(".tabButton").forEach(btn=>{
+  btn.onclick = function(){
+    const target = this.dataset.target;
+    document.querySelectorAll(".section").forEach(sec=>{
+      sec.classList.remove("active");
+    });
+    document.getElementById(target).classList.add("active");
+  };
+});
+
+// ----------------- INICIALIZAÇÃO -----------------
 document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
 document.getElementById("chanceInfo").innerText = `Chance de falha: ${varas[getCurrentVara().name][0].chance}%`;
+updateBolsa();
+updateUpgrade();
 updateDailyCatchInfo();
 
 });
