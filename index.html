@@ -15,7 +15,7 @@ body {
 h1 { color:#006994; text-shadow: 2px 2px #aee1f7; }
 h3 { color:#004466; }
 
-#result { font-size:18px; margin:15px 0 30px 0; min-height:30px; }
+#result { font-size:18px; margin:15px 0 30px 0; min-height:40px; }
 
 button {
   display:inline-block;
@@ -23,10 +23,10 @@ button {
   color:white;
   border:none;
   border-radius:8px;
-  padding:15px 30px;
-  font-size:18px;
+  padding:10px 20px;
+  font-size:16px;
   cursor:pointer;
-  margin:10px 0;
+  margin:5px;
   transition:0.2s;
 }
 button:hover { background-color:#0088cc; }
@@ -44,34 +44,42 @@ button:hover { background-color:#0088cc; }
 
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo: 0</h3>
+
 <p id="result">Clique em pescar</p>
 <button id="fishButton">🎣 PESCAR</button>
+<button id="skipButton" style="display:none;">⏩ Pular espera</button>
+
+<h3>Escolha sua vara:</h3>
+<select id="varaSelect">
+  <option value="Muito Comum">Vara de Bambu</option>
+  <option value="Incomum">Vara Simples</option>
+  <option value="Raro">Vara de Fibra</option>
+  <option value="Épico">Vara de Aço</option>
+  <option value="Lendário">Vara Profissional</option>
+  <option value="Mítico">Vara Mestre</option>
+</select>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-
 let money = 0
+let fishingTimeout = null
 
+// Peixes do mar com raridade, valor e tempo de espera em ms
 const fishes = [
-  {name:"Sardinha", value:1, rarity:"Muito Comum"},
-  {name:"Anchova", value:1, rarity:"Muito Comum"},
-  {name:"Robalo", value:2, rarity:"Comum"},
-  {name:"Cavala", value:3, rarity:"Comum"},
-  {name:"Atum", value:5, rarity:"Incomum"},
-  {name:"Badejo", value:6, rarity:"Incomum"},
-  {name:"Garoupa", value:10, rarity:"Raro"},
-  {name:"Linguado", value:12, rarity:"Raro"},
-  {name:"Salmão do Atlântico", value:18, rarity:"Épico"},
-  {name:"Dourado do mar", value:20, rarity:"Épico"},
-  {name:"Peixe-espada", value:30, rarity:"Lendário"},
-  {name:"Tubarão", value:35, rarity:"Lendário"},
-  {name:"Tubarão-branco adulto", value:60, rarity:"Mítico"},
-  {name:"Marlim Azul", value:100, rarity:"Mítico"}
+  {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
+  {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
+  {name:"Robalo", value:2, rarity:"Comum", time:4000},
+  {name:"Cavala", value:3, rarity:"Comum", time:4000},
+  {name:"Atum", value:5, rarity:"Incomum", time:5000},
+  {name:"Badejo", value:6, rarity:"Incomum", time:5000},
+  {name:"Garoupa", value:10, rarity:"Raro", time:7000},
+  {name:"Linguado", value:12, rarity:"Raro", time:7000},
+  {name:"Salmão do Atlântico", value:18, rarity:"Épico", time:9000},
+  {name:"Dourado do mar", value:20, rarity:"Épico", time:9000},
+  {name:"Peixe-espada", value:30, rarity:"Lendário", time:12000},
+  {name:"Tubarão", value:35, rarity:"Lendário", time:12000},
+  {name:"Tubarão-branco adulto", value:60, rarity:"Mítico", time:15000},
+  {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000}
 ]
-
-function getRandomFish(){ 
-  return fishes[Math.floor(Math.random() * fishes.length)] 
-}
 
 function rarityClass(rarity){
   switch(rarity){
@@ -86,22 +94,52 @@ function rarityClass(rarity){
   }
 }
 
-document.getElementById("fishButton").onclick = function(){
-  const button = this
-  button.disabled = true
-  document.getElementById("result").innerText = "Esperando o peixe morder a isca..."
-  
-  setTimeout(function(){
-    let fish = getRandomFish()
-    money += fish.value
-    document.getElementById("money").innerText = "Saldo: " + money
-    document.getElementById("result").innerHTML = 
-      `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
-    button.disabled = false
-  }, 5000) // 5 segundos de espera
+// Seleciona um peixe aleatório que a vara permite
+function getRandomFishByVara(varaRarity){
+  const allowed = fishes.filter(f => {
+    const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+    return rarities.indexOf(f.rarity) <= rarities.indexOf(varaRarity);
+  })
+  return allowed[Math.floor(Math.random() * allowed.length)]
 }
 
-})
+const fishButton = document.getElementById("fishButton")
+const skipButton = document.getElementById("skipButton")
+const result = document.getElementById("result")
+const varaSelect = document.getElementById("varaSelect")
+
+fishButton.onclick = function(){
+  fishButton.disabled = true
+  skipButton.style.display = "inline-block"
+  
+  const varaRarity = varaSelect.value
+  const fish = getRandomFishByVara(varaRarity)
+  
+  result.innerText = "Esperando o peixe morder a isca..."
+  
+  fishingTimeout = setTimeout(() => {
+    money += fish.value
+    result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+    document.getElementById("money").innerText = "Saldo: " + money
+    fishButton.disabled = false
+    skipButton.style.display = "none"
+  }, fish.time)
+}
+
+// Pular espera
+skipButton.onclick = function(){
+  if(fishingTimeout){
+    clearTimeout(fishingTimeout)
+    fishingTimeout = null
+    const varaRarity = varaSelect.value
+    const fish = getRandomFishByVara(varaRarity)
+    money += fish.value
+    result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+    document.getElementById("money").innerText = "Saldo: " + money
+    fishButton.disabled = false
+    skipButton.style.display = "none"
+  }
+}
 </script>
 
 </body>
