@@ -4,11 +4,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 120px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
-h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
-h3 { color:#004466; }
-#result { font-size:18px; margin:15px 0 30px 0; min-height:40px; }
-button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:8px; padding:10px 15px; font-size:16px; cursor:pointer; margin:3px; transition:0.2s; }
+body {
+  text-align:center;
+  font-family:'Comic Sans MS', Arial, sans-serif;
+  background: linear-gradient(to bottom,#87ceeb,#ffffff);
+  margin:0; padding:20px;
+}
+h1 { color:#006994; text-shadow:2px 2px #aee1f7;}
+h3 { color:#004466;}
+#result { font-size:18px; margin:15px 0 30px 0; min-height:30px; }
+button {
+  display:inline-block;
+  background-color:#00aaff;
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:15px 30px;
+  font-size:18px;
+  cursor:pointer;
+  margin:10px 5px;
+  transition:0.2s;
+}
 button:hover { background-color:#0088cc; }
 .fish-muito-comum {color:gray;}
 .fish-comum {color:green;}
@@ -17,121 +33,74 @@ button:hover { background-color:#0088cc; }
 .fish-epico {color:orange;}
 .fish-lendario {color:red;}
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
-.section { display:none; margin-top:20px; }
-.section.active { display:block; }
-#inventory, #shop { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
-#bottomMenu button { flex:1; margin:0 5px; }
-.selected { background-color:#ffcc00 !important; color:black !important; }
+.menu { margin-top:20px; }
+.menu button { width:100px; }
+.box-button { margin:5px; padding:10px 20px; }
 </style>
 </head>
 <body>
 
 <h1>🎣 Super Fishing</h1>
-<h3 id="money">Saldo: 0</h3>
+<h3 id="money">Saldo: 9999</h3>
+<p id="result">Clique em pescar</p>
 
-<!-- Seções -->
-<div id="pesca" class="section active">
-  <p id="result">Clique em pescar</p>
-  <button id="fishButton">🎣 PESCAR</button>
-  <button id="skipButton" style="display:none;">⏩ Pular espera</button>
-  <p>Vara atual: <span id="currentVara">Vara de Bambu (Nível 1)</span></p>
+<div id="menu-pesca">
+  <button id="fishButton">🎣 Pescar</button>
 </div>
 
-<div id="inventorySection" class="section">
-  <h3>Inventário</h3>
-  <div id="inventory"></div>
+<div class="menu">
+  <button onclick="showTab('pesca')">Pescar</button>
+  <button onclick="showTab('loja')">Loja</button>
+  <button onclick="showTab('inventario')">Inventário</button>
 </div>
 
-<div id="shopSection" class="section">
-  <h3>Loja</h3>
-  <div id="shopBoxes">
-    <h4>Abra uma box:</h4>
-    <button id="boxComum">📦 Box Comum</button>
-    <button id="boxRara">📦 Box Rara</button>
-    <button id="boxEpica">📦 Box Épica</button>
-  </div>
-  <div id="shopUpgrades">
-    <h4>Upgrades:</h4>
-  </div>
+<div id="loja" style="display:none; margin-top:20px;">
+  <h3>Boxes disponíveis:</h3>
+  <button class="box-button" onclick="abrirBox(1)">Box 1</button>
+  <button class="box-button" onclick="abrirBox(2)">Box 2</button>
+  <button class="box-button" onclick="abrirBox(3)">Box 3</button>
+  <button class="box-button" onclick="abrirBox(4)">Box 4</button>
 </div>
 
-<!-- Menu inferior -->
-<div id="bottomMenu">
-  <button class="tabButton" data-target="pesca">🎣 Pescar</button>
-  <button class="tabButton" data-target="inventorySection">🎒 Inventário</button>
-  <button class="tabButton" data-target="shopSection">🏪 Loja</button>
+<div id="inventario" style="display:none; margin-top:20px;">
+  <h3>Escolha a vara ativa:</h3>
+  <div id="varas-inventario"></div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-let money = 0
-let fishingTimeout = null
+let money = 9999;
 
-// Varas
-const varas = {
-  "Bambu": [
-    {level:1, chance:50, price:0, maxRarity:"Muito Comum"},
-    {level:2, chance:40, price:50, maxRarity:"Comum"},
-    {level:3, chance:30, price:100, maxRarity:"Incomum"},
-    {level:4, chance:20, price:150, maxRarity:"Raro"},
-    {level:5, chance:10, price:200, maxRarity:"Épico"}
-  ],
-  "Fibra": [
-    {level:1, chance:40, price:0, maxRarity:"Comum"},
-    {level:2, chance:30, price:60, maxRarity:"Incomum"},
-    {level:3, chance:20, price:120, maxRarity:"Raro"},
-    {level:4, chance:10, price:180, maxRarity:"Épico"},
-    {level:5, chance:5, price:250, maxRarity:"Lendário"}
-  ],
-  "Grafite": [
-    {level:1, chance:30, price:0, maxRarity:"Incomum"},
-    {level:2, chance:20, price:80, maxRarity:"Raro"},
-    {level:3, chance:15, price:150, maxRarity:"Épico"},
-    {level:4, chance:10, price:220, maxRarity:"Lendário"},
-    {level:5, chance:5, price:300, maxRarity:"Mítico"}
-  ]
-};
-
-// Peixes
 const fishes = [
-  {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Peixinho-lua", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Tainha", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Robalo", value:2, rarity:"Comum", time:4000},
-  {name:"Cavala", value:3, rarity:"Comum", time:4000},
-  {name:"Corvina", value:3, rarity:"Comum", time:4000},
-  {name:"Badejo-pequeno", value:2, rarity:"Comum", time:4000},
-  {name:"Atum", value:5, rarity:"Incomum", time:5000},
-  {name:"Badejo", value:6, rarity:"Incomum", time:5000},
-  {name:"Garoupa juvenil", value:6, rarity:"Incomum", time:5000},
-  {name:"Cavala-real", value:5, rarity:"Incomum", time:5000},
-  {name:"Garoupa adulta", value:10, rarity:"Raro", time:7000},
-  {name:"Linguado", value:12, rarity:"Raro", time:7000},
-  {name:"Pargo", value:10, rarity:"Raro", time:7000},
-  {name:"Robalo-do-mar", value:12, rarity:"Raro", time:7000},
-  {name:"Salmão do Atlântico", value:18, rarity:"Épico", time:9000},
-  {name:"Dourado do mar", value:20, rarity:"Épico", time:9000},
-  {name:"Cavalinha-real", value:18, rarity:"Épico", time:9000},
-  {name:"Bonito", value:20, rarity:"Épico", time:9000},
-  {name:"Peixe-espada", value:30, rarity:"Lendário", time:12000},
-  {name:"Tubarão", value:35, rarity:"Lendário", time:12000},
-  {name:"Marlim-negro", value:32, rarity:"Lendário", time:12000},
-  {name:"Marlim-azul jovem", value:35, rarity:"Lendário", time:12000},
-  {name:"Tubarão-branco adulto", value:60, rarity:"Mítico", time:15000},
-  {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000},
-  {name:"Peixe-lua gigante", value:80, rarity:"Mítico", time:15000},
-  {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
+  {name:"Peixinho", value:1, rarity:"Muito Comum"},
+  {name:"Lambari", value:1, rarity:"Muito Comum"},
+  {name:"Sardinha", value:2, rarity:"Comum"},
+  {name:"Tilápia", value:3, rarity:"Comum"},
+  {name:"Carpa", value:5, rarity:"Incomum"},
+  {name:"Pacu", value:6, rarity:"Incomum"},
+  {name:"Tucunaré", value:10, rarity:"Raro"},
+  {name:"Dourado", value:12, rarity:"Raro"},
+  {name:"Salmão", value:18, rarity:"Épico"},
+  {name:"Atum Gigante", value:20, rarity:"Épico"},
+  {name:"Peixe Espada", value:30, rarity:"Lendário"},
+  {name:"Tubarão Martelo", value:35, rarity:"Lendário"},
 ];
 
-// Inventário inicial
-let inventory = [
-  {name:"Bambu", level:1}
+const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+
+const varas = [
+  {name:"Bambu", rarity:"Muito Comum", level:1},
+  {name:"Fibra", rarity:"Comum", level:1},
+  {name:"Grafite", rarity:"Incomum", level:1},
+  {name:"Alumínio", rarity:"Raro", level:1},
+  {name:"Titânio", rarity:"Épico", level:1},
+  {name:"Carbono", rarity:"Lendário", level:1},
+  {name:"Diamante", rarity:"Mítico", level:1} // Mítica não dropa ainda
 ];
 
-let currentVaraIndex = 0
+let inventario = [varas[0]]; // Começa só com Bambu
+let varaAtiva = inventario[0];
 
 function rarityClass(rarity){
   switch(rarity){
@@ -146,151 +115,85 @@ function rarityClass(rarity){
   }
 }
 
-function getCurrentVara(){
-  return inventory[currentVaraIndex]
+function getRandomFish(){
+  // Só pode pegar peixe da raridade da vara ou inferior
+  const allowedRarities = rarities.slice(0, rarities.indexOf(varaAtiva.rarity)+1);
+  const allowedFishes = fishes.filter(f=>allowedRarities.includes(f.rarity));
+  return allowedFishes[Math.floor(Math.random()*allowedFishes.length)];
 }
 
-function getRandomFishByVara(vara){
-  const allowed = fishes.filter(f => {
-    const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-    return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][vara.level-1].maxRarity);
-  })
-  return allowed[Math.floor(Math.random()*allowed.length)]
+function chanceFalha(level){
+  // Nível 1 -> 50%, Nível 5 -> 10%
+  return Math.max(50 - (level-1)*10,10);
 }
 
-// Atualiza inventário
-function updateInventoryDisplay(){
-  const invDiv = document.getElementById("inventory")
-  invDiv.innerHTML = ""
-  inventory.forEach((v,i)=>{
-    const btn = document.createElement("button")
-    btn.innerText = `${v.name} (Nível ${v.level})`
-    if(i===currentVaraIndex) btn.classList.add("selected")
-    btn.onclick = function(){
-      currentVaraIndex = i
-      updateInventoryDisplay()
-      document.getElementById("currentVara").innerText = `${v.name} (Nível ${v.level})`
-    }
-    invDiv.appendChild(btn)
-  })
-  updateShopUpgrades()
+document.getElementById("fishButton").onclick = function(){
+  const button = this;
+  button.disabled = true;
+  document.getElementById("result").innerHTML = "Esperando o peixe morder a isca... <button onclick='pularTempo()'>Pular</button>";
+  setTimeout(caçarPeixe,5000);
 }
 
-// Loja: Box system
-function getVarasForBox(type){
-  let list = []
-  for(const v in varas){
-    if(v==="Bambu") continue
-    if(type==="Comum" && ["Fibra"].includes(v)){
-      list.push({name:v,level:1})
-    }
-    if(type==="Rara" && ["Fibra","Grafite"].includes(v)){
-      list.push({name:v,level:1})
-    }
-    if(type==="Epica" && ["Grafite"].includes(v)){
-      list.push({name:v,level:1})
-    }
+window.pularTempo = function(){
+  caçarPeixe();
+}
+
+function caçarPeixe(){
+  const button = document.getElementById("fishButton");
+  button.disabled = false;
+  let falha = Math.random()*100 < chanceFalha(varaAtiva.level);
+  if(falha){
+    document.getElementById("result").innerText = "O peixe escapou!";
+    return;
   }
-  return list
+  let fish = getRandomFish();
+  money += fish.value;
+  document.getElementById("money").innerText = "Saldo: " + money;
+  document.getElementById("result").innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`;
 }
 
-function updateShopUpgrades(){
-  const shopUpgradesDiv = document.getElementById("shopUpgrades")
-  shopUpgradesDiv.innerHTML = "<h4>Upgrades:</h4>"
-  const vara = getCurrentVara()
-  const nextLevel = vara.level + 1
-  if(varas[vara.name][nextLevel-1]){
-    const upg = varas[vara.name][nextLevel-1]
-    const btn = document.createElement("button")
-    btn.innerText = `Upgrade para Nível ${nextLevel} - ${upg.chance}% de falha`
-    btn.onclick = function(){
-      if(money >= upg.price){
-        money -= upg.price
-        vara.level = nextLevel
-        updateInventoryDisplay()
-        document.getElementById("money").innerText = "Saldo: "+money
-        alert("Upgrade realizado!")
-      } else alert("Saldo insuficiente!")
-    }
-    shopUpgradesDiv.appendChild(btn)
-  } else {
-    shopUpgradesDiv.innerHTML += "<p>Vara no nível máximo!</p>"
+function showTab(tab){
+  document.getElementById("menu-pesca").style.display = tab==="pesca"?"block":"none";
+  document.getElementById("loja").style.display = tab==="loja"?"block":"none";
+  document.getElementById("inventario").style.display = tab==="inventario"?"block":"none";
+  atualizarInventario();
+}
+
+function atualizarInventario(){
+  const invDiv = document.getElementById("varas-inventario");
+  invDiv.innerHTML = "";
+  inventario.forEach((v,i)=>{
+    const btn = document.createElement("button");
+    btn.innerText = `${v.name} (Nível ${v.level})`;
+    btn.onclick = ()=>{varaAtiva=v; atualizarInventario();};
+    if(v===varaAtiva) btn.style.fontWeight="bold";
+    invDiv.appendChild(btn);
+  });
+}
+
+function abrirBox(box){
+  let drops = [];
+  switch(box){
+    case 1: drops=["Comum","Incomum"]; break;
+    case 2: drops=["Comum","Incomum","Raro"]; break;
+    case 3: drops=["Comum","Incomum","Raro","Épico"]; break;
+    case 4: drops=["Comum","Incomum","Raro","Épico","Lendário"]; break;
   }
-}
-
-// Abrir box
-document.getElementById("boxComum").onclick = ()=>openBox("Comum")
-document.getElementById("boxRara").onclick = ()=>openBox("Rara")
-document.getElementById("boxEpica").onclick = ()=>openBox("Epica")
-
-function openBox(type){
-  const list = getVarasForBox(type)
-  if(list.length===0){ alert("Nenhuma vara disponível!"); return }
-  const selected = list[Math.floor(Math.random()*list.length)]
-  inventory.push(selected)
-  currentVaraIndex = inventory.length-1
-  updateInventoryDisplay()
-  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`)
-}
-
-// Pescar
-const fishButton = document.getElementById("fishButton")
-const skipButton = document.getElementById("skipButton")
-const result = document.getElementById("result")
-
-fishButton.onclick = function(){
-  fishButton.disabled = true
-  skipButton.style.display = "inline-block"
-  const vara = getCurrentVara()
-  const fish = getRandomFishByVara(vara)
-  result.innerText = "Esperando o peixe morder a isca..."
-  fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < varas[vara.name][vara.level-1].chance){
-      alert("O peixe escapou! 😢")
-    } else {
-      money += fish.value
-      document.getElementById("money").innerText = "Saldo: " + money
-      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
-    }
-    fishButton.disabled = false
-    skipButton.style.display = "none"
-  }, fish.time)
-}
-
-// Pular espera
-skipButton.onclick = function(){
-  if(fishingTimeout){
-    clearTimeout(fishingTimeout)
-    fishingTimeout = null
-    const vara = getCurrentVara()
-    const fish = getRandomFishByVara(vara)
-    if(Math.random()*100 < varas[vara.name][vara.level-1].chance){
-      alert("O peixe escapou! 😢")
-    } else {
-      money += fish.value
-      document.getElementById("money").innerText = "Saldo: " + money
-      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
-    }
-    fishButton.disabled = false
-    skipButton.style.display = "none"
+  let possiveis = varas.filter(v=>drops.includes(v.rarity) && !inventario.includes(v));
+  if(possiveis.length===0){
+    alert("Nenhuma nova vara disponível nessa box!");
+    return;
   }
+  let novaVara = possiveis[Math.floor(Math.random()*possiveis.length)];
+  inventario.push({...novaVara});
+  alert(`Você recebeu a vara: ${novaVara.name} [${novaVara.rarity}]`);
+  atualizarInventario();
 }
 
-// Abas
-document.querySelectorAll(".tabButton").forEach(btn=>{
-  btn.onclick = function(){
-    const target = this.dataset.target
-    document.querySelectorAll(".section").forEach(sec=>{
-      sec.classList.remove("active")
-    })
-    document.getElementById(target).classList.add("active")
-  }
-})
+atualizarInventario();
 
-updateInventoryDisplay()
-document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`
-
-})
+});
 </script>
+
 </body>
 </html>
