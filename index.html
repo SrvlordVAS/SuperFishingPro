@@ -71,14 +71,29 @@ button:hover { background-color:#0088cc; }
   <div id="upgrade"></div>
 </div>
 
-<!-- CARTEIRA -->
+<!-- CARTEIRA MODERNA -->
 <div id="walletSection" class="section">
   <h3>💰 Carteira</h3>
   <p id="walletSun">Saldo SUN: 0</p>
   <p id="walletTon">Saldo TON: 0</p>
-  <button onclick="depositTON()">💸 Depositar TON</button>
-  <button onclick="exchangeSUNtoTON()">🔄 Trocar SUN por TON</button>
-  <button onclick="withdrawTON()">🏧 Retirar TON</button>
+
+  <div style="margin-top:15px;">
+    <label>Depositar TON:</label><br>
+    <input type="number" id="depositInput" placeholder="0" min="0" step="0.01">
+    <button id="depositBtn">💸 Depositar</button>
+  </div>
+
+  <div style="margin-top:15px;">
+    <label>Trocar SUN → TON:</label><br>
+    <input type="number" id="exchangeInput" placeholder="0" min="0" step="0.01">
+    <button id="exchangeBtn">🔄 Trocar</button>
+  </div>
+
+  <div style="margin-top:15px;">
+    <label>Sacar TON:</label><br>
+    <input type="number" id="withdrawInput" placeholder="0" min="0" step="0.01">
+    <button id="withdrawBtn">🏧 Retirar</button>
+  </div>
 </div>
 
 <!-- INFORMAÇÕES -->
@@ -345,9 +360,9 @@ fishButton.onclick = function(){
     } else {
       aquario.push(fish);
       updateAquario();
-      alert(`Você pescou, venda no aquario: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
       sunBalance += fish.value;
       updateWalletUI();
+      alert(`Você pescou: ${fish.name} (${fish.rarity})! Valor: ${fish.value.toFixed(3)} SUN`);
     }
     fishButton.disabled = false;
     skipButton.style.display = "none";
@@ -355,106 +370,72 @@ fishButton.onclick = function(){
 };
 
 skipButton.onclick = function(){
-  if(fishingTimeout){
-    clearTimeout(fishingTimeout);
-    fishingTimeout = null;
-const vara = getCurrentVara();
-    const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < varas[vara.name][0].chance){
-      alert("O peixe escapou! 😢");
-    } else {
-      aquario.push(fish);
-      updateAquario();
-      alert(`Você pescou um peixe e foi para o aquário: ${fish.name}, ganhou ${fish.value.toFixed(3)} SUN`);
-      sunBalance += fish.value;
-      updateWalletUI();
-    }
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
-  }
+  clearTimeout(fishingTimeout);
+  fishButton.disabled = false;
+  skipButton.style.display = "none";
+  result.innerText = "Você pulou a espera.";
 };
 
-// ===== AQUÁRIO =====
 function updateAquario(){
-  const div = document.getElementById("aquario");
-  div.innerHTML = "";
-  aquario.forEach((f,i)=>{
-    const btn = document.createElement("button");
-    btn.innerText = `${f.name} [${f.rarity}] - ${f.value.toFixed(3)} SUN`;
-    btn.onclick = ()=>{
-      if(confirm(`Deseja vender ${f.name} por ${f.value.toFixed(3)} SUN?`)){
-        sunBalance += f.value;
-        document.getElementById("money").innerText = money;
-        aquario.splice(i,1);
-        updateAquario();
-        updateWalletUI();
-      }
-    };
-    div.appendChild(btn);
+  const aquarioDiv = document.getElementById("aquario");
+  aquarioDiv.innerHTML = "";
+  aquario.forEach(f=>{
+    const p = document.createElement("p");
+    p.innerHTML = `<span class="${rarityClass(f.rarity)}">${f.name} (${f.rarity})</span> - Valor: ${f.value.toFixed(3)} SUN`;
+    aquarioDiv.appendChild(p);
   });
 }
 
-// ===== CARTEIRA =====
+// ===== CARTEIRA MODERNA =====
 function updateWalletUI(){
   document.getElementById("walletSun").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`;
   document.getElementById("walletTon").innerText = `Saldo TON: ${tonBalance.toFixed(3)}`;
 }
 
-function depositTON(){
-  let amt = parseFloat(prompt("Quanto TON deseja depositar?"));
-  if(!isNaN(amt) && amt > 0){
-    tonBalance += amt;
-    sunBalance += amt * 1; // 1 TON = 1 SUN
-    updateWalletUI();
-    alert(`${amt} TON depositado e convertido em ${amt} SUN`);
-  }
-}
+document.getElementById("depositBtn").onclick = ()=>{
+  const val = parseFloat(document.getElementById("depositInput").value);
+  if(isNaN(val) || val <= 0){ alert("Valor inválido"); return; }
+  if(tonBalance < val){ alert("Saldo TON insuficiente"); return; }
+  tonBalance -= val;
+  sunBalance += val*100; // taxa de conversão 1 TON = 100 SUN
+  updateWalletUI();
+};
 
-function exchangeSUNtoTON(){
-  let amt = parseFloat(prompt("Quanto SUN deseja trocar por TON?"));
-  if(!isNaN(amt) && amt > 0){
-    if(amt > sunBalance){
-      alert("Saldo SUN insuficiente!");
-      return;
-    }
-    sunBalance -= amt;
-    tonBalance += amt;
-    updateWalletUI();
-    alert(`${amt} SUN trocado por ${amt} TON`);
-  }
-}
+document.getElementById("exchangeBtn").onclick = ()=>{
+  const val = parseFloat(document.getElementById("exchangeInput").value);
+  if(isNaN(val) || val <= 0){ alert("Valor inválido"); return; }
+  if(sunBalance < val){ alert("Saldo SUN insuficiente"); return; }
+  sunBalance -= val;
+  tonBalance += val/100; // 100 SUN = 1 TON
+  updateWalletUI();
+};
 
-function withdrawTON(){
-  let amt = parseFloat(prompt("Quanto TON deseja sacar?"));
-  if(!isNaN(amt) && amt > 0){
-    if(amt > tonBalance){
-      alert("Saldo TON insuficiente!");
-      return;
-    }
-    tonBalance -= amt;
-    updateWalletUI();
-    alert(`${amt} TON sacado com sucesso!`);
-  }
-}
+document.getElementById("withdrawBtn").onclick = ()=>{
+  const val = parseFloat(document.getElementById("withdrawInput").value);
+  if(isNaN(val) || val <=0){ alert("Valor inválido"); return; }
+  if(tonBalance < val){ alert("Saldo TON insuficiente"); return; }
+  tonBalance -= val;
+  alert(`Você sacou ${val.toFixed(3)} TON`);
+  updateWalletUI();
+};
 
-// ===== ABAS =====
+// ===== MENU INFERIOR =====
 document.querySelectorAll(".tabButton").forEach(btn=>{
-  btn.onclick = function(){
-    const target = this.dataset.target;
-    document.querySelectorAll(".section").forEach(sec=>{
-      sec.classList.remove("active");
-    });
+  btn.onclick = ()=>{
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    const target = btn.getAttribute("data-target");
     document.getElementById(target).classList.add("active");
+    document.querySelectorAll(".tabButton").forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");
   };
 });
 
-// ===== INICIALIZAÇÕES =====
+// ===== INICIALIZAÇÃO =====
 updateBolsa();
 updateUpgrade();
 updateVaraInfo();
 updateWalletUI();
-
-}); // DOMContentLoaded
+});
 </script>
 </body>
 </html>
