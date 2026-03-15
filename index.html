@@ -39,7 +39,7 @@ button:hover { background-color:#0088cc; }
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
   <p>Vara ativa: <span id="currentVara">Vara de Bambu (Nível 1)</span></p>
-  <p id="chanceVara"></p>
+  <p id="varaChance">Chance de falha: 50%</p>
   <div id="bolsaContainer">
     <h4>Bolsa de varas:</h4>
     <div id="bolsa"></div>
@@ -92,8 +92,8 @@ const varas = {
   "Adamantium":[{level:1, chance:50, price:0, maxRarity:"Mítico"}]
 };
 
-// Chance de falha de upgrade por level
-const upgradeFailChance = {1:50,2:40,3:30,4:20,5:10};
+// Chance de falha por nível
+const failChance = {1:50,2:40,3:30,4:20,5:10};
 
 // Box chances
 const boxChances = {
@@ -127,27 +127,24 @@ const boxChances = {
   ]
 };
 
-// Peixes com preço
+// Peixes
 const fishes = [
   {name:"Sardinha", value:0.005, rarity:"Muito Comum", time:3000},
   {name:"Robalo", value:0.01, rarity:"Comum", time:4000},
-  {name:"Tilápia", value:0.02, rarity:"Comum", time:4000},
-  {name:"Tucunaré", value:0.03, rarity:"Comum", time:4000},
-  {name:"Atum", value:0.02, rarity:"Incomum", time:5000},
-  {name:"Dourado", value:0.03, rarity:"Incomum", time:5000},
-  {name:"Corvina", value:0.04, rarity:"Incomum", time:5000},
-  {name:"Garoupa adulta", value:0.03, rarity:"Raro", time:7000},
-  {name:"Pargo", value:0.04, rarity:"Raro", time:7000},
-  {name:"Badejo", value:0.05, rarity:"Raro", time:7000},
-  {name:"Salmão do Atlântico", value:0.04, rarity:"Épico", time:9000},
-  {name:"Atum Rabilho", value:0.05, rarity:"Épico", time:9000},
-  {name:"Peixe-espada", value:0.06, rarity:"Épico", time:9000},
-  {name:"Tubarão", value:0.05, rarity:"Lendário", time:12000},
-  {name:"Marlim Azul", value:0.06, rarity:"Lendário", time:12000},
-  {name:"Peixe-gato gigante", value:0.07, rarity:"Lendário", time:12000},
-  {name:"Tubarão-martelo", value:0.06, rarity:"Mítico", time:15000},
-  {name:"Marlim Branco", value:0.07, rarity:"Mítico", time:15000},
-  {name:"Peixe-voador Gigante", value:0.08, rarity:"Mítico", time:15000}
+  {name:"Badejo", value:0.02, rarity:"Comum", time:4000},
+  {name:"Corvina", value:0.03, rarity:"Comum", time:4000},
+  {name:"Atum", value:0.04, rarity:"Incomum", time:5000},
+  {name:"Garoupa", value:0.05, rarity:"Incomum", time:5000},
+  {name:"Pargo", value:0.06, rarity:"Incomum", time:5000},
+  {name:"Garoupa adulta", value:0.07, rarity:"Raro", time:7000},
+  {name:"Salmão", value:0.08, rarity:"Raro", time:7000},
+  {name:"Tainha", value:0.09, rarity:"Raro", time:7000},
+  {name:"Salmão do Atlântico", value:0.10, rarity:"Épico", time:9000},
+  {name:"Tubarão jovem", value:0.11, rarity:"Épico", time:9000},
+  {name:"Peixe-espada", value:0.12, rarity:"Épico", time:9000},
+  {name:"Tubarão", value:0.13, rarity:"Lendário", time:12000},
+  {name:"Marlim azul jovem", value:0.14, rarity:"Lendário", time:12000},
+  {name:"Marlim azul adulto", value:0.15, rarity:"Lendário", time:12000}
 ];
 
 // Inventário inicial
@@ -179,11 +176,10 @@ function getRandomFishByVara(vara){
   return allowed[Math.floor(Math.random()*allowed.length)];
 }
 
+// Atualiza display da chance da vara ativa
 function updateChanceDisplay(){
   const vara = getCurrentVara();
-  const lvl = vara.level;
-  const chance = upgradeFailChance[lvl] || 50;
-  document.getElementById("chanceVara").innerText = `Chance de falha na captura do peixe: ${chance}% (Lvl ${lvl})`;
+  document.getElementById("varaChance").innerText = `Chance de falha: ${failChance[vara.level]}%`;
 }
 
 // Atualiza bolsa
@@ -252,17 +248,18 @@ function updateUpgrade(){
               removed++;
             }
           }
-          // Falha do upgrade
-          if(Math.random()*100 < upgradeFailChance[parseInt(level)]){
-            bolsa.push({name:name, level:parseInt(level)}); // mantém 1
-            alert("Upgrade falhou! Você perdeu uma das varas.");
+          // Chance de falha do upgrade
+          const fail = Math.random()*100 < failChance[parseInt(level)];
+          if(fail){
+            // permanece com 1 do lvl anterior
+            bolsa.push({name:name, level:parseInt(level)});
+            alert("Falhou! Você perdeu uma das varas, mas manteve a outra.");
           } else {
             bolsa.push({name:name, level:parseInt(level)+1});
-            alert("Upgrade realizado!");
+            alert("Upgrade realizado com sucesso!");
           }
           updateBolsa();
           updateUpgrade();
-          updateChanceDisplay();
         }
       };
       upgradeDiv.appendChild(btn);
@@ -318,12 +315,12 @@ fishButton.onclick = function(){
   const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < upgradeFailChance[vara.level]){
+    if(Math.random()*100 < failChance[vara.level]){
       alert("O peixe escapou! 😢");
     } else {
       aquario.push(fish);
-      updateAquario();
-      result.innerHTML = `Você pescou um peixe: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span>`;
+      renderAquario();
+      result.innerHTML = `Você pegou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span>`;
     }
     fishButton.disabled = false;
     skipButton.style.display = "none";
@@ -336,43 +333,38 @@ skipButton.onclick = function(){
     fishingTimeout = null;
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < upgradeFailChance[vara.level]){
+    if(Math.random()*100 < failChance[vara.level]){
       alert("O peixe escapou! 😢");
     } else {
       aquario.push(fish);
-      updateAquario();
-      result.innerHTML = `Você pescou um peixe: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span>`;
+      renderAquario();
+      result.innerHTML = `Você pegou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span>`;
     }
     fishButton.disabled = false;
     skipButton.style.display = "none";
   }
 };
 
-function updateAquario(){
-  const aq = document.getElementById("aquario");
-  aq.innerHTML = "";
+// Render aquário
+function renderAquario(){
+  const aqu = document.getElementById("aquario");
+  aqu.innerHTML = "";
   aquario.forEach((f,i)=>{
-    const div = document.createElement("div");
-    div.innerHTML = `${f.name} (${f.rarity}) - <button onclick="sellFish(${i})">Vender por ${f.value.toFixed(3)} TRX</button>`;
-    aq.appendChild(div);
+    const btn = document.createElement("button");
+    btn.innerText = `${f.name} [${f.rarity}] - $${f.value.toFixed(3)}`;
+    btn.onclick = ()=>{
+      if(confirm(`Deseja vender ${f.name} por $${f.value.toFixed(3)}?`)){
+        money += f.value;
+        document.getElementById("money").innerText = "Saldo: " + money.toFixed(3);
+        aquario.splice(i,1);
+        renderAquario();
+      }
+    };
+    aqu.appendChild(btn);
   });
 }
 
-window.sellFish = function(i){
-  money += aquario[i].value;
-  document.getElementById("money").innerText = "Saldo: " + money.toFixed(3);
-  aquario.splice(i,1);
-  updateAquario();
-};
-
 // Abas
-document.querySelectorAll(".tabButton").forEach(btn=>{
-  btn.onclick = function(){
-    const target = this.dataset.target;
-    document.querySelectorAll(".section").forEach(sec=>{
-      sec.classList.remove("active");
-    });
-    document.getElementById(target).
 document.querySelectorAll(".tabButton").forEach(btn=>{
   btn.onclick = function(){
     const target = this.dataset.target;
@@ -383,13 +375,13 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
   };
 });
 
-// Inicializações
+// Inicialização
+document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
 updateChanceDisplay();
 updateBolsa();
 updateUpgrade();
 
 });
 </script>
-
 </body>
 </html>
