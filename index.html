@@ -30,7 +30,6 @@ button:hover { background-color:#0088cc; }
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo: 9999</h3>
 
-<!-- Seções -->
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
@@ -61,7 +60,6 @@ button:hover { background-color:#0088cc; }
   <div id="upgradeList"></div>
 </div>
 
-<!-- Menu inferior -->
 <div id="bottomMenu">
   <button class="tabButton" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="inventorySection">🎒 Inventário</button>
@@ -116,136 +114,81 @@ const fishes=[
 {name:"Marlim Azul",value:100,rarity:"Mítico",time:15000},
 {name:"Peixe-lua gigante",value:80,rarity:"Mítico",time:15000},
 {name:"Peixe-saberto",value:90,rarity:"Mítico",time:15000}
-]
+];
 
-// Inventário ativo e bolsa
+// Inventário e bolsa
 let inventory=[{name:"Bambu",level:1}];
 let currentVaraIndex=0;
 
 // Rarity class
-function rarityClass(rarity){
-switch(rarity){
-case "Muito Comum": return "fish-muito-comum";
-case "Comum": return "fish-comum";
-case "Incomum": return "fish-incomum";
-case "Raro": return "fish-raro";
-case "Épico": return "fish-epico";
-case "Lendário": return "fish-lendario";
-case "Mítico": return "fish-mitico";
-default: return "";
-}}
+function rarityClass(r){switch(r){case"Muito Comum":return"fish-muito-comum";case"Comum":return"fish-comum";case"Incomum":return"fish-incomum";case"Raro":return"fish-raro";case"Épico":return"fish-epico";case"Lendário":return"fish-lendario";case"Mítico":return"fish-mitico";default:return"";}}
 
 // Pesca
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function getRandomFishByVara(vara){
-const allowed=fishes.filter(f=>{
-const rarities=["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-return rarities.indexOf(f.rarity)<=rarities.indexOf(varas[vara.name][vara.level-1].maxRarity);
-})
+const allowed=fishes.filter(f=>["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"].indexOf(f.rarity)<=["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"].indexOf(varas[vara.name][vara.level-1].maxRarity));
 return allowed[Math.floor(Math.random()*allowed.length)];
 }
 
-// Atualiza inventário e bolsa
+// Inventário e Bolsa
 function updateInventoryDisplay(){
 const invDiv=document.getElementById("inventory");
 invDiv.innerHTML=`<b>Vara ativa:</b> ${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
-
 const bagDiv=document.getElementById("bag");
 bagDiv.innerHTML="";
+let bagMap={};
 inventory.forEach((v,i)=>{
 if(i!==currentVaraIndex){
-const btn=document.createElement("button");
-btn.innerText=`${v.name} (Nível ${v.level})`;
-btn.onclick=function(){
-currentVaraIndex=i;
-updateInventoryDisplay();
+const key=`${v.name}_N${v.level}`;
+bagMap[key]=bagMap[key]||{vara:v,count:0,indices:[]};
+bagMap[key].count++; bagMap[key].indices.push(i);
 }
+});
+for(const key in bagMap){
+const info=bagMap[key];
+const btn=document.createElement("button");
+btn.innerText=`${info.vara.name} (Nível ${info.vara.level}) x${info.count}`;
+btn.onclick=function(){ currentVaraIndex=info.indices[0]; updateInventoryDisplay(); }
 bagDiv.appendChild(btn);
 }
-})
 updateUpgradeDisplay();
 }
 
 // Abrir box
-function getVarasForBox(box){
-const boxDrops={
-"box1":["Fibra","Grafite"],
-"box2":["Grafite","Carbono"],
-"box3":["Carbono","Titânio"],
-"box4":["Titânio","Platina","Adamantium"]
-};
-return boxDrops[box].map(n=>({name:n,level:1}));
-}
-function openBox(box){
-const list=getVarasForBox(box);
-const selected=list[Math.floor(Math.random()*list.length)];
-inventory.push(selected); // vai para a bolsa
-alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
-updateInventoryDisplay();
-}
+function getVarasForBox(box){ const boxDrops={"box1":["Fibra","Grafite"],"box2":["Grafite","Carbono"],"box3":["Carbono","Titânio"],"box4":["Titânio","Platina","Adamantium"]}; return boxDrops[box].map(n=>({name:n,level:1})); }
+function openBox(box){ const list=getVarasForBox(box); const selected=list[Math.floor(Math.random()*list.length)]; inventory.push(selected); alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`); updateInventoryDisplay(); }
 
-// Pescar
-const fishButton=document.getElementById("fishButton");
-const skipButton=document.getElementById("skipButton");
-const result=document.getElementById("result");
-fishButton.onclick=function(){
-fishButton.disabled=true;
-skipButton.style.display="inline-block";
-const vara=getCurrentVara();
-const fish=getRandomFishByVara(vara);
-result.innerText="Esperando o peixe morder a isca...";
-fishingTimeout=setTimeout(()=>{
-if(Math.random()*100<varas[vara.name][vara.level-1].chance){ alert("O peixe escapou! 😢"); }
-else{ money+=fish.value; document.getElementById("money").innerText="Saldo: "+money; result.innerHTML=`Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`; }
-fishButton.disabled=false; skipButton.style.display="none";
-},fish.time);
-}
-
-// Pular espera
+// Pesca
+const fishButton=document.getElementById("fishButton"); const skipButton=document.getElementById("skipButton"); const result=document.getElementById("result");
+fishButton.onclick=function(){ fishButton.disabled=true; skipButton.style.display="inline-block"; const vara=getCurrentVara(); const fish=getRandomFishByVara(vara); result.innerText="Esperando o peixe morder a isca..."; fishingTimeout=setTimeout(()=>{ if(Math.random()*100<varas[vara.name][vara.level-1].chance){ alert("O peixe escapou! 😢"); } else{ money+=fish.value; document.getElementById("money").innerText="Saldo: "+money; result.innerHTML=`Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`; } fishButton.disabled=false; skipButton.style.display="none"; },fish.time); }
 skipButton.onclick=function(){ if(fishingTimeout){ clearTimeout(fishingTimeout); fishingTimeout=null; fishButton.disabled=false; skipButton.style.display="none"; } }
 
 // Upgrade
 function updateUpgradeDisplay(){
-const div=document.getElementById("upgradeList");
-div.innerHTML="";
+const div=document.getElementById("upgradeList"); div.innerHTML="";
 const bolsa=inventory.filter((v,i)=>i!==currentVaraIndex && v.name!=="Bambu");
 if(bolsa.length===0){ div.innerHTML="<p>Nenhuma vara disponível para upgrade!</p>"; return; }
-const rarities=["Fibra","Grafite","Carbono","Titânio","Platina","Adamantium"];
-rarities.forEach(name=>{
+["Fibra","Grafite","Carbono","Titânio","Platina","Adamantium"].forEach(name=>{
 const list=bolsa.filter(v=>v.name===name);
 if(list.length===0) return;
-const sec=document.createElement("div");
-sec.innerHTML=`<h4>${name}</h4>`;
+const sec=document.createElement("div"); sec.innerHTML=`<h4>${name}</h4>`;
 list.forEach((vara,i)=>{
-const nextLevel=vara.level+1;
-if(nextLevel>5) return;
-const btn=document.createElement("button");
-btn.innerText=`${vara.name} (Nível ${vara.level}) → Nível ${nextLevel}`;
+const nextLevel=vara.level+1; if(nextLevel>5) return;
+const btn=document.createElement("button"); btn.innerText=`${vara.name} (Nível ${vara.level}) → Nível ${nextLevel}`;
 btn.onclick=function(){
 const matIndex=inventory.findIndex((v,j)=>v.name===vara.name && v.level===vara.level && j!==currentVaraIndex);
 if(matIndex===-1){ alert("Precisa de outra vara igual para upgrade!"); return; }
 const confirma=confirm(`Usar esta vara e outra igual da bolsa para upar ${vara.name} para Nível ${nextLevel}?`);
 if(!confirma) return;
-inventory.splice(matIndex,1);
-vara.level=nextLevel;
-alert(`Upgrade realizado! ${vara.name} agora Nível ${vara.level}`);
-updateInventoryDisplay();
-updateUpgradeDisplay();
+inventory.splice(matIndex,1); vara.level=nextLevel; alert(`Upgrade realizado! ${vara.name} agora Nível ${vara.level}`); updateInventoryDisplay(); updateUpgradeDisplay();
 }
 sec.appendChild(btn);
+}); div.appendChild(sec);
 });
-div.appendChild(sec);
-})
 }
 
 // Abas
-document.querySelectorAll(".tabButton").forEach(btn=>{
-btn.onclick=function(){
-const target=this.dataset.target;
-document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"));
-document.getElementById(target).classList.add("active");
-}
-})
+document.querySelectorAll(".tabButton").forEach(btn=>{ btn.onclick=function(){ const target=this.dataset.target; document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active")); document.getElementById(target).classList.add("active"); } })
 
 // Box buttons
 document.getElementById("box1").onclick=()=>openBox("box1");
@@ -254,7 +197,6 @@ document.getElementById("box3").onclick=()=>openBox("box3");
 document.getElementById("box4").onclick=()=>openBox("box4");
 
 updateInventoryDisplay();
-
 });
 </script>
 </body>
