@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Super Fishing Pro</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+
+<body style="text-align:center;font-family:Arial">
+
+<h1>🎣 Super Fishing Pro</h1>
+
+<button onclick="pescar()" style="font-size:20px;padding:10px">
+Pescar
+</button>
+
+<p id="resultado"></p>
+
+<script>
+
+function pescar(){
+
+let peixes = [
+"Lambari",
+"Sardinha",
+"Tilápia"
+];
+
+let peixe = peixes[Math.floor(Math.random()*peixes.length)];
+
+document.getElementById("resultado").innerText =
+"🎣 Você pescou: " + peixe;
+
+}
+
+</script>
+
+</body>
+</html>
