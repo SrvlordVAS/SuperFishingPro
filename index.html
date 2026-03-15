@@ -105,13 +105,11 @@ let currentVaraIndex = 0
 function getCurrentVara(){ return inventory[currentVaraIndex] }
 function rarityClass(r){ return "fish-"+r.toLowerCase().replace(" ","-") }
 
+// Atualiza inventário e bolsa
 function updateInventoryDisplay(){
-  // Vara selecionada
   const current = getCurrentVara()
-  const display = document.getElementById("currentVaraDisplay")
-  display.innerHTML = `<p><strong>${current.name} (Nível ${current.level})</strong> - Chance de falha: ${varas[current.name][0].chance}% - Max Raridade: ${varas[current.name][0].maxRarity}</p>`
+  document.getElementById("currentVaraDisplay").innerHTML = `<p><strong>${current.name} (Nível ${current.level})</strong> - Chance de falha: ${varas[current.name][0].chance}% - Max Raridade: ${varas[current.name][0].maxRarity}</p>`
   
-  // Bolsa
   const bagDiv = document.getElementById("bag")
   bagDiv.innerHTML = ""
   inventory.forEach((v,i)=>{
@@ -121,6 +119,7 @@ function updateInventoryDisplay(){
       btn.onclick = function(){
         currentVaraIndex = i
         updateInventoryDisplay()
+        document.getElementById("currentVara").innerText = `${v.name} (Nível ${v.level})`
       }
       bagDiv.appendChild(btn)
     }
@@ -180,7 +179,7 @@ skipButton.onclick = function(){
   }
 }
 
-// Box Loja
+// Loja Box
 function getVarasForBox(type){
   let list = []
   if(type==="Comum") list = ["Fibra","Grafite"]
@@ -197,7 +196,6 @@ document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria")
 
 function openBox(type){
   const list = getVarasForBox(type)
-  if(list.length===0){ alert("Nenhuma vara disponível!"); return }
   const selected = list[Math.floor(Math.random()*list.length)]
   inventory.push(selected)
   currentVaraIndex = inventory.length-1
@@ -215,6 +213,7 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
 
 updateInventoryDisplay()
 document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`
+
 })
 </script>
 </body>
