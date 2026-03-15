@@ -45,8 +45,11 @@ button:hover { background-color:#0088cc; }
 
 <div id="shopSection" class="section">
   <h3>Loja</h3>
-  <div id="shopBuy">
-    <h4>Comprar novas varas:</h4>
+  <div id="shopBoxes">
+    <h4>Abra uma box:</h4>
+    <button id="boxComum">📦 Box Comum</button>
+    <button id="boxRara">📦 Box Rara</button>
+    <button id="boxEpica">📦 Box Épica</button>
   </div>
   <div id="shopUpgrades">
     <h4>Upgrades:</h4>
@@ -155,7 +158,7 @@ function getRandomFishByVara(vara){
   return allowed[Math.floor(Math.random()*allowed.length)]
 }
 
-// Atualiza inventário e loja
+// Atualiza inventário
 function updateInventoryDisplay(){
   const invDiv = document.getElementById("inventory")
   invDiv.innerHTML = ""
@@ -170,58 +173,64 @@ function updateInventoryDisplay(){
     }
     invDiv.appendChild(btn)
   })
-  updateShop()
+  updateShopUpgrades()
 }
 
-// Loja: compra novas varas
-function updateShop(){
-  const shopBuyDiv = document.getElementById("shopBuy")
-  const shopUpgradesDiv = document.getElementById("shopUpgrades")
-  shopBuyDiv.innerHTML = "<h4>Comprar novas varas:</h4>"
-  shopUpgradesDiv.innerHTML = "<h4>Upgrades:</h4>"
-
-  // Comprar novas varas
+// Loja: Box system
+function getVarasForBox(type){
+  let list = []
   for(const v in varas){
-    if(!inventory.some(inv=>inv.name===v)){
-      const btn = document.createElement("button")
-      btn.innerText = `Comprar ${v} (Preço Nível 1: ${varas[v][0].price}$)`
-      btn.onclick = function(){
-        if(money >= varas[v][0].price){
-          money -= varas[v][0].price
-          inventory.push({name:v, level:1})
-          currentVaraIndex = inventory.length-1
-          updateInventoryDisplay()
-          document.getElementById("money").innerText = "Saldo: "+money
-        } else {
-          alert("Saldo insuficiente!")
-        }
-      }
-      shopBuyDiv.appendChild(btn)
+    if(v==="Bambu") continue
+    if(type==="Comum" && ["Fibra"].includes(v)){
+      list.push({name:v,level:1})
+    }
+    if(type==="Rara" && ["Fibra","Grafite"].includes(v)){
+      list.push({name:v,level:1})
+    }
+    if(type==="Epica" && ["Grafite"].includes(v)){
+      list.push({name:v,level:1})
     }
   }
+  return list
+}
 
-  // Upgrade da vara atual
+function updateShopUpgrades(){
+  const shopUpgradesDiv = document.getElementById("shopUpgrades")
+  shopUpgradesDiv.innerHTML = "<h4>Upgrades:</h4>"
   const vara = getCurrentVara()
   const nextLevel = vara.level + 1
   if(varas[vara.name][nextLevel-1]){
     const upg = varas[vara.name][nextLevel-1]
     const btn = document.createElement("button")
-    btn.innerText = `Upgrade para Nível ${nextLevel} - ${upg.price}$ - Chance do peixe escapar: ${upg.chance}%`
+    btn.innerText = `Upgrade para Nível ${nextLevel} - ${upg.chance}% de falha`
     btn.onclick = function(){
       if(money >= upg.price){
         money -= upg.price
         vara.level = nextLevel
         updateInventoryDisplay()
         document.getElementById("money").innerText = "Saldo: "+money
-        alert("Upgrade realizado com sucesso!")
-      } else {
-        alert("Saldo insuficiente!")
-      }
+        alert("Upgrade realizado!")
+      } else alert("Saldo insuficiente!")
     }
     shopUpgradesDiv.appendChild(btn)
   } else {
     shopUpgradesDiv.innerHTML += "<p>Vara no nível máximo!</p>"
   }
+}
+
+// Abrir box
+document.getElementById("boxComum").onclick = ()=>openBox("Comum")
+document.getElementById("boxRara").onclick = ()=>openBox("Rara")
+document.getElementById("boxEpica").onclick = ()=>openBox("Epica")
+
+function openBox(type){
+  const list = getVarasForBox(type)
+  if(list.length===0){ alert("Nenhuma vara disponível!"); return }
+  const selected = list[Math.floor(Math.random()*list.length)]
+  inventory.push(selected)
+  currentVaraIndex = inventory.length-1
+  updateInventoryDisplay()
+  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`)
 }
 
 // Pescar
