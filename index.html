@@ -12,10 +12,20 @@ body {
   padding:20px;
 }
 
-h1 { color:#006994; text-shadow: 2px 2px #aee1f7; }
-h3 { color:#004466; }
+h1 {
+  color:#006994;
+  text-shadow: 2px 2px #aee1f7;
+}
 
-#result { font-size:18px; margin:15px 0 30px 0; min-height:30px; }
+h3 {
+  color:#004466;
+}
+
+#result {
+  font-size:18px;
+  margin:15px 0 30px 0;
+  min-height:30px;
+}
 
 button {
   display:inline-block;
@@ -29,7 +39,10 @@ button {
   margin:10px 0;
   transition:0.2s;
 }
-button:hover { background-color:#0088cc; }
+
+button:hover {
+  background-color:#0088cc;
+}
 
 .fish-muito-comum {color:gray;}
 .fish-comum {color:green;}
@@ -37,4 +50,66 @@ button:hover { background-color:#0088cc; }
 .fish-raro {color:purple;}
 .fish-epico {color:orange;}
 .fish-lendario {color:red;}
-.fish-mitico {color:black; background:yellow;
+.fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
+</style>
+</head>
+
+<body>
+
+<h1>🎣 Super Fishing</h1>
+<h3 id="money">Saldo: 0</h3>
+<p id="result">Clique em pescar</p>
+<button id="fishButton">🎣 PESCAR</button>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+let money = 0
+
+const fishes = [
+  {name:"Peixinho", value:1, rarity:"Muito Comum"},
+  {name:"Lambari", value:1, rarity:"Muito Comum"},
+  {name:"Sardinha", value:2, rarity:"Comum"},
+  {name:"Tilápia", value:3, rarity:"Comum"},
+  {name:"Carpa", value:5, rarity:"Incomum"},
+  {name:"Pacu", value:6, rarity:"Incomum"},
+  {name:"Tucunaré", value:10, rarity:"Raro"},
+  {name:"Dourado", value:12, rarity:"Raro"},
+  {name:"Salmão", value:18, rarity:"Épico"},
+  {name:"Atum Gigante", value:20, rarity:"Épico"},
+  {name:"Peixe Espada", value:30, rarity:"Lendário"},
+  {name:"Tubarão Martelo", value:35, rarity:"Lendário"},
+  {name:"Kraken Jovem", value:60, rarity:"Mítico"},
+  {name:"Leviatã", value:100, rarity:"Mítico"}
+]
+
+function getRandomFish(){
+  return fishes[Math.floor(Math.random() * fishes.length)]
+}
+
+function rarityClass(rarity){
+  switch(rarity){
+    case "Muito Comum": return "fish-muito-comum";
+    case "Comum": return "fish-comum";
+    case "Incomum": return "fish-incomum";
+    case "Raro": return "fish-raro";
+    case "Épico": return "fish-epico";
+    case "Lendário": return "fish-lendario";
+    case "Mítico": return "fish-mitico";
+    default: return "";
+  }
+}
+
+document.getElementById("fishButton").onclick = function(){
+  let fish = getRandomFish()
+  money += fish.value
+  document.getElementById("money").innerText = "Saldo: " + money
+  document.getElementById("result").innerHTML = 
+    `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+}
+
+})
+</script>
+
+</body>
+</html>
