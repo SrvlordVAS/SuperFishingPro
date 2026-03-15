@@ -4,11 +4,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 120px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
+body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 80px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
 h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
 h3 { color:#004466; }
-#result { font-size:18px; margin:15px 0 30px 0; min-height:40px; }
-button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:8px; padding:10px 15px; font-size:16px; cursor:pointer; margin:3px; transition:0.2s; }
+#result { font-size:16px; margin:10px 0 20px 0; min-height:40px; }
+button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:6px; padding:5px 8px; font-size:12px; cursor:pointer; margin:3px; transition:0.2s; }
 button:hover { background-color:#0088cc; }
 .fish-muito-comum {color:gray;}
 .fish-comum {color:green;}
@@ -17,15 +17,15 @@ button:hover { background-color:#0088cc; }
 .fish-epico {color:orange;}
 .fish-lendario {color:red;}
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
-.section { display:none; margin-top:20px; }
+.section { display:none; margin-top:15px; }
 .section.active { display:block; }
-#inventory, #shop, #upgradeSection, #bolsa, #aquario { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
-#bottomMenu button { flex:1; margin:0 5px; }
+#inventory, #shop, #upgradeSection, #bolsa, #aquario { border:1px solid #004466; padding:8px; margin:10px auto; width:90%; max-width:400px; border-radius:6px; background:#e0f7ff; text-align:left; font-size:12px; }
+#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-between; flex-wrap:nowrap; padding:5px 2px; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
+#bottomMenu button { flex: 0 1 auto; margin:0 3px; padding:5px 8px; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 .submenu { margin-left:10px; display:none; }
-.submenu button { margin:3px 0; width:100%; text-align:left; }
-.bag-header { cursor:pointer; background:#0088cc; padding:5px; border-radius:5px; margin:3px 0; color:white; }
+.submenu button { margin:3px 0; width:100%; text-align:left; font-size:12px; }
+.bag-header { cursor:pointer; background:#0088cc; padding:3px; border-radius:4px; margin:2px 0; color:white; font-size:12px; }
 </style>
 </head>
 <body>
@@ -103,13 +103,13 @@ let sunBalance = 0;
 
 // VARAS
 const varas = {
-  "Bambu":[{level:1, chance:50, price:0, maxRarity:"Muito Comum"}],
-  "Fibra":[{level:1, chance:50, price:0, maxRarity:"Comum"}],
-  "Grafite":[{level:1, chance:50, price:0, maxRarity:"Incomum"}],
-  "Carbono":[{level:1, chance:50, price:0, maxRarity:"Raro"}],
-  "Titânio":[{level:1, chance:50, price:0, maxRarity:"Épico"}],
-  "Platina":[{level:1, chance:50, price:0, maxRarity:"Lendário"}],
-  "Adamantium":[{level:1, chance:50, price:0, maxRarity:"Mítico"}]
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum"}],
+  "Fibra":[{level:1, chance:50, maxRarity:"Comum"}],
+  "Grafite":[{level:1, chance:50, maxRarity:"Incomum"}],
+  "Carbono":[{level:1, chance:50, maxRarity:"Raro"}],
+  "Titânio":[{level:1, chance:50, maxRarity:"Épico"}],
+  "Platina":[{level:1, chance:50, maxRarity:"Lendário"}],
+  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico"}]
 };
 
 // BOX CHANCES
@@ -293,11 +293,7 @@ function openBox(type, price){
     alert("Saldo SUN insuficiente!"); 
     return; 
   }
-  let msg = `Você vai abrir a box ${type}.\nPreço: ${price} SUN\nPossíveis varas e suas chances:\n\n`;
-  const chances = boxChances[type];
-  chances.forEach(v => { msg += `${v.name}: ${v.chance}%\n`; });
-  msg += `\nDeseja continuar?`;
-  if(confirm(msg)){
+  if(confirm(`Abrir a box ${type} por ${price} SUN?`)){
     sunBalance -= price;
     const selected = getVarasForBox(type);
     bolsa.push(selected);
@@ -326,16 +322,7 @@ fishButton.onclick = function(){
   const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < varas[vara.name][0].chance){
-      alert("O peixe escapou! 😢");
-    } else {
-      aquario.push(fish);
-      updateAquario();
-      alert(`Você pescou: ${fish.name} (${fish.rarity})! Valor: ${fish.value.toFixed(3)} SUN`);
-      sunBalance += fish.value;
-    }
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
+    handleFishCaught(fish, vara);
   }, fish.time);
 };
 
@@ -345,18 +332,23 @@ skipButton.onclick = function(){
     fishingTimeout = null;
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < varas[vara.name][0].chance){
-      alert("O peixe escapou! 😢");
-    } else {
-      aquario.push(fish);
-      sunBalance += fish.value;
-      updateAquario();
-      alert(`Você pescou: ${fish.name} (${fish.rarity})! Valor: ${fish.value.toFixed(3)} SUN`);
-    }
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
+    handleFishCaught(fish, vara);
   }
 };
+
+function handleFishCaught(fish, vara){
+  if(Math.random()*100 < varas[vara.name][0].chance){
+    alert("O peixe escapou! 😢");
+  } else {
+    aquario.push(fish);
+    updateAquario();
+    alert(`Você pescou: ${fish.name} (${fish.rarity}) e ganhou ${fish.value.toFixed(3)} SUN`);
+    sunBalance += fish.value;
+  }
+  fishButton.disabled = false;
+  skipButton.style.display = "none";
+  updateWalletUI();
+}
 
 // ===== AQUÁRIO =====
 function updateAquario(){
@@ -364,42 +356,43 @@ function updateAquario(){
   div.innerHTML = "";
   aquario.forEach((f,i)=>{
     const btn = document.createElement("button");
-    btn.innerHTML = `<span class="${rarityClass(f.rarity)}">${f.name} (${f.rarity})</span> - ${f.value.toFixed(3)} SUN`;
+    btn.innerText = `${f.name} [${f.rarity}] - ${f.value.toFixed(3)} SUN`;
     btn.onclick = ()=>{
       if(confirm(`Deseja vender ${f.name} por ${f.value.toFixed(3)} SUN?`)){
         sunBalance += f.value;
         aquario.splice(i,1);
         updateAquario();
-        updateMoney();
+        updateWalletUI();
       }
     };
     div.appendChild(btn);
   });
 }
 
-function updateMoney(){
-  document.getElementById("money").innerText = `Saldo: ${sunBalance.toFixed(3)}`;
-}
-
-// ===== TAB MENU =====
-const tabs = document.querySelectorAll(".tabButton");
-tabs.forEach(tab=>{
-  tab.onclick = ()=>{
-    document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"));
-    document.getElementById(tab.dataset.target).classList.add("active");
-    tabs.forEach(t=>t.classList.remove("selected"));
-    tab.classList.add("selected");
+// ===== ABAS =====
+document.querySelectorAll(".tabButton").forEach(btn=>{
+  btn.onclick = function(){
+    const target = this.dataset.target;
+    document.querySelectorAll(".section").forEach(sec=>{
+      sec.classList.remove("active");
+    });
+    document.getElementById(target).classList.add("active");
   };
 });
 
+// ===== ATUALIZAÇÃO DE SALDO =====
+function updateWalletUI(){
+  document.getElementById("money").innerText = `Saldo: ${sunBalance.toFixed(3)} SUN`;
+}
+
 // ===== INICIALIZAÇÃO =====
-updateMoney();
+updateVaraInfo();
 updateBolsa();
 updateUpgrade();
-updateVaraInfo();
 updateAquario();
+updateWalletUI();
 
-});
+}); // DOMContentLoaded
 </script>
 
 </body>
