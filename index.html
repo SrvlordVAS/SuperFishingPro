@@ -4,7 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
 </head>
-
 <body style="text-align:center;font-family:Arial">
 
 <h1>🎣 Super Fishing</h1>
@@ -17,10 +16,11 @@
 </div>
 
 <p id="result">Clique em pescar</p>
-
 <div id="menu" style="display:none; border:1px solid #000; padding:10px; margin-top:10px;"></div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function(){
+
 let money = 0
 let rod = 0
 let caughtFishes = []
@@ -76,44 +76,20 @@ function buyRod(index){
     alert("Você já tem esta vara ou uma melhor!")
     return
   }
-  
   let rodToBuy = rods[index]
-  
   if(money >= rodToBuy.price){
     money -= rodToBuy.price
     rod = index
     updateMoney()
     alert("Você comprou a " + rodToBuy.name + "!")
     showRodMenu()
-  }else{
-    alert("Dinheiro insuficiente!")
-  }
+  } else alert("Dinheiro insuficiente!")
 }
 
 function showRodMenu(){
   let menu = document.getElementById("menu")
-  let html = "<h3>Varas</h3><ul>"
+  menu.innerHTML = "<h3>Varas</h3><ul></ul>"
+  let ul = menu.querySelector("ul")
   
   rods.forEach((r,i)=>{
-    html += "<li>"+r.name+" (Max: "+r.maxRarity+") "
-    
-    if(i > rod){ 
-      html += "- Preço: "+r.price+" "
-      html += "<span id='buyRod"+i+"'>Comprar</span>"
-    }
-    else html += "- Usando"
-    
-    html += "</li>"
-  })
-  
-  html += "</ul>"
-  menu.innerHTML = html
-  menu.style.display = "block"
-  
-  // Adiciona evento de clique aos spans
-  rods.forEach((r,i)=>{
-    if(i > rod){
-      let btn = document.getElementById("buyRod"+i)
-      btn.style.cursor = "pointer"
-      btn.style.color = "blue"
-      btn.addEventListener("click", function(){ buyRod(i
+    let li =
