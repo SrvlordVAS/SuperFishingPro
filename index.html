@@ -71,37 +71,11 @@ button:hover { background-color:#0088cc; }
   <div id="upgrade"></div>
 </div>
 
-<!-- CARTEIRA MODERNA -->
-<div id="walletSection" class="section">
-  <h3>💰 Carteira</h3>
-  <p id="walletSun">Saldo SUN: 0</p>
-  <p id="walletTon">Saldo TON: 0</p>
-
-  <div style="margin-top:15px;">
-    <label>Depositar TON:</label><br>
-    <input type="number" id="depositInput" placeholder="0" min="0" step="0.01">
-    <button id="depositBtn">💸 Depositar</button>
-  </div>
-
-  <div style="margin-top:15px;">
-    <label>Trocar SUN → TON:</label><br>
-    <input type="number" id="exchangeInput" placeholder="0" min="0" step="0.01">
-    <button id="exchangeBtn">🔄 Trocar</button>
-  </div>
-
-  <div style="margin-top:15px;">
-    <label>Sacar TON:</label><br>
-    <input type="number" id="withdrawInput" placeholder="0" min="0" step="0.01">
-    <button id="withdrawBtn">🏧 Retirar</button>
-  </div>
-</div>
-
 <!-- INFORMAÇÕES -->
 <div id="infoSection" class="section">
   <h3>ℹ️ Informações Gerais</h3>
   <p>🎣 Pescando peixes você ganha SUN.</p>
   <p>💰 SUN serve para abrir boxes e fazer upgrades.</p>
-  <p>🔄 SUN pode ser trocada por TON, e TON pode ser sacado ou depositado.</p>
   <p>🛠 Varas podem ser upgradadas usando 2 do mesmo nível.</p>
   <p>📦 Boxes possuem chance de gerar varas melhores.</p>
 </div>
@@ -112,7 +86,6 @@ button:hover { background-color:#0088cc; }
   <button class="tabButton" data-target="aquarioSection">🐠 Aquário</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
   <button class="tabButton" data-target="upgradeSection">⚒ Upgrade</button>
-  <button class="tabButton" data-target="walletSection">💳 Carteira</button>
   <button class="tabButton" data-target="infoSection">ℹ️ Info</button>
 </div>
 
@@ -127,7 +100,6 @@ let fishingTimeout = null;
 
 // MOEDAS
 let sunBalance = 0;
-let tonBalance = 0;
 
 // VARAS
 const varas = {
@@ -327,7 +299,6 @@ function openBox(type, price){
   msg += `\nDeseja continuar?`;
   if(confirm(msg)){
     sunBalance -= price;
-    updateWalletUI();
     const selected = getVarasForBox(type);
     bolsa.push(selected);
     updateBolsa();
@@ -360,9 +331,8 @@ fishButton.onclick = function(){
     } else {
       aquario.push(fish);
       updateAquario();
-      sunBalance += fish.value;
-      updateWalletUI();
       alert(`Você pescou: ${fish.name} (${fish.rarity})! Valor: ${fish.value.toFixed(3)} SUN`);
+      sunBalance += fish.value;
     }
     fishButton.disabled = false;
     skipButton.style.display = "none";
@@ -370,72 +340,67 @@ fishButton.onclick = function(){
 };
 
 skipButton.onclick = function(){
-  clearTimeout(fishingTimeout);
-  fishButton.disabled = false;
-  skipButton.style.display = "none";
-  result.innerText = "Você pulou a espera.";
+  if(fishingTimeout){
+    clearTimeout(fishingTimeout);
+    fishingTimeout = null;
+    const vara = getCurrentVara();
+    const fish = getRandomFishByVara(vara);
+    if(Math.random()*100 < varas[vara.name][0].chance){
+      alert("O peixe escapou! 😢");
+    } else {
+      aquario.push(fish);
+      sunBalance += fish.value;
+      updateAquario();
+      alert(`Você pescou: ${fish.name} (${fish.rarity})! Valor: ${fish.value.toFixed(3)} SUN`);
+    }
+    fishButton.disabled = false;
+    skipButton.style.display = "none";
+  }
 };
 
+// ===== AQUÁRIO =====
 function updateAquario(){
-  const aquarioDiv = document.getElementById("aquario");
-  aquarioDiv.innerHTML = "";
-  aquario.forEach(f=>{
-    const p = document.createElement("p");
-    p.innerHTML = `<span class="${rarityClass(f.rarity)}">${f.name} (${f.rarity})</span> - Valor: ${f.value.toFixed(3)} SUN`;
-    aquarioDiv.appendChild(p);
+  const div = document.getElementById("aquario");
+  div.innerHTML = "";
+  aquario.forEach((f,i)=>{
+    const btn = document.createElement("button");
+    btn.innerHTML = `<span class="${rarityClass(f.rarity)}">${f.name} (${f.rarity})</span> - ${f.value.toFixed(3)} SUN`;
+    btn.onclick = ()=>{
+      if(confirm(`Deseja vender ${f.name} por ${f.value.toFixed(3)} SUN?`)){
+        sunBalance += f.value;
+        aquario.splice(i,1);
+        updateAquario();
+        updateMoney();
+      }
+    };
+    div.appendChild(btn);
   });
 }
 
-// ===== CARTEIRA MODERNA =====
-function updateWalletUI(){
-  document.getElementById("walletSun").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`;
-  document.getElementById("walletTon").innerText = `Saldo TON: ${tonBalance.toFixed(3)}`;
+function updateMoney(){
+  document.getElementById("money").innerText = `Saldo: ${sunBalance.toFixed(3)}`;
 }
 
-document.getElementById("depositBtn").onclick = ()=>{
-  const val = parseFloat(document.getElementById("depositInput").value);
-  if(isNaN(val) || val <= 0){ alert("Valor inválido"); return; }
-  if(tonBalance < val){ alert("Saldo TON insuficiente"); return; }
-  tonBalance -= val;
-  sunBalance += val*100; // taxa de conversão 1 TON = 100 SUN
-  updateWalletUI();
-};
-
-document.getElementById("exchangeBtn").onclick = ()=>{
-  const val = parseFloat(document.getElementById("exchangeInput").value);
-  if(isNaN(val) || val <= 0){ alert("Valor inválido"); return; }
-  if(sunBalance < val){ alert("Saldo SUN insuficiente"); return; }
-  sunBalance -= val;
-  tonBalance += val/100; // 100 SUN = 1 TON
-  updateWalletUI();
-};
-
-document.getElementById("withdrawBtn").onclick = ()=>{
-  const val = parseFloat(document.getElementById("withdrawInput").value);
-  if(isNaN(val) || val <=0){ alert("Valor inválido"); return; }
-  if(tonBalance < val){ alert("Saldo TON insuficiente"); return; }
-  tonBalance -= val;
-  alert(`Você sacou ${val.toFixed(3)} TON`);
-  updateWalletUI();
-};
-
-// ===== MENU INFERIOR =====
-document.querySelectorAll(".tabButton").forEach(btn=>{
-  btn.onclick = ()=>{
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    const target = btn.getAttribute("data-target");
-    document.getElementById(target).classList.add("active");
-    document.querySelectorAll(".tabButton").forEach(b=>b.classList.remove("selected"));
-    btn.classList.add("selected");
+// ===== TAB MENU =====
+const tabs = document.querySelectorAll(".tabButton");
+tabs.forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"));
+    document.getElementById(tab.dataset.target).classList.add("active");
+    tabs.forEach(t=>t.classList.remove("selected"));
+    tab.classList.add("selected");
   };
 });
 
 // ===== INICIALIZAÇÃO =====
+updateMoney();
 updateBolsa();
 updateUpgrade();
 updateVaraInfo();
-updateWalletUI();
+updateAquario();
+
 });
 </script>
+
 </body>
 </html>
