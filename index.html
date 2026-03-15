@@ -180,6 +180,31 @@ skipButton.onclick = function(){
   }
 }
 
+// Box Loja
+function getVarasForBox(type){
+  let list = []
+  if(type==="Comum") list = ["Fibra","Grafite"]
+  if(type==="Rara") list = ["Grafite","Carbono"]
+  if(type==="Epica") list = ["Carbono","Titânio"]
+  if(type==="Lendaria") list = ["Titânio","Platina","Adamantium"]
+  return list.map(v=>({name:v, level:1}))
+}
+
+document.getElementById("boxComum").onclick = ()=>openBox("Comum")
+document.getElementById("boxRara").onclick = ()=>openBox("Rara")
+document.getElementById("boxEpica").onclick = ()=>openBox("Epica")
+document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria")
+
+function openBox(type){
+  const list = getVarasForBox(type)
+  if(list.length===0){ alert("Nenhuma vara disponível!"); return }
+  const selected = list[Math.floor(Math.random()*list.length)]
+  inventory.push(selected)
+  currentVaraIndex = inventory.length-1
+  updateInventoryDisplay()
+  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`)
+}
+
 // Abas
 document.querySelectorAll(".tabButton").forEach(btn=>{
   btn.onclick = function(){
