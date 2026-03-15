@@ -51,12 +51,28 @@ button:hover { background-color:#0088cc; }
 
 <h3>Escolha sua vara:</h3>
 <select id="varaSelect">
-  <option value="Muito Comum">Vara de Bambu</option>
-  <option value="Incomum">Vara de Fibra</option>
-  <option value="Raro">Vara de Carbono</option>
-  <option value="Épico">Vara de Grafite</option>
-  <option value="Lendário">Vara Profissional do Oceano</option>
-  <option value="Mítico">Vara Mestre do Oceano</option>
+  <!-- Muito Comum -->
+  <option value="Muito Comum|0">Vara de Bambu (Grátis)</option>
+  <!-- Incomum -->
+  <option value="Incomum|30">Vara de Fibra 1 (30% quebra)</option>
+  <option value="Incomum|20">Vara de Fibra 2 (20% quebra)</option>
+  <option value="Incomum|10">Vara de Fibra 3 (10% quebra)</option>
+  <!-- Raro -->
+  <option value="Raro|30">Vara de Carbono 1 (30% quebra)</option>
+  <option value="Raro|20">Vara de Carbono 2 (20% quebra)</option>
+  <option value="Raro|10">Vara de Carbono 3 (10% quebra)</option>
+  <!-- Épico -->
+  <option value="Épico|30">Vara de Grafite 1 (30% quebra)</option>
+  <option value="Épico|20">Vara de Grafite 2 (20% quebra)</option>
+  <option value="Épico|10">Vara de Grafite 3 (10% quebra)</option>
+  <!-- Lendário -->
+  <option value="Lendário|30">Vara Profissional 1 (30% quebra)</option>
+  <option value="Lendário|20">Vara Profissional 2 (20% quebra)</option>
+  <option value="Lendário|10">Vara Profissional 3 (10% quebra)</option>
+  <!-- Mítico -->
+  <option value="Mítico|30">Vara Mestre 1 (30% quebra)</option>
+  <option value="Mítico|20">Vara Mestre 2 (20% quebra)</option>
+  <option value="Mítico|10">Vara Mestre 3 (10% quebra)</option>
 </select>
 
 <script>
@@ -137,7 +153,7 @@ fishButton.onclick = function(){
   fishButton.disabled = true
   skipButton.style.display = "inline-block"
   
-  const varaRarity = varaSelect.value
+  const [varaRarity, chance] = varaSelect.value.split("|")
   const fish = getRandomFishByVara(varaRarity)
   
   result.innerText = "Esperando o peixe morder a isca..."
@@ -145,6 +161,12 @@ fishButton.onclick = function(){
   fishingTimeout = setTimeout(() => {
     money += fish.value
     result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+    
+    // Verifica se a vara quebra
+    if(varaRarity !== "Muito Comum" && Math.random()*100 < Number(chance)){
+      alert("Ops! Sua vara quebrou 😢")
+    }
+    
     document.getElementById("money").innerText = "Saldo: " + money
     fishButton.disabled = false
     skipButton.style.display = "none"
@@ -155,10 +177,16 @@ skipButton.onclick = function(){
   if(fishingTimeout){
     clearTimeout(fishingTimeout)
     fishingTimeout = null
-    const varaRarity = varaSelect.value
+    const [varaRarity, chance] = varaSelect.value.split("|")
     const fish = getRandomFishByVara(varaRarity)
     money += fish.value
     result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+    
+    // Verifica se a vara quebra
+    if(varaRarity !== "Muito Comum" && Math.random()*100 < Number(chance)){
+      alert("Ops! Sua vara quebrou 😢")
+    }
+    
     document.getElementById("money").innerText = "Saldo: " + money
     fishButton.disabled = false
     skipButton.style.display = "none"
