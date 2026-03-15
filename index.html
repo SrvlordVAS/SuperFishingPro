@@ -81,6 +81,10 @@ document.addEventListener("DOMContentLoaded", function(){
 let money = 500;
 let fishingTimeout = null;
 
+// Novo: contador de peixes por dia
+let dailyCatch = 0;
+const dailyLimit = 15;
+
 // Varas
 const varas = {
   "Bambu":[{level:1, chance:50, price:0, maxRarity:"Muito Comum"}],
@@ -235,7 +239,7 @@ function updateUpgrade(){
             }
           }
           // Nova regra: se falhar, mantém 1 e perde a outra
-          const failChance = parseInt(level)*10; // Ex: lvl1=10%, lvl2=20%, etc
+          const failChance = parseInt(level)*10;
           if(Math.random()*100 < failChance){
             bolsa.push({name:name, level:parseInt(level)});
             alert("Upgrade falhou! Você perdeu apenas uma vara.");
@@ -291,12 +295,17 @@ function openBox(type, price){
   }
 }
 
-// Pescar
+// Pescar com limite diário
 const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
 
 fishButton.onclick = function(){
+  if(dailyCatch >= dailyLimit){
+    alert("Você já pescou 15 peixes hoje! Volte amanhã 😢");
+    return;
+  }
+
   fishButton.disabled = true;
   skipButton.style.display = "inline-block";
   const vara = getCurrentVara();
@@ -307,6 +316,7 @@ fishButton.onclick = function(){
       alert("O peixe escapou! 😢");
     } else {
       aquario.push(fish);
+      dailyCatch++;
       updateAquario();
       alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
     }
@@ -319,12 +329,21 @@ skipButton.onclick = function(){
   if(fishingTimeout){
     clearTimeout(fishingTimeout);
     fishingTimeout = null;
+
+    if(dailyCatch >= dailyLimit){
+      alert("Você já pescou 15 peixes hoje! Volte amanhã 😢");
+      fishButton.disabled = false;
+      skipButton.style.display = "none";
+      return;
+    }
+
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
     if(Math.random()*100 < varas[vara.name][0].chance){
       alert("O peixe escapou! 😢");
     } else {
       aquario.push(fish);
+      dailyCatch++;
       updateAquario();
       alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
     }
