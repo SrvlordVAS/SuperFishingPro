@@ -1,53 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Super Fishing</title>
+
+<style>
+
+body{
+text-align:center;
+font-family:Arial;
+background:linear-gradient(#6ec6ff,#1e88e5);
+color:white;
+}
+
+h1{
+margin-top:20px;
+}
+
+button{
+font-size:22px;
+padding:15px 30px;
+border:none;
+border-radius:10px;
+background:#ffca28;
+cursor:pointer;
+}
+
+button:hover{
+background:#ffc107;
+}
+
+#fish{
+font-size:60px;
+margin:20px;
+}
+
+.card{
+background:rgba(0,0,0,0.2);
+padding:15px;
+border-radius:10px;
+margin:10px;
+display:inline-block;
+}
+
+</style>
+
 </head>
 
-<body style="text-align:center;font-family:sans-serif;background:#87CEEB">
+<body>
 
 <h1>🎣 Super Fishing</h1>
 
+<div class="card">
 <h3 id="rod">Vara: Vara de Bambu</h3>
 <h3 id="money">Saldo: 0</h3>
+</div>
 
-<p id="result">Clique em pescar</p>
+<div id="fish">🐟</div>
 
-<button onclick="fish()" style="font-size:20px;padding:10px 20px">
-🎣 PESCAR
-</button>
+<p id="result">Clique para pescar</p>
+
+<button onclick="fish()">🎣 PESCAR</button>
 
 <br><br>
 
-<button onclick="buyRod()">
-Comprar próxima vara
-</button>
+<button onclick="buyRod()">⬆ Comprar próxima vara</button>
 
 <script>
 
 let money = Number(localStorage.getItem("money")) || 0
-let rod = Number(localStorage.getItem("rod")) || 1
-
-const fishes = [
-{name:"Peixinho", value:1},
-{name:"Sardinha", value:2},
-{name:"Tilápia", value:3},
-{name:"Carpa", value:4},
-{name:"Tucunaré", value:6},
-{name:"Salmão", value:8},
-{name:"Atum", value:10},
-{name:"Peixe Espada", value:15},
-{name:"Tubarão Pequeno", value:20},
-{name:"Tubarão Gigante", value:30}
-]
-
-const rods = [
-{name:"Vara de Bambu", maxFish:1, price:0},
-{name:"Vara Simples", maxFish:2, price:100},
-{name:"Vara de Madeira", maxFish:3, price:300},
-{name:"Vara Reforçada", maxFish:4, price:700},
-{name:"Vara Profissional", maxFish:5, price:1500},
-{name:"Vara Oceânica", maxFish:6, price:3000},
-{name:"Vara de Aço", maxFish:7, price:6000},
-{name:"Vara Lendária", maxFish:8, price
+let rod =
