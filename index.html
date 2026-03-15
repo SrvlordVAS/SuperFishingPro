@@ -256,14 +256,28 @@ document.getElementById("boxEpica").onclick = ()=>openBox("Epica",162);
 document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria",189);
 
 function openBox(type, price){
-  if(money < price){ alert("Saldo insuficiente!"); return; }
-  const selected = getVarasForBox(type);
-  money -= price;
-  document.getElementById("money").innerText = money;
-  bolsa.push(selected);
-  updateBolsa();
-  updateUpgrade();
-  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
+  if(money < price){ 
+    alert("Saldo insuficiente!"); 
+    return; 
+  }
+
+  // Monta mensagem de confirmação com chances de drop
+  let msg = `Você vai abrir a box ${type}.\nPreço: ${price}\nPossíveis varas e suas chances:\n\n`;
+  const chances = boxChances[type];
+  chances.forEach(v => {
+    msg += `${v.name}: ${v.chance}%\n`;
+  });
+  msg += `\nDeseja continuar?`;
+
+  if(confirm(msg)){
+    money -= price;
+    document.getElementById("money").innerText = money;
+    const selected = getVarasForBox(type);
+    bolsa.push(selected);
+    updateBolsa();
+    updateUpgrade();
+    alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
+  }
 }
 
 // Pescar
