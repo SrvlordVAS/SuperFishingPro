@@ -39,7 +39,10 @@ button:hover { background-color:#0088cc; }
 .fish-lendario {color:red;}
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
 
-#inventory, #shop {
+.section { display:none; margin-top:20px; }
+.section.active { display:block; }
+
+#inventory, #shop { 
   border:1px solid #004466;
   padding:10px;
   margin:10px auto;
@@ -56,31 +59,48 @@ button:hover { background-color:#0088cc; }
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo: 0</h3>
 
-<p id="result">Clique em pescar</p>
-<button id="fishButton">🎣 PESCAR</button>
-<button id="skipButton" style="display:none;">⏩ Pular espera</button>
+<!-- Menu de abas -->
+<button class="tabButton" data-target="pesca">🎣 Pescar</button>
+<button class="tabButton" data-target="inventorySection">🎒 Inventário</button>
+<button class="tabButton" data-target="shopSection">🏪 Loja</button>
 
-<h3>Inventário</h3>
-<div id="inventory">
-  <p id="inventoryList">Você possui: Vara de Bambu</p>
-  <select id="selectedVara">
-    <option value="Muito Comum|50">Vara de Bambu (50% peixe escapa)</option>
-  </select>
+<!-- Seção Pescar -->
+<div id="pesca" class="section active">
+  <p id="result">Clique em pescar</p>
+  <button id="fishButton">🎣 PESCAR</button>
+  <button id="skipButton" style="display:none;">⏩ Pular espera</button>
+  <p>
+    Selecione sua vara: 
+    <select id="selectedVara">
+      <option value="Muito Comum|50">Vara de Bambu (50% peixe escapa)</option>
+    </select>
+  </p>
 </div>
 
-<h3>Loja</h3>
-<div id="shop">
-  <p>Compre novas varas:</p>
-  <button class="buyVara" data-name="Vara de Fibra 1" data-rarity="Incomum" data-chance="30" data-price="50">Vara de Fibra 1 - 50$</button>
-  <button class="buyVara" data-name="Vara de Fibra 2" data-rarity="Incomum" data-chance="20" data-price="80">Vara de Fibra 2 - 80$</button>
-  <button class="buyVara" data-name="Vara de Fibra 3" data-rarity="Incomum" data-chance="10" data-price="120">Vara de Fibra 3 - 120$</button>
+<!-- Seção Inventário -->
+<div id="inventorySection" class="section">
+  <h3>Inventário</h3>
+  <div id="inventory">
+    <p id="inventoryList">Você possui: Vara de Bambu</p>
+  </div>
+</div>
+
+<!-- Seção Loja -->
+<div id="shopSection" class="section">
+  <h3>Loja</h3>
+  <div id="shop">
+    <p>Compre novas varas:</p>
+    <button class="buyVara" data-name="Vara de Fibra 1" data-rarity="Incomum" data-chance="30" data-price="50">Vara de Fibra 1 - 50$</button>
+    <button class="buyVara" data-name="Vara de Fibra 2" data-rarity="Incomum" data-chance="20" data-price="80">Vara de Fibra 2 - 80$</button>
+    <button class="buyVara" data-name="Vara de Fibra 3" data-rarity="Incomum" data-chance="10" data-price="120">Vara de Fibra 3 - 120$</button>
+  </div>
 </div>
 
 <script>
 let money = 0
 let fishingTimeout = null
+let inventory = ["Vara de Bambu"]
 
-// Peixes
 const fishes = [
   {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
   {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
@@ -112,8 +132,6 @@ const fishes = [
   {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
 ]
 
-let inventory = ["Vara de Bambu"]
-
 function rarityClass(rarity){
   switch(rarity){
     case "Muito Comum": return "fish-muito-comum";
@@ -141,20 +159,19 @@ function updateInventory(){
   const select = document.getElementById("selectedVara")
   select.innerHTML = ""
   inventory.forEach(v => {
+    const shopBtn = document.querySelector(`.buyVara[data-name='${v}']`)
+    const rarity = shopBtn ? shopBtn.dataset.rarity : "Muito Comum"
+    const chance = shopBtn ? shopBtn.dataset.chance : "50"
     const opt = document.createElement("option")
-    // Procurar varas na loja para pegar raridade e chance
-    let shopBtn = document.querySelector(`.buyVara[data-name='${v}']`)
-    let rarity = shopBtn ? shopBtn.dataset.rarity : "Muito Comum"
-    let chance = shopBtn ? shopBtn.dataset.chance : "50"
     opt.value = rarity + "|" + chance
-    opt.text = v
+    opt.text = v + ` (${chance}% peixe escapa)`
     select.add(opt)
   })
 }
 
 updateInventory()
 
-// Pesca
+// Função de pesca
 const fishButton = document.getElementById("fishButton")
 const skipButton = document.getElementById("skipButton")
 const result = document.getElementById("result")
@@ -225,6 +242,18 @@ document.querySelectorAll(".buyVara").forEach(btn=>{
     }
   }
 })
+
+// Abas
+document.querySelectorAll(".tabButton").forEach(btn=>{
+  btn.onclick = function(){
+    const target = this.dataset.target
+    document.querySelectorAll(".section").forEach(sec=>{
+      sec.classList.remove("active")
+    })
+    document.getElementById(target).classList.add("active")
+  }
+})
+
 </script>
 </body>
 </html>
