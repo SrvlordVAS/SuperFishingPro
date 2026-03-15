@@ -5,11 +5,11 @@
 <title>Super Fishing</title>
 <style>
 body {
-  text-align:center;
   font-family: 'Comic Sans MS', Arial, sans-serif;
-  background: linear-gradient(to bottom, #87ceeb, #ffffff);
   margin:0; 
-  padding:20px;
+  padding:20px 0 80px 0; /* espaço para menu inferior */
+  background: linear-gradient(to bottom, #87ceeb, #ffffff);
+  text-align:center;
 }
 
 h1 { color:#006994; text-shadow: 2px 2px #aee1f7; }
@@ -23,10 +23,10 @@ button {
   color:white;
   border:none;
   border-radius:8px;
-  padding:10px 20px;
+  padding:10px 15px;
   font-size:16px;
   cursor:pointer;
-  margin:5px;
+  margin:3px;
   transition:0.2s;
 }
 button:hover { background-color:#0088cc; }
@@ -52,6 +52,23 @@ button:hover { background-color:#0088cc; }
   background:#e0f7ff;
   text-align:left;
 }
+
+/* Menu inferior */
+#bottomMenu {
+  position: fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:#00aaff;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+}
+#bottomMenu button {
+  flex:1;
+  margin:0 5px;
+}
 </style>
 </head>
 <body>
@@ -59,12 +76,7 @@ button:hover { background-color:#0088cc; }
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo: 0</h3>
 
-<!-- Menu de abas -->
-<button class="tabButton" data-target="pesca">🎣 Pescar</button>
-<button class="tabButton" data-target="inventorySection">🎒 Inventário</button>
-<button class="tabButton" data-target="shopSection">🏪 Loja</button>
-
-<!-- Seção Pescar -->
+<!-- Seções -->
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
@@ -77,7 +89,6 @@ button:hover { background-color:#0088cc; }
   </p>
 </div>
 
-<!-- Seção Inventário -->
 <div id="inventorySection" class="section">
   <h3>Inventário</h3>
   <div id="inventory">
@@ -85,7 +96,6 @@ button:hover { background-color:#0088cc; }
   </div>
 </div>
 
-<!-- Seção Loja -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
   <div id="shop">
@@ -96,7 +106,15 @@ button:hover { background-color:#0088cc; }
   </div>
 </div>
 
+<!-- Menu inferior -->
+<div id="bottomMenu">
+  <button class="tabButton" data-target="pesca">🎣 Pescar</button>
+  <button class="tabButton" data-target="inventorySection">🎒 Inventário</button>
+  <button class="tabButton" data-target="shopSection">🏪 Loja</button>
+</div>
+
 <script>
+// Variáveis
 let money = 0
 let fishingTimeout = null
 let inventory = ["Vara de Bambu"]
@@ -132,6 +150,7 @@ const fishes = [
   {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
 ]
 
+// Funções
 function rarityClass(rarity){
   switch(rarity){
     case "Muito Comum": return "fish-muito-comum";
@@ -171,7 +190,7 @@ function updateInventory(){
 
 updateInventory()
 
-// Função de pesca
+// Pescar
 const fishButton = document.getElementById("fishButton")
 const skipButton = document.getElementById("skipButton")
 const result = document.getElementById("result")
@@ -180,12 +199,9 @@ const selectedVara = document.getElementById("selectedVara")
 fishButton.onclick = function(){
   fishButton.disabled = true
   skipButton.style.display = "inline-block"
-  
   const [varaRarity, chance] = selectedVara.value.split("|")
   const fish = getRandomFishByVara(varaRarity)
-  
   result.innerText = "Esperando o peixe morder a isca..."
-  
   fishingTimeout = setTimeout(() => {
     if(Math.random()*100 < Number(chance)){
       alert("O peixe escapou! 😢")
@@ -206,7 +222,6 @@ skipButton.onclick = function(){
     fishingTimeout = null
     const [varaRarity, chance] = selectedVara.value.split("|")
     const fish = getRandomFishByVara(varaRarity)
-    
     if(Math.random()*100 < Number(chance)){
       alert("O peixe escapou! 😢")
     } else {
@@ -214,7 +229,6 @@ skipButton.onclick = function(){
       document.getElementById("money").innerText = "Saldo: " + money
       result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
     }
-    
     fishButton.disabled = false
     skipButton.style.display = "none"
   }
@@ -253,7 +267,6 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
     document.getElementById(target).classList.add("active")
   }
 })
-
 </script>
 </body>
 </html>
