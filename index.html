@@ -19,13 +19,23 @@ button:hover { background-color:#0088cc; }
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
 .section { display:none; margin-top:20px; }
 .section.active { display:block; }
-#inventory, #shop { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
+#inventory, #shop { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:500px; border-radius:8px; background:#e0f7ff; text-align:left; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
 #bottomMenu button { flex:1; margin:0 5px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
-.bag { border:1px solid #004466; padding:5px; margin-top:5px; border-radius:5px; background:#c0f0ff; cursor:pointer; }
-.bag-content { display:none; margin-top:5px; }
+
+/* Vara ativa maior */
+#currentVara, #currentVaraInv {
+  font-size:22px;
+  font-weight:bold;
+  color:#004466;
+}
+
+/* Bolsa maior e efeito de transição */
+.bag { border:1px solid #004466; padding:10px; margin-top:10px; border-radius:5px; background:#c0f0ff; cursor:pointer; font-weight:bold; font-size:16px; }
+.bag-content { display:none; margin-top:10px; max-height:300px; overflow-y:auto; transition:0.3s; border:1px solid #004466; border-radius:5px; padding:10px; background:#e0f7ff; }
 .bag-content.active { display:block; }
+.bag-content button { width:100%; text-align:left; margin:3px 0; }
 </style>
 </head>
 <body>
@@ -123,13 +133,17 @@ function getRandomFish(){
   return fishes[Math.floor(Math.random()*fishes.length)]
 }
 
-document.getElementById("fishButton").onclick = function(){
+const fishButton = document.getElementById("fishButton")
+const skipButton = document.getElementById("skipButton")
+const result = document.getElementById("result")
+
+fishButton.onclick = function(){
   fishButton.disabled = true
   skipButton.style.display = "inline-block"
   const fish = getRandomFish()
   result.innerText = "Esperando o peixe morder a isca..."
   fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < activeVara.level*10){ // chance de escapar
+    if(Math.random()*100 < activeVara.level*10){
       alert("O peixe escapou! 😢")
     } else {
       money += fish.value
@@ -146,7 +160,7 @@ skipButton.onclick = function(){
     clearTimeout(fishingTimeout)
     fishingTimeout = null
     const fish = getRandomFish()
-    if(Math.random()*100 < activeVara.level*10){ 
+    if(Math.random()*100 < activeVara.level*10){
       alert("O peixe escapou! 😢")
     } else {
       money += fish.value
@@ -173,6 +187,7 @@ function updateBagDisplay(){
       activeVara = v
       bag.splice(i,1)
       updateBagDisplay()
+      updateUpgradeDisplay()
       document.getElementById("currentVara").innerText = `${activeVara.name} (Nível ${activeVara.level})`
       document.getElementById("currentVaraInv").innerText = `${activeVara.name} (Nível ${activeVara.level})`
     }
@@ -204,12 +219,11 @@ function updateUpgradeDisplay(){
     const btn = document.createElement("button")
     btn.innerText = `${v.name} (Nível ${v.level})`
     btn.onclick = ()=>{
-      // busca parceiro do mesmo nível
       const partnerIndex = bag.findIndex(x=>x.name===v.name && x.level===v.level && x!==v)
       if(partnerIndex===-1){ alert("Precisa de outra vara igual para upgrade!"); return; }
       if(confirm(`Deseja usar esta vara e a parceira para fazer upgrade?`)){
         bag.splice(bag.indexOf(v),1)
-        bag.splice(partnerIndex-1,1) // -1 pq já tiramos v
+        bag.splice(partnerIndex-1,1)
         const newVara = {name:v.name, level:v.level+1}
         bag.push(newVara)
         updateBagDisplay()
@@ -221,7 +235,7 @@ function updateUpgradeDisplay(){
   })
 }
 
-// Atualizações iniciais
+// Inicial
 updateBagDisplay()
 updateUpgradeDisplay()
 document.getElementById("currentVara").innerText = `${activeVara.name} (Nível ${activeVara.level})`
