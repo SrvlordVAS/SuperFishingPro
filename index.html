@@ -31,7 +31,7 @@ button:hover { background-color:#0088cc; }
 <body>
 
 <h1>🎣 Super Fishing</h1>
-<h3 id="money">Saldo: 500</h3>
+<h3 id="money">Saldo: 50000</h3>
 <h4 id="dailyCatchInfo">Tentativas de pesca hoje: 0 / 15</h4>
 
 <div id="pesca" class="section active">
@@ -58,7 +58,7 @@ button:hover { background-color:#0088cc; }
     <button id="boxComum">📦 Box Comum (81)</button>
     <button id="boxRara">📦 Box Rara (135)</button>
     <button id="boxEpica">📦 Box Épica (162)</button>
-    <button id="boxLendaria">📦 Box Lendária (189)</button>
+    <button id="boxLendaria">📦 Box Lendária (200)</button>
   </div>
 </div>
 
@@ -93,12 +93,40 @@ const varas = {
   "Adamantium":[{level:1, chance:50, price:0, maxRarity:"Mítico"}]
 };
 
-// Box chances
+// Box chances hardcore
 const boxChances = {
-  "Comum":[ {name:"Fibra", chance:70},{name:"Grafite", chance:20},{name:"Carbono", chance:7},{name:"Titânio", chance:2},{name:"Platina", chance:1} ],
-  "Rara":[ {name:"Fibra", chance:50},{name:"Grafite", chance:25},{name:"Carbono", chance:15},{name:"Titânio", chance:8},{name:"Platina", chance:2} ],
-  "Epica":[ {name:"Fibra", chance:40},{name:"Grafite", chance:30},{name:"Carbono", chance:20},{name:"Titânio", chance:8},{name:"Platina", chance:2} ],
-  "Lendaria":[ {name:"Fibra", chance:30},{name:"Grafite", chance:25},{name:"Carbono", chance:20},{name:"Titânio", chance:15},{name:"Platina", chance:10} ]
+  "Comum":[ 
+    {name:"Fibra", chance:80},       // Comum
+    {name:"Grafite", chance:15},     // Incomum
+    {name:"Carbono", chance:5},      // Raro
+    {name:"Titânio", chance:0},      // Épico
+    {name:"Platina", chance:0},      // Lendário
+    {name:"Adamantium", chance:0}    // Mítico
+  ],
+  "Rara":[ 
+    {name:"Titânio", chance:5},      // Épico
+    {name:"Carbono", chance:15},     // Raro
+    {name:"Grafite", chance:35},     // Incomum
+    {name:"Fibra", chance:45},       // Comum
+    {name:"Platina", chance:0},      // Lendário
+    {name:"Adamantium", chance:0}    // Mítico
+  ],
+  "Epica":[ 
+    {name:"Platina", chance:5},      // Lendário
+    {name:"Titânio", chance:10},     // Épico
+    {name:"Carbono", chance:25},     // Raro
+    {name:"Grafite", chance:30},     // Incomum
+    {name:"Fibra", chance:30},       // Comum
+    {name:"Adamantium", chance:0}    // Mítico
+  ],
+  "Lendaria":[ 
+    {name:"Adamantium", chance:2},   // Mítico
+    {name:"Platina", chance:8},      // Lendário
+    {name:"Titânio", chance:15},     // Épico
+    {name:"Carbono", chance:25},     // Raro
+    {name:"Grafite", chance:25},     // Incomum
+    {name:"Fibra", chance:25}        // Comum
+  ]
 };
 
 // Peixes
