@@ -119,11 +119,13 @@ function updateInventoryDisplay(){
       btn.onclick = function(){
         currentVaraIndex = i
         updateInventoryDisplay()
+        updateUpgradeDisplay()
         document.getElementById("currentVara").innerText = `${v.name} (Nível ${v.level})`
       }
       bagDiv.appendChild(btn)
     }
   })
+  updateUpgradeDisplay()
 }
 
 // Toggle bolsa
@@ -203,11 +205,33 @@ function openBox(type){
   alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`)
 }
 
+// Upgrade
+function updateUpgradeDisplay(){
+  const upgradeDiv = document.getElementById("upgradeArea")
+  upgradeDiv.innerHTML = ""
+  const vara = getCurrentVara()
+  const nextLevel = vara.level + 1
+  const btn = document.createElement("button")
+  btn.innerText = `Upgrade para Nível ${nextLevel} (usa outra vara igual)`
+  btn.onclick = function(){
+    const indexMaterial = inventory.findIndex((v,i)=>i!==currentVaraIndex && v.name===vara.name && v.level===vara.level)
+    if(indexMaterial===-1){ alert("Você precisa de outra vara igual na bolsa!"); return }
+    // Remove material
+    inventory.splice(indexMaterial,1)
+    // Up level
+    vara.level = nextLevel
+    updateInventoryDisplay()
+    alert(`Upgrade de ${vara.name} realizado! Agora Nível ${vara.level}`)
+  }
+  upgradeDiv.appendChild(btn)
+}
+
 // Abas
 document.querySelectorAll(".tabButton").forEach(btn=>{
   btn.onclick = function(){
     document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"))
     document.getElementById(this.dataset.target).classList.add("active")
+    updateUpgradeDisplay()
   }
 })
 
