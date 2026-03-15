@@ -9,26 +9,27 @@
 
 <h1>🎣 Super Fishing</h1>
 
-<h3 id="rod">Vara: Bambu</h3>
+<h3 id="rod">Vara: Vara de Bambu</h3>
 <h3 id="money">Saldo: 0</h3>
 
-<p id="result">Clique para pescar</p>
+<p id="result">Clique em pescar</p>
 
-<button onclick="fish()" style="font-size:20px;padding:10px 20px">PESCAR</button>
+<button onclick="fish()" style="font-size:20px;padding:10px 20px">
+🎣 PESCAR
+</button>
 
 <br><br>
 
-<button onclick="buyRod()" style="font-size:16px">Comprar próxima vara</button>
+<button onclick="buyRod()">
+Comprar próxima vara
+</button>
 
 <script>
 
-let money = localStorage.getItem("money") || 0
-let rod = localStorage.getItem("rod") || 1
+let money = Number(localStorage.getItem("money")) || 0
+let rod = Number(localStorage.getItem("rod")) || 1
 
-money = Number(money)
-rod = Number(rod)
-
-let fishes = [
+const fishes = [
 {name:"Peixinho", value:1},
 {name:"Sardinha", value:2},
 {name:"Tilápia", value:3},
@@ -41,8 +42,12 @@ let fishes = [
 {name:"Tubarão Gigante", value:30}
 ]
 
-let rods = [
+const rods = [
 {name:"Vara de Bambu", maxFish:1, price:0},
 {name:"Vara Simples", maxFish:2, price:100},
 {name:"Vara de Madeira", maxFish:3, price:300},
-{name:"Vara Reforçada", maxFish:4, price
+{name:"Vara Reforçada", maxFish:4, price:700},
+{name:"Vara Profissional", maxFish:5, price:1500},
+{name:"Vara Oceânica", maxFish:6, price:3000},
+{name:"Vara de Aço", maxFish:7, price:6000},
+{name:"Vara Lendária", maxFish:8, price
