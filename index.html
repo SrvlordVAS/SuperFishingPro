@@ -1,95 +1,82 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super Fishing</title>
-</head>
-<body style="text-align:center;font-family:Arial">
+const TelegramBot = require('node-telegram-bot-api');
+const token = 'SEU_TOKEN_AQUI';
+const bot = new TelegramBot(token, {polling: true});
 
-<h1>🎣 Super Fishing</h1>
-<h3 id="money">Saldo: 0</h3>
-
-<div>
-<button id="fishButton">🎣 PESCAR</button>
-<button id="rodMenuButton">📜 Varas</button>
-<button id="fishMenuButton">🐟 Peixes</button>
-</div>
-
-<p id="result">Clique em pescar</p>
-<div id="menu" style="display:none; border:1px solid #000; padding:10px; margin-top:10px;"></div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-
-let money = 0
-let rod = 0
-let caughtFishes = []
-
-let rods = [
-{name:"Vara de Bambu", maxRarity:"Muito Comum", price:0},
-{name:"Vara Simples", maxRarity:"Comum", price:100},
-{name:"Vara de Madeira", maxRarity:"Incomum", price:300},
-{name:"Vara Reforçada", maxRarity:"Raro", price:700},
-{name:"Vara Profissional", maxRarity:"Épico", price:1500},
-{name:"Vara Lendária", maxRarity:"Lendário", price:5000},
-{name:"Vara Divina", maxRarity:"Mítico", price:20000}
-]
-
-let fishes = [
-{name:"Peixinho", value:1, rarity:"Muito Comum"},
-{name:"Lambari", value:1, rarity:"Muito Comum"},
-{name:"Sardinha", value:2, rarity:"Comum"},
-{name:"Tilápia", value:3, rarity:"Comum"},
-{name:"Carpa", value:5, rarity:"Incomum"},
-{name:"Pacu", value:6, rarity:"Incomum"},
-{name:"Tucunaré", value:10, rarity:"Raro"},
-{name:"Dourado", value:12, rarity:"Raro"},
-{name:"Salmão", value:18, rarity:"Épico"},
-{name:"Atum Gigante", value:20, rarity:"Épico"},
-{name:"Peixe Espada", value:30, rarity:"Lendário"},
-{name:"Tubarão Martelo", value:35, rarity:"Lendário"},
-{name:"Kraken Jovem", value:60, rarity:"Mítico"},
-{name:"Leviatã", value:100, rarity:"Mítico"}
-]
-
-function updateMoney(){
-  document.getElementById("money").innerText = "Saldo: " + money
+// Dados do jogador (para teste, 1 jogador)
+let player = {
+  money: 0,
+  rod: 0,
+  fishes: []
 }
 
-function getRandomFish(){
-  let currentRod = rods[rod]
-  let rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"]
-  let available = fishes.filter(f=> rarities.indexOf(f.rarity) <= rarities.indexOf(currentRod.maxRarity))
-  return available[Math.floor(Math.random()*available.length)]
+const rods = [
+  {name:"Vara de Bambu", maxRarity:"Muito Comum", price:0},
+  {name:"Vara Simples", maxRarity:"Comum", price:100},
+  {name:"Vara de Madeira", maxRarity:"Incomum", price:300},
+  {name:"Vara Reforçada", maxRarity:"Raro", price:700},
+  {name:"Vara Profissional", maxRarity:"Épico", price:1500},
+  {name:"Vara Lendária", maxRarity:"Lendário", price:5000},
+  {name:"Vara Divina", maxRarity:"Mítico", price:20000}
+];
+
+const fishes = [
+  {name:"Peixinho", value:1, rarity:"Muito Comum"},
+  {name:"Lambari", value:1, rarity:"Muito Comum"},
+  {name:"Sardinha", value:2, rarity:"Comum"},
+  {name:"Tilápia", value:3, rarity:"Comum"},
+  {name:"Carpa", value:5, rarity:"Incomum"},
+  {name:"Pacu", value:6, rarity:"Incomum"},
+  {name:"Tucunaré", value:10, rarity:"Raro"},
+  {name:"Dourado", value:12, rarity:"Raro"},
+  {name:"Salmão", value:18, rarity:"Épico"},
+  {name:"Atum Gigante", value:20, rarity:"Épico"},
+  {name:"Peixe Espada", value:30, rarity:"Lendário"},
+  {name:"Tubarão Martelo", value:35, rarity:"Lendário"},
+  {name:"Kraken Jovem", value:60, rarity:"Mítico"},
+  {name:"Leviatã", value:100, rarity:"Mítico"}
+];
+
+function getRandomFish(playerRod){
+  const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+  const available = fishes.filter(f=> rarities.indexOf(f.rarity) <= rarities.indexOf(playerRod.maxRarity));
+  return available[Math.floor(Math.random() * available.length)];
 }
 
-document.getElementById("fishButton").addEventListener("click", function(){
-  let fish = getRandomFish()
-  money += fish.value
-  caughtFishes.push(fish)
-  document.getElementById("result").innerText = "Você pescou: " + fish.name + " [" + fish.rarity + "] (+" + fish.value + ")"
-  updateMoney()
-})
+// Comando pescar
+bot.onText(/\/pescar/, (msg) => {
+  const chatId = msg.chat.id;
+  let rodObj = rods[player.rod];
+  let fish = getRandomFish(rodObj);
+  player.money += fish.value;
+  player.fishes.push(fish);
+  bot.sendMessage(chatId, `Você pescou: ${fish.name} [${fish.rarity}] (+${fish.value} moedas)\nSaldo: ${player.money}`);
+});
 
-function buyRod(index){
-  if(index <= rod){
-    alert("Você já tem esta vara ou uma melhor!")
-    return
-  }
-  let rodToBuy = rods[index]
-  if(money >= rodToBuy.price){
-    money -= rodToBuy.price
-    rod = index
-    updateMoney()
-    alert("Você comprou a " + rodToBuy.name + "!")
-    showRodMenu()
-  } else alert("Dinheiro insuficiente!")
-}
-
-function showRodMenu(){
-  let menu = document.getElementById("menu")
-  menu.innerHTML = "<h3>Varas</h3><ul></ul>"
-  let ul = menu.querySelector("ul")
-  
+// Comando ver varas
+bot.onText(/\/varas/, (msg) => {
+  const chatId = msg.chat.id;
+  let text = "Varas disponíveis:\n";
   rods.forEach((r,i)=>{
-    let li =
+    if(i > player.rod) text += `${r.name} (Max: ${r.maxRarity}) - Preço: ${r.price} / Compre: /comprar${i}\n`;
+    else text += `${r.name} - Usando\n`;
+  });
+  bot.sendMessage(chatId, text);
+});
+
+// Comando comprar vara
+bot.onText(/\/comprar(\d+)/, (msg, match)=>{
+  const chatId = msg.chat.id;
+  const index = parseInt(match[1]);
+  if(index <= player.rod) return bot.sendMessage(chatId,"Você já tem esta vara ou uma melhor!");
+  let rodToBuy = rods[index];
+  if(player.money >= rodToBuy.price){
+    player.money -= rodToBuy.price;
+    player.rod = index;
+    bot.sendMessage(chatId, `Você comprou a ${rodToBuy.name}!\nSaldo: ${player.money}`);
+  } else bot.sendMessage(chatId,"Dinheiro insuficiente!");
+});
+
+// Comando ver peixes
+bot.onText(/\/peixes/, (msg)=>{
+  const chatId = msg.chat.id;
+  if(player.fishes.length
