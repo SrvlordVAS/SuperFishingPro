@@ -34,7 +34,6 @@ button:hover { background-color:#0088cc; }
 <h3 id="money">Saldo: 500</h3>
 <h4 id="dailyCatchInfo">Tentativas de pesca hoje: 0 / 15</h4>
 
-<!-- Seções -->
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
@@ -68,7 +67,6 @@ button:hover { background-color:#0088cc; }
   <div id="upgrade"></div>
 </div>
 
-<!-- Menu inferior -->
 <div id="bottomMenu">
   <button class="tabButton" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="aquarioSection">🐠 Aquário</button>
@@ -125,7 +123,8 @@ let bolsa = [];
 let aquario = [];
 let currentVaraIndex = 0;
 
-// Classes de raridade
+// Funções auxiliares
+function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function rarityClass(rarity){
   switch(rarity){
     case "Muito Comum": return "fish-muito-comum";
@@ -138,8 +137,6 @@ function rarityClass(rarity){
     default: return "";
   }
 }
-
-function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function getRandomFishByVara(vara){
   const allowed = fishes.filter(f => {
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
@@ -147,8 +144,6 @@ function getRandomFishByVara(vara){
   });
   return allowed[Math.floor(Math.random()*allowed.length)];
 }
-
-// Atualiza info da vara
 function updateVaraInfo(){
   const vara = getCurrentVara();
   const baseChance = varas[vara.name][0].chance;
@@ -156,16 +151,146 @@ function updateVaraInfo(){
   document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
   document.getElementById("chanceInfo").innerText = `Chance de falha: ${baseChance}% | Bônus de pesca: +${bonusPercent}%`;
 }
-
-// Contador diário
 function updateDailyCatchInfo(){
   document.getElementById("dailyCatchInfo").innerText = `Tentativas de pesca hoje: ${dailyCatch} / ${dailyLimit}`;
 }
 
-// --- Funções completas de Bolsa, Upgrade, Loja, Aquário ---
-// (Aqui você insere exatamente o updateBolsa(), updateUpgrade(), getVarasForBox(), openBox(), updateAquario() como já enviamos nas partes anteriores, lembrando de chamar updateVaraInfo() sempre que muda a vara)
+// --- Bolsa ---
+function updateBolsa(){
+  const bolsaDiv = document.getElementById("bolsa");
+  bolsaDiv.innerHTML = "";
+  const raridadeOrdem = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+  raridadeOrdem.forEach(rar=>{
+    const subset = bolsa.filter(v=>varas[v.name][0].maxRarity===rar);
+    if(subset.length>0){
+      const header = document.createElement("div");
+      header.classList.add("bag-header");
+      header.innerText = rar;
+      const submenu = document.createElement("div");
+      submenu.classList.add("submenu");
+      header.onclick = ()=>{ submenu.style.display = submenu.style.display==="none"?"block":"none"; };
+      const names = {};
+      subset.forEach(v=>{
+        const key = v.name+" Nível "+v.level;
+        if(!names[key]) names[key]=0;
+        names[key]++;
+      });
+      for(const k in names){
+        const btn = document.createElement("button");
+        btn.innerText = `${k} x${names[k]}`;
+        btn.onclick = ()=>{
+          if(confirm(`Deseja tornar ${k} a vara ativa?`)){
+            bolsa.push(getCurrentVara());
+            currentVaraIndex = inventory.length;
+            inventory.push({name:k.split(" Nível ")[0], level:parseInt(k.split(" Nível ")[1])});
+            bolsa = bolsa.filter(b=>!(b.name===k.split(" Nível ")[0] && b.level===parseInt(k.split(" Nível ")[1])));
+            updateVaraInfo();
+            updateBolsa();
+            updateUpgrade();
+          }
+        };
+        submenu.appendChild(btn);
+      }
+      bolsaDiv.appendChild(header);
+      bolsaDiv.appendChild(submenu);
+    }
+  });
+}
 
-// --- Pesca e Skip ---
+// --- Upgrade ---
+function updateUpgrade(){
+  const upgradeDiv = document.getElementById("upgrade");
+  upgradeDiv.innerHTML = "";
+  const counts = {};
+  bolsa.forEach(v=>{
+    const key = v.name+"|"+v.level;
+    counts[key] = counts[key]?counts[key]+1:1;
+  });
+  for(const k in counts){
+    const [name, level] = k.split("|");
+    if(counts[k]>=2 && name!=="Bambu"){
+      const btn = document.createElement("button");
+      btn.innerText = `${name} (Nível ${level}) → Upgrade`;
+      btn.onclick = ()=>{
+        if(confirm(`Deseja usar 2 varas ${name} Nível ${level} para criar 1 Nível ${parseInt(level)+1}?`)){
+          let removed=0;
+          for(let i=bolsa.length-1;i>=0;i--){
+            if(bolsa[i].name===name && bolsa[i].level===parseInt(level) && removed<2){
+              bolsa.splice(i,1);
+              removed++;
+            }
+          }
+          const failChance = parseInt(level)*10;
+          if(Math.random()*100 < failChance){
+            bolsa.push({name:name, level:parseInt(level)});
+            alert("Upgrade falhou! Você perdeu apenas uma vara.");
+          } else {
+            bolsa.push({name:name, level:parseInt(level)+1});
+            alert("Upgrade realizado!");
+          }
+          updateBolsa();
+          updateUpgrade();
+          updateVaraInfo();
+        }
+      };
+      upgradeDiv.appendChild(btn);
+    }
+  }
+}
+
+// --- Loja ---
+function getVarasForBox(type){
+  const chances = boxChances[type];
+  const rand = Math.random()*100;
+  let cumulative = 0;
+  for(const v of chances){
+    cumulative += v.chance;
+    if(rand <= cumulative){
+      return {name:v.name, level:1};
+    }
+  }
+  return {name:chances[chances.length-1].name, level:1};
+}
+function openBox(type, price){
+  if(money < price){ alert("Saldo insuficiente!"); return; }
+  const selected = getVarasForBox(type);
+  if(confirm(`Deseja abrir uma box ${type} por ${price}?`)){
+    money -= price;
+    document.getElementById("money").innerText = money;
+    bolsa.push(selected);
+    updateBolsa();
+    updateUpgrade();
+    alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
+  }
+}
+document.getElementById("boxComum").onclick = ()=>openBox("Comum",81);
+document.getElementById("boxRara").onclick = ()=>openBox("Rara",135);
+document.getElementById("boxEpica").onclick = ()=>openBox("Epica",162);
+document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria",189);
+
+// --- Aquário ---
+function updateAquario(){
+  const div = document.getElementById("aquario");
+  div.innerHTML = "";
+  aquario.forEach((f,i)=>{
+    const btn = document.createElement("button");
+    const vara = getCurrentVara();
+    const bonus = (vara.level-1)*10;
+    const valorFinal = f.value*(1+bonus/100);
+    btn.innerText = `${f.name} [${f.rarity}] - $${valorFinal.toFixed(3)}`;
+    btn.onclick = ()=>{
+      if(confirm(`Deseja vender ${f.name} por $${valorFinal.toFixed(3)}?`)){
+        money += valorFinal;
+        document.getElementById("money").innerText = money;
+        aquario.splice(i,1);
+        updateAquario();
+      }
+    };
+    div.appendChild(btn);
+  });
+}
+
+// --- Pesca ---
 const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
@@ -177,17 +302,12 @@ function attemptFishing(){
   }
   dailyCatch++;
   updateDailyCatchInfo();
-
   const vara = getCurrentVara();
   const fish = getRandomFishByVara(vara);
-
   result.innerText = "Esperando o peixe morder a isca...";
   fishButton.disabled = true;
   skipButton.style.display = "inline-block";
-
-  fishingTimeout = setTimeout(()=>{
-    finishFishing(vara, fish);
-  }, fish.time);
+  fishingTimeout = setTimeout(()=>finishFishing(vara, fish), fish.time);
 }
 
 function finishFishing(vara, fish){
@@ -213,13 +333,11 @@ skipButton.onclick = function(){
   }
 };
 
-// Abas
+// --- Abas ---
 document.querySelectorAll(".tabButton").forEach(btn=>{
   btn.onclick = function(){
     const target = this.dataset.target;
-    document.querySelectorAll(".section").forEach(sec=>{
-      sec.classList.remove("active");
-    });
+    document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"));
     document.getElementById(target).classList.add("active");
   };
 });
