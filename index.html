@@ -39,14 +39,7 @@ button:hover { background-color:#0088cc; }
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
   <p>Vara ativa: <span id="currentVara">Vara de Bambu (Nível 1)</span></p>
-  <p>Chance de falha na captura:</p>
-  <ul style="list-style:none;">
-    <li>Lvl 1: 50%</li>
-    <li>Lvl 2: 40%</li>
-    <li>Lvl 3: 30%</li>
-    <li>Lvl 4: 20%</li>
-    <li>Lvl 5+: 10%</li>
-  </ul>
+  <p>Chance de falha da vara ativa: <span id="activeVaraChance"></span>%</p>
   <div id="bolsaContainer">
     <h4>Bolsa de varas:</h4>
     <div id="bolsa"></div>
@@ -142,6 +135,7 @@ const fishes = [
   {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000}
 ];
 
+// Inventário inicial
 let inventory = [{name:"Bambu", level:1}];
 let bolsa = []; 
 let currentVaraIndex = 0;
@@ -166,6 +160,20 @@ function getRandomFishByVara(vara){
     return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity);
   });
   return allowed[Math.floor(Math.random()*allowed.length)];
+}
+
+// Atualiza chance da vara ativa
+function updateActiveVaraChance(){
+  const vara = getCurrentVara();
+  let chance = 50;
+  switch(vara.level){
+    case 1: chance=50; break;
+    case 2: chance=40; break;
+    case 3: chance=30; break;
+    case 4: chance=20; break;
+    default: chance=10; break;
+  }
+  document.getElementById("activeVaraChance").innerText = chance;
 }
 
 // Atualiza bolsa
@@ -200,6 +208,7 @@ function updateBolsa(){
             document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
             updateBolsa();
             updateUpgrade();
+            updateActiveVaraChance();
           }
         };
         submenu.appendChild(btn);
@@ -233,16 +242,18 @@ function updateUpgrade(){
               removed++;
             }
           }
-          // Falha parcial: perde 1 vara, outra permanece
-          if(Math.random()*100 < 20){ // chance de falha 20% fixo ou pode calcular por level
-            bolsa.push({name:name, level:parseInt(level)});
-            alert("Upgrade falhou! Perdeu 1 vara, a outra permanece.");
+          // chance de falha do upgrade
+          let failChance = 10 * parseInt(level); // exemplo: lvl1=10%, lvl2=20%, etc
+          if(Math.random()*100 < failChance){
+            bolsa.push({name:name, level:parseInt(level)}); // mantém 1
+            alert("Upgrade falhou! Perdeu uma das varas.");
           } else {
             bolsa.push({name:name, level:parseInt(level)+1});
-            alert("Upgrade realizado!");
+            alert("Upgrade realizado com sucesso!");
           }
           updateBolsa();
           updateUpgrade();
+          updateActiveVaraChance();
         }
       };
       upgradeDiv.appendChild(btn);
@@ -339,9 +350,11 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
   };
 });
 
+// Inicializa
 document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
 updateBolsa();
 updateUpgrade();
+updateActiveVaraChance();
 
 });
 </script>
