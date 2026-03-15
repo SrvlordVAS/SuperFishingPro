@@ -39,7 +39,7 @@ input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
   <p>Vara ativa: <span id="currentVara">Bambu (Nível 1)</span></p>
-  <p id="chanceInfo">Chance de falha: 50% | Bônus no peixe: 0%</p>
+  <p id="chanceInfo">Chance de perder o peixe: 50% | Bônus no peixe: 0%</p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
     <div id="bolsa" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
@@ -113,13 +113,13 @@ const dailyLimit = 15;
 let fishingTimeout = null;
 
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", bonus:0}],
-  "Fibra":[{level:1, chance:50, maxRarity:"Comum", bonus:0}],
-  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", bonus:0}],
-  "Carbono":[{level:1, chance:50, maxRarity:"Raro", bonus:0}],
-  "Titânio":[{level:1, chance:50, maxRarity:"Épico", bonus:0}],
-  "Platina":[{level:1, chance:50, maxRarity:"Lendário", bonus:0}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", bonus:0}]
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum"}],
+  "Fibra":[{level:1, chance:50, maxRarity:"Comum"}],
+  "Grafite":[{level:1, chance:50, maxRarity:"Incomum"}],
+  "Carbono":[{level:1, chance:50, maxRarity:"Raro"}],
+  "Titânio":[{level:1, chance:50, maxRarity:"Épico"}],
+  "Platina":[{level:1, chance:50, maxRarity:"Lendário"}],
+  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico"}]
 };
 
 const fishes = [
@@ -138,7 +138,7 @@ const fishes = [
 ];
 
 let inventory = [{name:"Bambu", level:1}];
-let bolsa = [];
+let bolsa = [{name:"Bambu", level:1}];
 let currentVaraIndex = 0;
 
 // ===== FUNÇÕES =====
@@ -155,18 +155,16 @@ function rarityClass(rarity){
   }
 }
 
-function getCurrentVara(){ return inventory[currentVaraIndex]; }
+function getCurrentVara(){ return bolsa[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
-  const bonus = (vara.level-1)*0.1; // 10% por level
-  const chanceReduce = (vara.level-1)*10; // diminui chance de perder
+  const bonus = (vara.level-1)*0.1;
   const allowed = fishes.filter(f => {
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
     return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity);
   });
   const fish = allowed[Math.floor(Math.random()*allowed.length)];
   fish.value = fish.value*(1+bonus);
-  fish.escapeChance = varas[vara.name][0].chance - chanceReduce;
   return fish;
 }
 
@@ -200,7 +198,6 @@ function updateUpgrade(){
   upgradeDiv.innerHTML = "";
   const vara = getCurrentVara();
   if(!vara){ upgradeDiv.innerText = "Nenhuma vara selecionada."; return; }
-
   if(vara.name === "Bambu"){ upgradeDiv.innerText = "Vara Bambu não pode ser upada."; return; }
 
   const maxLevel = 5;
@@ -209,17 +206,19 @@ function updateUpgrade(){
     return;
   }
 
+  const cost = vara.level*50;
   const btn = document.createElement("button");
-  btn.innerText = `↑ Upgrader ${vara.name} para Nível ${vara.level+1} (Custo: ${vara.level*50} SUN)`;
+  btn.innerText = `↑ Upgrader ${vara.name} para Nível ${vara.level+1} (Custo: ${cost} SUN)`;
   btn.onclick = ()=>{
-    if(sunBalance < vara.level*50){ alert("Saldo SUN insuficiente!"); return; }
-    sunBalance -= vara.level*50;
+    if(sunBalance < cost){ alert("Saldo SUN insuficiente!"); return; }
+    sunBalance -= cost;
     vara.level++;
+    varas[vara.name][0].chance = Math.max(0,varas[vara.name][0].chance-10); // diminui chance de perder
     updateWalletUI();
     updateBolsa();
     updateUpgrade();
     updateVaraInfo();
-    alert(`${vara.name} agora é Nível ${vara.level} (+10% no valor do peixe, -10% chance de perder)`);
+    alert(`${vara.name} agora é Nível ${vara.level} | Chance de perder peixe: ${varas[vara.name][0].chance}%`);
   }
   upgradeDiv.appendChild(btn);
 }
@@ -227,10 +226,12 @@ function updateUpgrade(){
 // Atualiza info da vara ativa
 function updateVaraInfo(){
   const vara = getCurrentVara();
-  if(vara) document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
-  const chance = getCurrentVara().name === "Bambu" ? 50 : getCurrentVara().chance - (getCurrentVara().level-1)*10;
-  const bonus = getCurrentVara().level>1 ? (getCurrentVara().level-1)*10 : 0;
-  document.getElementById("chanceInfo").innerText = `Chance de falha: ${chance}% | Bônus no peixe: ${bonus}%`;
+  if(vara){
+    document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
+    const bonus = ((vara.level-1)*10).toFixed(0);
+    const chance = varas[vara.name][0].chance;
+    document.getElementById("chanceInfo").innerText = `Chance de perder o peixe: ${chance}% | Bônus no peixe: ${bonus}%`;
+  }
 }
 
 // ===== BOX =====
@@ -243,28 +244,47 @@ const boxChances = {
   "Lendaria":[ {name:"Fibra", chance:5},{name:"Grafite", chance:10},{name:"Carbono", chance:20},{name:"Titânio", chance:25},{name:"Platina", chance:25},{name:"Adamantium", chance:15} ]
 };
 
+function abrirBox(type){
+  if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
+
+  const lootContainer = document.createElement("div");
+  lootContainer.style.border = "1px solid #004466";
+  lootContainer.style.background = "#e0f7ff";
+  lootContainer.style.padding = "5px";
+  lootContainer.style.margin = "5px 0";
+  lootContainer.style.borderRadius = "5px";
+  lootContainer.style.textAlign = "center";
+  lootContainer.innerHTML = `<b>Box ${type} aberta!</b><br>Você recebeu: `;
+
+  sunBalance -= boxCosts[type];
+
+  const rand = Math.random()*100;
+  let acc = 0;
+  let chosen = null;
+
+  for(const item of boxChances[type]){
+    acc += item.chance;
+    if(rand <= acc){ chosen = item.name; break; }
+  }
+
+  if(!chosen){ chosen = boxChances[type][boxChances[type].length-1].name; }
+
+  bolsa.push({name:chosen, level:1});
+  updateBolsa();
+  updateWalletUI();
+
+  const span = document.createElement("span");
+  span.innerText = `${chosen} (Nível 1)`;
+  span.style.display = "block";
+  span.style.marginTop = "5px";
+  span.style.fontWeight = "bold";
+  lootContainer.appendChild(span);
+
+  document.getElementById("shopBoxes").appendChild(lootContainer);
+}
+
 boxTypes.forEach(type=>{
-  document.getElementById("box"+type).onclick = ()=>{
-    if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-    
-    let message = `Abrir Box ${type} (custo ${boxCosts[type]} SUN)?\n\nChances de receber:`;
-    boxChances[type].forEach(v=>message+=`\n${v.name}: ${v.chance}%`);
-    
-    if(confirm(message)){
-      sunBalance -= boxCosts[type];
-      const rand = Math.random()*100;
-      let acc=0;
-      let chosen=null;
-      for(const item of boxChances[type]){
-        acc += item.chance;
-        if(rand <= acc){ chosen=item.name; break; }
-      }
-      if(chosen) bolsa.push({name:chosen, level:1});
-      updateWalletUI();
-      updateBolsa();
-      alert(`🎁 Você recebeu: ${chosen}`);
-    }
-  };
+  document.getElementById("box"+type).onclick = ()=> abrirBox(type);
 });
 
 // ===== PESCA =====
@@ -280,7 +300,7 @@ fishButton.onclick = function(){
   const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < fish.escapeChance){ alert("O peixe escapou! 😢"); }
+    if(Math.random()*100 < varas[vara.name][0].chance){ alert("O peixe escapou! 😢"); }
     else { sunBalance += fish.value; updateWalletUI(); alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`); }
     dailyCount++;
     document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
@@ -295,7 +315,7 @@ skipButton.onclick = function(){
     fishingTimeout = null;
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < fish.escapeChance){ alert("O peixe escapou! 😢"); }
+    if(Math.random()*100 < varas[vara.name][0].chance){ alert("O peixe escapou! 😢"); }
     else { sunBalance += fish.value; updateWalletUI(); alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`); }
     dailyCount++;
     document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
@@ -327,8 +347,6 @@ document.getElementById("withdrawBtn").onclick = ()=>{
   updateWalletUI();
   alert(`Você retirou ${val.toFixed(3)} TON`);
 };
-
-document.getElement
 
 // SUN → TON (25 SUN = 1 TON)
 document.getElementById("sunToTonBtn").onclick = ()=>{
@@ -368,7 +386,6 @@ updateBolsa();
 updateWalletUI();
 updateVaraInfo();
 updateUpgrade();
-
 });
 </script>
 </body>
