@@ -12,20 +12,10 @@ body {
   padding:20px;
 }
 
-h1 {
-  color:#006994;
-  text-shadow: 2px 2px #aee1f7;
-}
+h1 { color:#006994; text-shadow: 2px 2px #aee1f7; }
+h3 { color:#004466; }
 
-h3 {
-  color:#004466;
-}
-
-#result {
-  font-size:18px;
-  margin:15px 0 30px 0;
-  min-height:30px;
-}
+#result { font-size:18px; margin:15px 0 30px 0; min-height:30px; }
 
 button {
   display:inline-block;
@@ -39,10 +29,7 @@ button {
   margin:10px 0;
   transition:0.2s;
 }
-
-button:hover {
-  background-color:#0088cc;
-}
+button:hover { background-color:#0088cc; }
 
 .fish-muito-comum {color:gray;}
 .fish-comum {color:green;}
@@ -53,7 +40,6 @@ button:hover {
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
 </style>
 </head>
-
 <body>
 
 <h1>🎣 Super Fishing</h1>
@@ -83,8 +69,8 @@ const fishes = [
   {name:"Leviatã", value:100, rarity:"Mítico"}
 ]
 
-function getRandomFish(){
-  return fishes[Math.floor(Math.random() * fishes.length)]
+function getRandomFish(){ 
+  return fishes[Math.floor(Math.random() * fishes.length)] 
 }
 
 function rarityClass(rarity){
@@ -101,11 +87,18 @@ function rarityClass(rarity){
 }
 
 document.getElementById("fishButton").onclick = function(){
-  let fish = getRandomFish()
-  money += fish.value
-  document.getElementById("money").innerText = "Saldo: " + money
-  document.getElementById("result").innerHTML = 
-    `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+  const button = this
+  button.disabled = true
+  document.getElementById("result").innerText = "Esperando o peixe morder a isca..."
+  
+  setTimeout(function(){
+    let fish = getRandomFish()
+    money += fish.value
+    document.getElementById("money").innerText = "Saldo: " + money
+    document.getElementById("result").innerHTML = 
+      `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
+    button.disabled = false
+  }, 5000) // 5 segundos de espera
 }
 
 })
