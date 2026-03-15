@@ -15,8 +15,7 @@ body {
 h1 { color:#006994; text-shadow: 2px 2px #aee1f7; }
 h3 { color:#004466; }
 
-#result { font-size:18px; margin:15px 0 10px 0; min-height:30px; }
-#fishImage { margin-top:10px; max-width:200px; border-radius:10px; }
+#result { font-size:18px; margin:15px 0 30px 0; min-height:30px; }
 
 button {
   display:inline-block;
@@ -38,67 +37,4 @@ button:hover { background-color:#0088cc; }
 .fish-raro {color:purple;}
 .fish-epico {color:orange;}
 .fish-lendario {color:red;}
-.fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
-</style>
-</head>
-<body>
-
-<h1>🎣 Super Fishing</h1>
-<h3 id="money">Saldo: 0</h3>
-<p id="result">Clique em pescar</p>
-<img id="fishImage" src="" alt="">
-
-<button id="fishButton">🎣 PESCAR</button>
-
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-
-let money = 0
-
-// Lista de peixes com valor, raridade e imagem
-const fishes = [
-  {name:"Peixinho", value:1, rarity:"Muito Comum", img:"https://i.imgur.com/4bY2xU9.png"},
-  {name:"Lambari", value:1, rarity:"Muito Comum", img:"https://i.imgur.com/xsR7XhD.png"},
-  {name:"Sardinha", value:2, rarity:"Comum", img:"https://i.imgur.com/Ah9kXTL.png"},
-  {name:"Tilápia", value:3, rarity:"Comum", img:"https://i.imgur.com/bbJwOGh.png"},
-  {name:"Carpa", value:5, rarity:"Incomum", img:"https://i.imgur.com/5iOKv6K.png"},
-  {name:"Pacu", value:6, rarity:"Incomum", img:"https://i.imgur.com/82KJk4u.png"},
-  {name:"Tucunaré", value:10, rarity:"Raro", img:"https://i.imgur.com/FnQXhlz.png"},
-  {name:"Dourado", value:12, rarity:"Raro", img:"https://i.imgur.com/lhWT9DG.png"},
-  {name:"Salmão", value:18, rarity:"Épico", img:"https://i.imgur.com/kRwA4Fb.png"},
-  {name:"Atum Gigante", value:20, rarity:"Épico", img:"https://i.imgur.com/eJ4XcXh.png"},
-  {name:"Peixe Espada", value:30, rarity:"Lendário", img:"https://i.imgur.com/fFZYb1p.png"},
-  {name:"Tubarão Martelo", value:35, rarity:"Lendário", img:"https://i.imgur.com/xqQhnUG.png"},
-  {name:"Kraken Jovem", value:60, rarity:"Mítico", img:"https://i.imgur.com/RHPflvF.png"},
-  {name:"Leviatã", value:100, rarity:"Mítico", img:"https://i.imgur.com/Wk5W6pn.png"}
-]
-
-function getRandomFish(){ return fishes[Math.floor(Math.random() * fishes.length)] }
-
-function rarityClass(rarity){
-  switch(rarity){
-    case "Muito Comum": return "fish-muito-comum";
-    case "Comum": return "fish-comum";
-    case "Incomum": return "fish-incomum";
-    case "Raro": return "fish-raro";
-    case "Épico": return "fish-epico";
-    case "Lendário": return "fish-lendario";
-    case "Mítico": return "fish-mitico";
-    default: return "";
-  }
-}
-
-document.getElementById("fishButton").onclick = function(){
-  let fish = getRandomFish()
-  money += fish.value
-  document.getElementById("money").innerText = "Saldo: " + money
-  document.getElementById("result").innerHTML = 
-    `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
-  document.getElementById("fishImage").src = fish.img
-}
-
-})
-</script>
-
-</body>
-</html>
+.fish-mitico {color:black; background:yellow;
