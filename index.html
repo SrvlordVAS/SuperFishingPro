@@ -91,6 +91,38 @@ const varas = {
   "Adamantium":[{level:1, chance:50, price:0, maxRarity:"Mítico"}]
 };
 
+// Box chances
+const boxChances = {
+  "Comum":[
+    {name:"Fibra", chance:70},
+    {name:"Grafite", chance:20},
+    {name:"Carbono", chance:7},
+    {name:"Titânio", chance:2},
+    {name:"Platina", chance:1}
+  ],
+  "Rara":[
+    {name:"Fibra", chance:50},
+    {name:"Grafite", chance:25},
+    {name:"Carbono", chance:15},
+    {name:"Titânio", chance:8},
+    {name:"Platina", chance:2}
+  ],
+  "Epica":[
+    {name:"Fibra", chance:40},
+    {name:"Grafite", chance:30},
+    {name:"Carbono", chance:20},
+    {name:"Titânio", chance:8},
+    {name:"Platina", chance:2}
+  ],
+  "Lendaria":[
+    {name:"Fibra", chance:30},
+    {name:"Grafite", chance:25},
+    {name:"Carbono", chance:20},
+    {name:"Titânio", chance:15},
+    {name:"Platina", chance:10}
+  ]
+};
+
 // Peixes
 const fishes = [
   {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
@@ -104,7 +136,7 @@ const fishes = [
 
 // Inventário inicial
 let inventory = [{name:"Bambu", level:1}];
-let bolsa = []; // todas varas da bolsa
+let bolsa = []; 
 let currentVaraIndex = 0;
 
 function rarityClass(rarity){
@@ -140,9 +172,9 @@ function updateBolsa(){
       const header = document.createElement("div");
       header.classList.add("bag-header");
       header.innerText = rar;
-      header.onclick = ()=>{ submenu.style.display = submenu.style.display==="none"?"block":"none"; };
       const submenu = document.createElement("div");
       submenu.classList.add("submenu");
+      header.onclick = ()=>{ submenu.style.display = submenu.style.display==="none"?"block":"none"; };
       const names = {};
       subset.forEach(v=>{
         const key = v.name+" Nível "+v.level;
@@ -175,7 +207,6 @@ function updateBolsa(){
 function updateUpgrade(){
   const upgradeDiv = document.getElementById("upgrade");
   upgradeDiv.innerHTML = "";
-  // Agrupa varas iguais
   const counts = {};
   bolsa.forEach(v=>{
     const key = v.name+"|"+v.level;
@@ -188,7 +219,6 @@ function updateUpgrade(){
       btn.innerText = `${name} (Nível ${level}) → Upgrade`;
       btn.onclick = ()=>{
         if(confirm(`Deseja usar 2 varas ${name} Nível ${level} para criar 1 Nível ${parseInt(level)+1}?`)){
-          // Remove duas
           let removed=0;
           for(let i=bolsa.length-1;i>=0;i--){
             if(bolsa[i].name===name && bolsa[i].level===parseInt(level) && removed<2){
@@ -209,15 +239,16 @@ function updateUpgrade(){
 
 // Loja: Box
 function getVarasForBox(type){
-  let list = [];
-  for(const v in varas){
-    if(v==="Bambu") continue;
-    if(type==="Comum" && ["Fibra","Grafite"].includes(v)) list.push({name:v,level:1});
-    if(type==="Rara" && ["Grafite","Carbono"].includes(v)) list.push({name:v,level:1});
-    if(type==="Epica" && ["Carbono","Titânio"].includes(v)) list.push({name:v,level:1});
-    if(type==="Lendaria" && ["Titânio","Platina","Adamantium"].includes(v)) list.push({name:v,level:1});
+  const chances = boxChances[type];
+  const rand = Math.random()*100;
+  let cumulative = 0;
+  for(const v of chances){
+    cumulative += v.chance;
+    if(rand <= cumulative){
+      return {name:v.name, level:1};
+    }
   }
-  return list;
+  return {name:chances[chances.length-1].name, level:1};
 }
 
 document.getElementById("boxComum").onclick = ()=>openBox("Comum");
@@ -226,13 +257,20 @@ document.getElementById("boxEpica").onclick = ()=>openBox("Epica");
 document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria");
 
 function openBox(type){
-  const list = getVarasForBox(type);
-  if(list.length===0){ alert("Nenhuma vara disponível!"); return; }
-  const selected = list[Math.floor(Math.random()*list.length)];
-  bolsa.push(selected);
-  updateBolsa();
-  updateUpgrade();
-  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
+  const chances = boxChances[type];
+  let msg = `Você vai abrir uma box ${type}.\nPossíveis varas e suas chances:\n\n`;
+  chances.forEach(v=>{
+    msg += `${v.name}: ${v.chance}%\n`;
+  });
+  msg += `\nDeseja continuar?`;
+
+  if(confirm(msg)){
+    const selected = getVarasForBox(type);
+    bolsa.push(selected);
+    updateBolsa();
+    updateUpgrade();
+    alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
+  }
 }
 
 // Pescar
