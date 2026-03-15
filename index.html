@@ -23,10 +23,8 @@ button:hover { background-color:#0088cc; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
-.bag-header { cursor:pointer; background:#0088cc; padding:3px; border-radius:3px; margin:2px 0; color:white; font-size:13px; }
+.bag-item { cursor:pointer; }
 input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
-.upgrade-item { cursor:pointer; border:1px solid #004466; padding:3px; margin:2px 0; border-radius:3px; background:#aee1f7; }
-.upgrade-item:hover { background:#88ccee; }
 </style>
 </head>
 <body>
@@ -43,8 +41,8 @@ input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
   <p>Vara ativa: <span id="currentVara">Bambu (Nível 1)</span></p>
   <p id="chanceInfo">Chance de falha: 50% | Bônus no peixe: 0%</p>
   <div id="bolsaContainer">
-    <h4>Bolsa de varas:</h4>
-    <div id="bolsa"></div>
+    <h4>Bolsa de Varas:</h4>
+    <div id="bolsa" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
   </div>
 </div>
 
@@ -174,60 +172,58 @@ function getRandomFishByVara(vara){
 function updateBolsa(){
   const bolsaDiv = document.getElementById("bolsa");
   bolsaDiv.innerHTML = "";
-  if(bolsa.length===0){ bolsaDiv.innerText="Sua bolsa está vazia."; return; }
-  
-  const summary = {};
-  bolsa.forEach(v=>{
-    const key = v.name+(v.level? " Nível "+v.level:"");
-    summary[key] = summary[key]?summary[key]+1:1;
-  });
-  
-  for(const k in summary){
-    const div = document.createElement("div");
-    div.innerText = `${k} x${summary[k]}`;
-    bolsaDiv.appendChild(div);
-  }
+  if(bolsa.length === 0){ bolsaDiv.innerText = "Sua bolsa está vazia."; return; }
 
-  updateUpgrade(); // atualiza a seção de upgrade com as varas da bolsa
+  bolsa.forEach((v, index)=>{
+    const btn = document.createElement("button");
+    btn.innerText = v.name + (v.level ? ` Nível ${v.level}` : "");
+    btn.className = "bag-item";
+    btn.style.border = index === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
+    btn.style.background = "#e0f7ff";
+    btn.style.borderRadius = "4px";
+    btn.style.padding = "3px 5px";
+    btn.onclick = ()=>{
+      currentVaraIndex = index;
+      updateBolsa();
+      updateVaraInfo();
+      updateUpgrade();
+    }
+    bolsaDiv.appendChild(btn);
+  });
 }
 
 // ===== UPGRADE =====
 function updateUpgrade(){
   const upgradeDiv = document.getElementById("upgrade");
   upgradeDiv.innerHTML = "";
-  if(bolsa.length===0){ upgradeDiv.innerText="Você não tem varas para upar."; return; }
+  const vara = getCurrentVara();
+  if(!vara){ upgradeDiv.innerText = "Nenhuma vara selecionada."; return; }
 
-  // Agrupa varas iguais
-  const summary = {};
-  bolsa.forEach(v=>{
-    const key = v.name+"_"+v.level;
-    summary[key] = summary[key]?summary[key]+1:1;
-  });
-
-  for(const k in summary){
-    const [name, level] = k.split("_");
-    const div = document.createElement("div");
-    div.className="upgrade-item";
-    div.innerText=`${name} Nível ${level} x${summary[k]}`;
-    div.onclick = ()=>{
-      if(summary[k]<2){ alert("Você precisa de pelo menos 2 varas iguais para upar."); return; }
-      // Remove duas varas
-      let removed=0;
-      for(let i=0;i<bolsa.length;i++){
-        if(bolsa[i].name===name && bolsa[i].level==parseInt(level)){
-          bolsa.splice(i,1);
-          i--;
-          removed++;
-          if(removed>=2) break;
-        }
-      }
-      // Adiciona nova vara upar
-      bolsa.push({name:name, level:parseInt(level)+1});
-      alert(`${name} subiu para Nível ${parseInt(level)+1}!`);
-      updateBolsa();
-    };
-    upgradeDiv.appendChild(div);
+  const maxLevel = 5;
+  if(vara.level >= maxLevel){
+    upgradeDiv.innerText = `${vara.name} já está no nível máximo.`;
+    return;
   }
+
+  const btn = document.createElement("button");
+  btn.innerText = `↑ Upgrader ${vara.name} para Nível ${vara.level+1} (Custo: ${vara.level*50} SUN)`;
+  btn.onclick = ()=>{
+    if(sunBalance < vara.level*50){ alert("Saldo SUN insuficiente!"); return; }
+    sunBalance -= vara.level*50;
+    vara.level++;
+    updateWalletUI();
+    updateBolsa();
+    updateUpgrade();
+    updateVaraInfo();
+    alert(`${vara.name} agora é Nível ${vara.level}`);
+  }
+  upgradeDiv.appendChild(btn);
+}
+
+// Atualiza info da vara ativa
+function updateVaraInfo(){
+  const vara = getCurrentVara();
+  if(vara) document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
 }
 
 // ===== BOX =====
@@ -339,8 +335,8 @@ document.getElementById("sunToTonBtn").onclick = ()=>{
 // TON → SUN (1 TON = 20 SUN)
 document.getElementById("tonToSunBtn").onclick = ()=>{
   const val = parseFloat(document.getElementById("tonToSunInput").value);
-  if(isNaN(val) || val<=0){ alert("Valor inválido"); return; }
-  if(val>tonBalance){ alert("Saldo TON insuficiente"); return; }
+  if(isNaN(val) || val<=0){ alert("Valor inválido"); return
+if(val>tonBalance){ alert("Saldo TON insuficiente"); return; }
   tonBalance -= val;
   sunBalance += val * 20;
   updateWalletUI();
@@ -361,6 +357,8 @@ tabs.forEach(tab=>{
 // Inicializa
 updateBolsa();
 updateWalletUI();
+updateVaraInfo();
+updateUpgrade();
 });
 </script>
 </body>
