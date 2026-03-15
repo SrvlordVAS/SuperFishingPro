@@ -4,11 +4,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 80px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
+body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 120px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
 h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
 h3 { color:#004466; }
-#result { font-size:16px; margin:10px 0 20px 0; min-height:40px; }
-button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:6px; padding:5px 8px; font-size:12px; cursor:pointer; margin:3px; transition:0.2s; }
+#result { font-size:18px; margin:15px 0 30px 0; min-height:40px; }
+button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:8px; padding:10px 15px; font-size:14px; cursor:pointer; margin:3px; transition:0.2s; }
 button:hover { background-color:#0088cc; }
 .fish-muito-comum {color:gray;}
 .fish-comum {color:green;}
@@ -17,15 +17,15 @@ button:hover { background-color:#0088cc; }
 .fish-epico {color:orange;}
 .fish-lendario {color:red;}
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
-.section { display:none; margin-top:15px; }
+.section { display:none; margin-top:20px; }
 .section.active { display:block; }
-#inventory, #shop, #upgradeSection, #bolsa, #aquario { border:1px solid #004466; padding:8px; margin:10px auto; width:90%; max-width:400px; border-radius:6px; background:#e0f7ff; text-align:left; font-size:12px; }
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-between; flex-wrap:nowrap; padding:5px 2px; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
-#bottomMenu button { flex: 0 1 auto; margin:0 3px; padding:5px 8px; font-size:12px; }
+#inventory, #shop, #upgradeSection, #bolsa, #aquario { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
+#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-between; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
+#bottomMenu button { flex:1; margin:0 2px; padding:5px; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 .submenu { margin-left:10px; display:none; }
-.submenu button { margin:3px 0; width:100%; text-align:left; font-size:12px; }
-.bag-header { cursor:pointer; background:#0088cc; padding:3px; border-radius:4px; margin:2px 0; color:white; font-size:12px; }
+.submenu button { margin:3px 0; width:100%; text-align:left; }
+.bag-header { cursor:pointer; background:#0088cc; padding:5px; border-radius:5px; margin:3px 0; color:white; }
 </style>
 </head>
 <body>
@@ -71,13 +71,11 @@ button:hover { background-color:#0088cc; }
   <div id="upgrade"></div>
 </div>
 
-<!-- INFORMAÇÕES -->
-<div id="infoSection" class="section">
-  <h3>ℹ️ Informações Gerais</h3>
-  <p>🎣 Pescando peixes você ganha SUN.</p>
-  <p>💰 SUN serve para abrir boxes e fazer upgrades.</p>
-  <p>🛠 Varas podem ser upgradadas usando 2 do mesmo nível.</p>
-  <p>📦 Boxes possuem chance de gerar varas melhores.</p>
+<!-- CARTEIRA SIMPLIFICADA -->
+<div id="walletSection" class="section">
+  <h3>💳 Carteira</h3>
+  <p id="walletSun">Saldo SUN: 0</p>
+  <p id="walletTon">Saldo TON: 0</p>
 </div>
 
 <!-- BOTTOM MENU -->
@@ -86,33 +84,30 @@ button:hover { background-color:#0088cc; }
   <button class="tabButton" data-target="aquarioSection">🐠 Aquário</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
   <button class="tabButton" data-target="upgradeSection">⚒ Upgrade</button>
-  <button class="tabButton" data-target="infoSection">ℹ️ Info</button>
+  <button class="tabButton" data-target="walletSection">💳 Carteira</button>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-// ===== VARIÁVEIS =====
 let money = 500;
 let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
 
-// MOEDAS
 let sunBalance = 0;
+let tonBalance = 0;
 
-// VARAS
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum"}],
-  "Fibra":[{level:1, chance:50, maxRarity:"Comum"}],
-  "Grafite":[{level:1, chance:50, maxRarity:"Incomum"}],
-  "Carbono":[{level:1, chance:50, maxRarity:"Raro"}],
-  "Titânio":[{level:1, chance:50, maxRarity:"Épico"}],
-  "Platina":[{level:1, chance:50, maxRarity:"Lendário"}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico"}]
+  "Bambu":[{level:1, chance:50, price:0, maxRarity:"Muito Comum"}],
+  "Fibra":[{level:1, chance:50, price:0, maxRarity:"Comum"}],
+  "Grafite":[{level:1, chance:50, price:0, maxRarity:"Incomum"}],
+  "Carbono":[{level:1, chance:50, price:0, maxRarity:"Raro"}],
+  "Titânio":[{level:1, chance:50, price:0, maxRarity:"Épico"}],
+  "Platina":[{level:1, chance:50, price:0, maxRarity:"Lendário"}],
+  "Adamantium":[{level:1, chance:50, price:0, maxRarity:"Mítico"}]
 };
 
-// BOX CHANCES
 const boxChances = {
   "Comum":[ {name:"Fibra", chance:60},{name:"Grafite", chance:25},{name:"Carbono", chance:10},{name:"Titânio", chance:4},{name:"Platina", chance:1},{name:"Adamantium", chance:0} ],
   "Rara":[ {name:"Fibra", chance:30},{name:"Grafite", chance:35},{name:"Carbono", chance:20},{name:"Titânio", chance:10},{name:"Platina", chance:4},{name:"Adamantium", chance:1} ],
@@ -120,7 +115,6 @@ const boxChances = {
   "Lendaria":[ {name:"Fibra", chance:5},{name:"Grafite", chance:10},{name:"Carbono", chance:20},{name:"Titânio", chance:25},{name:"Platina", chance:25},{name:"Adamantium", chance:15} ]
 };
 
-// PEIXES
 const fishes = [
   {name:"Sardinha", value:0.005, rarity:"Muito Comum", time:3000},
   {name:"Robalo", value:0.01, rarity:"Comum", time:4000},
@@ -136,13 +130,11 @@ const fishes = [
   {name:"Marlim Azul", value:0.11, rarity:"Mítico", time:15000}
 ];
 
-// INVENTÁRIO
 let inventory = [{name:"Bambu", level:1}];
 let bolsa = [];
 let aquario = [];
 let currentVaraIndex = 0;
 
-// ===== FUNÇÕES =====
 function rarityClass(rarity){
   switch(rarity){
     case "Muito Comum": return "fish-muito-comum";
@@ -169,7 +161,6 @@ function getRandomFishByVara(vara){
   return fish;
 }
 
-// ===== BOLSA =====
 function updateBolsa(){
   const bolsaDiv = document.getElementById("bolsa");
   bolsaDiv.innerHTML = "";
@@ -221,7 +212,6 @@ function updateBolsa(){
   });
 }
 
-// ===== UPGRADE =====
 function updateUpgrade(){
   const upgradeDiv = document.getElementById("upgrade");
   upgradeDiv.innerHTML = "";
@@ -269,7 +259,6 @@ function updateVaraInfo(){
   document.getElementById("chanceInfo").innerText = `Chance de falha: ${varas[vara.name][0].chance}% | Bônus no peixe: ${bonus}%`;
 }
 
-// ===== BOX =====
 function getVarasForBox(type){
   const chances = boxChances[type];
   const rand = Math.random()*100;
@@ -293,17 +282,13 @@ function openBox(type, price){
     alert("Saldo SUN insuficiente!"); 
     return; 
   }
-  if(confirm(`Abrir a box ${type} por ${price} SUN?`)){
-    sunBalance -= price;
-    const selected = getVarasForBox(type);
-    bolsa.push(selected);
-    updateBolsa();
-    updateUpgrade();
-    alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
-  }
+  const selected = getVarasForBox(type);
+  bolsa.push(selected);
+  updateBolsa();
+  updateUpgrade();
+  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`);
 }
 
-// ===== PESCA =====
 const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
@@ -322,7 +307,17 @@ fishButton.onclick = function(){
   const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    handleFishCaught(fish, vara);
+    if(Math.random()*100 < varas[vara.name][0].chance){
+      alert("O peixe escapou! 😢");
+    } else {
+      aquario.push(fish);
+      updateAquario();
+      alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
+      sunBalance += fish.value;
+      updateWalletUI();
+    }
+    fishButton.disabled = false;
+    skipButton.style.display = "none";
   }, fish.time);
 };
 
@@ -332,25 +327,20 @@ skipButton.onclick = function(){
     fishingTimeout = null;
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
-    handleFishCaught(fish, vara);
+    if(Math.random()*100 < varas[vara.name][0].chance){
+      alert("O peixe escapou! 😢");
+    } else {
+      aquario.push(fish);
+      updateAquario();
+      alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
+      sunBalance += fish.value;
+      updateWalletUI();
+    }
+    fishButton.disabled = false;
+    skipButton.style.display = "none";
   }
 };
 
-function handleFishCaught(fish, vara){
-  if(Math.random()*100 < varas[vara.name][0].chance){
-    alert("O peixe escapou! 😢");
-  } else {
-    aquario.push(fish);
-    updateAquario();
-    alert(`Você pescou: ${fish.name} (${fish.rarity}) e ganhou ${fish.value.toFixed(3)} SUN`);
-    sunBalance += fish.value;
-  }
-  fishButton.disabled = false;
-  skipButton.style.display = "none";
-  updateWalletUI();
-}
-
-// ===== AQUÁRIO =====
 function updateAquario(){
   const div = document.getElementById("aquario");
   div.innerHTML = "";
@@ -369,7 +359,12 @@ function updateAquario(){
   });
 }
 
-// ===== ABAS =====
+function updateWalletUI(){
+  document.getElementById("walletSun").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`;
+  document.getElementById("walletTon").innerText = `Saldo TON: ${tonBalance.toFixed(3)}`;
+  document.getElementById("money").innerText = `Saldo: ${sunBalance.toFixed(3)} SUN`;
+}
+
 document.querySelectorAll(".tabButton").forEach(btn=>{
   btn.onclick = function(){
     const target = this.dataset.target;
@@ -377,22 +372,18 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
       sec.classList.remove("active");
     });
     document.getElementById(target).classList.add("active");
+    document.querySelectorAll("#bottomMenu button").forEach(b=>b.classList.remove("selected"));
+    this.classList.add("selected");
   };
 });
 
-// ===== ATUALIZAÇÃO DE SALDO =====
-function updateWalletUI(){
-  document.getElementById("money").innerText = `Saldo: ${sunBalance.toFixed(3)} SUN`;
-}
-
-// ===== INICIALIZAÇÃO =====
-updateVaraInfo();
+// Inicializações
 updateBolsa();
 updateUpgrade();
+updateVaraInfo();
 updateAquario();
 updateWalletUI();
-
-}); // DOMContentLoaded
+});
 </script>
 
 </body>
