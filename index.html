@@ -50,9 +50,7 @@ button:hover { background-color:#0088cc; }
     <button id="boxComum">📦 Box Comum</button>
     <button id="boxRara">📦 Box Rara</button>
     <button id="boxEpica">📦 Box Épica</button>
-  </div>
-  <div id="shopUpgrades">
-    <h4>Upgrades:</h4>
+    <button id="boxLendaria">📦 Box Lendária</button>
   </div>
 </div>
 
@@ -66,250 +64,78 @@ button:hover { background-color:#0088cc; }
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-let money = 9999
-let fishingTimeout = null
+let money = 9999;
+let fishingTimeout = null;
 
-// Varas: 7 para cada raridade
+// Varas: 7 raridades
 const varas = {
-  "Bambu": [
-    {level:1, chance:50, price:0, maxRarity:"Muito Comum"},
-    {level:2, chance:40, price:50, maxRarity:"Muito Comum"},
-    {level:3, chance:30, price:100, maxRarity:"Muito Comum"},
-    {level:4, chance:20, price:150, maxRarity:"Muito Comum"},
-    {level:5, chance:10, price:200, maxRarity:"Muito Comum"}
-  ],
-  "Fibra": [
-    {level:1, chance:50, price:0, maxRarity:"Comum"},
-    {level:2, chance:40, price:60, maxRarity:"Comum"},
-    {level:3, chance:30, price:120, maxRarity:"Comum"},
-    {level:4, chance:20, price:180, maxRarity:"Comum"},
-    {level:5, chance:10, price:250, maxRarity:"Comum"}
-  ],
-  "Grafite": [
-    {level:1, chance:50, price:0, maxRarity:"Incomum"},
-    {level:2, chance:40, price:80, maxRarity:"Incomum"},
-    {level:3, chance:30, price:160, maxRarity:"Incomum"},
-    {level:4, chance:20, price:220, maxRarity:"Incomum"},
-    {level:5, chance:10, price:300, maxRarity:"Incomum"}
-  ],
-  "Carbono": [
-    {level:1, chance:50, price:0, maxRarity:"Raro"},
-    {level:2, chance:40, price:100, maxRarity:"Raro"},
-    {level:3, chance:30, price:200, maxRarity:"Raro"},
-    {level:4, chance:20, price:300, maxRarity:"Raro"},
-    {level:5, chance:10, price:400, maxRarity:"Raro"}
-  ],
-  "Titânio": [
-    {level:1, chance:50, price:0, maxRarity:"Épico"},
-    {level:2, chance:40, price:120, maxRarity:"Épico"},
-    {level:3, chance:30, price:240, maxRarity:"Épico"},
-    {level:4, chance:20, price:360, maxRarity:"Épico"},
-    {level:5, chance:10, price:480, maxRarity:"Épico"}
-  ],
-  "Platina": [
-    {level:1, chance:50, price:0, maxRarity:"Lendário"},
-    {level:2, chance:40, price:150, maxRarity:"Lendário"},
-    {level:3, chance:30, price:300, maxRarity:"Lendário"},
-    {level:4, chance:20, price:450, maxRarity:"Lendário"},
-    {level:5, chance:10, price:600, maxRarity:"Lendário"}
-  ],
-  "Adamantium": [
-    {level:1, chance:50, price:0, maxRarity:"Mítico"},
-    {level:2, chance:40, price:200, maxRarity:"Mítico"},
-    {level:3, chance:30, price:400, maxRarity:"Mítico"},
-    {level:4, chance:20, price:600, maxRarity:"Mítico"},
-    {level:5, chance:10, price:800, maxRarity:"Mítico"}
-  ]
+  "Bambu":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}],
+  "Fibra":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}],
+  "Grafite":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}],
+  "Carbono":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}],
+  "Titânio":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}],
+  "Platina":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}],
+  "Adamantium":[{level:1, chance:50},{level:2, chance:40},{level:3, chance:30},{level:4, chance:20},{level:5, chance:10}]
 };
 
-// Peixes (mar)
-const fishes = [
-  {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Peixinho-lua", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Tainha", value:1, rarity:"Muito Comum", time:3000},
-  {name:"Robalo", value:2, rarity:"Comum", time:4000},
-  {name:"Cavala", value:3, rarity:"Comum", time:4000},
-  {name:"Corvina", value:3, rarity:"Comum", time:4000},
-  {name:"Badejo-pequeno", value:2, rarity:"Comum", time:4000},
-  {name:"Atum", value:5, rarity:"Incomum", time:5000},
-  {name:"Badejo", value:6, rarity:"Incomum", time:5000},
-  {name:"Garoupa juvenil", value:6, rarity:"Incomum", time:5000},
-  {name:"Cavala-real", value:5, rarity:"Incomum", time:5000},
-  {name:"Garoupa adulta", value:10, rarity:"Raro", time:7000},
-  {name:"Linguado", value:12, rarity:"Raro", time:7000},
-  {name:"Pargo", value:10, rarity:"Raro", time:7000},
-  {name:"Robalo-do-mar", value:12, rarity:"Raro", time:7000},
-  {name:"Salmão do Atlântico", value:18, rarity:"Épico", time:9000},
-  {name:"Dourado do mar", value:20, rarity:"Épico", time:9000},
-  {name:"Cavalinha-real", value:18, rarity:"Épico", time:9000},
-  {name:"Bonito", value:20, rarity:"Épico", time:9000},
-  {name:"Peixe-espada", value:30, rarity:"Lendário", time:12000},
-  {name:"Tubarão", value:35, rarity:"Lendário", time:12000},
-  {name:"Marlim-negro", value:32, rarity:"Lendário", time:12000},
-  {name:"Marlim-azul jovem", value:35, rarity:"Lendário", time:12000},
-  {name:"Tubarão-branco adulto", value:60, rarity:"Mítico", time:15000},
-  {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000},
-  {name:"Peixe-lua gigante", value:80, rarity:"Mítico", time:15000},
-  {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
-];
-
 // Inventário inicial
-let inventory = [
-  {name:"Bambu", level:1}
-];
-let currentVaraIndex = 0
+let inventory = [{name:"Bambu", level:1}];
+let currentVaraIndex = 0;
 
-function rarityClass(rarity){
-  switch(rarity){
-    case "Muito Comum": return "fish-muito-comum";
-    case "Comum": return "fish-comum";
-    case "Incomum": return "fish-incomum";
-    case "Raro": return "fish-raro";
-    case "Épico": return "fish-epico";
-    case "Lendário": return "fish-lendario";
-    case "Mítico": return "fish-mitico";
-    default: return "";
-  }
-}
-
-function getCurrentVara(){ return inventory[currentVaraIndex] }
-
-function getRandomFishByVara(vara){
-  const allowed = fishes.filter(f => {
-    const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-    return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][vara.level-1].maxRarity);
-  })
-  return allowed[Math.floor(Math.random()*allowed.length)]
-}
-
-// Atualiza inventário
+// Função de atualizar inventário
 function updateInventoryDisplay(){
-  const invDiv = document.getElementById("inventory")
-  invDiv.innerHTML = ""
+  const invDiv = document.getElementById("inventory");
+  invDiv.innerHTML = "";
   inventory.forEach((v,i)=>{
-    const btn = document.createElement("button")
-    btn.innerText = `${v.name} (Nível ${v.level})`
-    if(i===currentVaraIndex) btn.classList.add("selected")
+    const btn = document.createElement("button");
+    btn.innerText = `${v.name} (Nível ${v.level})`;
+    if(i===currentVaraIndex) btn.classList.add("selected");
     btn.onclick = function(){
-      currentVaraIndex = i
-      updateInventoryDisplay()
-      document.getElementById("currentVara").innerText = `${v.name} (Nível ${v.level})`
+      currentVaraIndex=i;
+      updateInventoryDisplay();
+      document.getElementById("currentVara").innerText=`${v.name} (Nível ${v.level})`;
     }
-    invDiv.appendChild(btn)
-  })
-  updateShopUpgrades()
+    invDiv.appendChild(btn);
+  });
 }
 
-// Loja: Box system
-function getVarasForBox(type){
-  let list = []
-  for(const v in varas){
-    if(v==="Bambu") continue
-    if(type==="Comum" && ["Fibra","Grafite"].includes(v)) list.push({name:v,level:1})
-    if(type==="Rara" && ["Fibra","Grafite","Carbono"].includes(v)) list.push({name:v,level:1})
-    if(type==="Epica" && ["Grafite","Carbono","Titânio"].includes(v)) list.push({name:v,level:1})
-  }
-  return list
-}
-
-function updateShopUpgrades(){
-  const shopUpgradesDiv = document.getElementById("shopUpgrades")
-  shopUpgradesDiv.innerHTML = "<h4>Upgrades:</h4>"
-  const vara = getCurrentVara()
-  const nextLevel = vara.level + 1
-  if(varas[vara.name][nextLevel-1]){
-    const upg = varas[vara.name][nextLevel-1]
-    const btn = document.createElement("button")
-    btn.innerText = `Upgrade para Nível ${nextLevel} - ${upg.chance}% de falha`
-    btn.onclick = function(){
-      if(money >= upg.price){
-        money -= upg.price
-        vara.level = nextLevel
-        updateInventoryDisplay()
-        document.getElementById("money").innerText = "Saldo: "+money
-        alert("Upgrade realizado!")
-      } else alert("Saldo insuficiente!")
-    }
-    shopUpgradesDiv.appendChild(btn)
-  } else {
-    shopUpgradesDiv.innerHTML += "<p>Vara no nível máximo!</p>"
-  }
-}
-
-// Abrir box
-document.getElementById("boxComum").onclick = ()=>openBox("Comum")
-document.getElementById("boxRara").onclick = ()=>openBox("Rara")
-document.getElementById("boxEpica").onclick = ()=>openBox("Epica")
+// Box drops
+const boxes = {
+  "Comum":["Fibra","Grafite"],
+  "Rara":["Fibra","Grafite","Carbono"],
+  "Epica":["Grafite","Carbono","Titânio"],
+  "Lendaria":["Fibra","Grafite","Carbono","Titânio","Platina"]
+};
 
 function openBox(type){
-  const list = getVarasForBox(type)
-  if(list.length===0){ alert("Nenhuma vara disponível!"); return }
-  const selected = list[Math.floor(Math.random()*list.length)]
-  inventory.push(selected)
-  currentVaraIndex = inventory.length-1
-  updateInventoryDisplay()
-  alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`)
+  const lista = boxes[type];
+  const selectedName = lista[Math.floor(Math.random()*lista.length)];
+  const selected = {name:selectedName, level:1};
+  inventory.push(selected);
+  currentVaraIndex=inventory.length-1;
+  updateInventoryDisplay();
+  alert(`Você ganhou uma vara: ${selected.name} (Nível 1)`);
 }
 
-// Pescar
-const fishButton = document.getElementById("fishButton")
-const skipButton = document.getElementById("skipButton")
-const result = document.getElementById("result")
-
-fishButton.onclick = function(){
-  fishButton.disabled = true
-  skipButton.style.display = "inline-block"
-  const vara = getCurrentVara()
-  const fish = getRandomFishByVara(vara)
-  result.innerText = "Esperando o peixe morder a isca..."
-  fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < varas[vara.name][vara.level-1].chance){
-      alert("O peixe escapou! 😢")
-    } else {
-      money += fish.value
-      document.getElementById("money").innerText = "Saldo: " + money
-      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
-    }
-    fishButton.disabled = false
-    skipButton.style.display = "none"
-  }, fish.time)
-}
-
-// Pular espera
-skipButton.onclick = function(){
-  if(fishingTimeout){
-    clearTimeout(fishingTimeout)
-    fishingTimeout = null
-    const vara = getCurrentVara()
-    const fish = getRandomFishByVara(vara)
-    if(Math.random()*100 < varas[vara.name][vara.level-1].chance){
-      alert("O peixe escapou! 😢")
-    } else {
-      money += fish.value
-      document.getElementById("money").innerText = "Saldo: " + money
-      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`
-    }
-    fishButton.disabled = false
-    skipButton.style.display = "none"
-  }
-}
+// Botões das boxes
+document.getElementById("boxComum").onclick = ()=>openBox("Comum");
+document.getElementById("boxRara").onclick = ()=>openBox("Rara");
+document.getElementById("boxEpica").onclick = ()=>openBox("Epica");
+document.getElementById("boxLendaria").onclick = ()=>openBox("Lendaria");
 
 // Abas
 document.querySelectorAll(".tabButton").forEach(btn=>{
-  btn.onclick = function(){
-    const target = this.dataset.target
-    document.querySelectorAll(".section").forEach(sec=>{
-      sec.classList.remove("active")
-    })
-    document.getElementById(target).classList.add("active")
+  btn.onclick=function(){
+    const target=this.dataset.target;
+    document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"));
+    document.getElementById(target).classList.add("active");
   }
 })
 
-updateInventoryDisplay()
-document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`
+updateInventoryDisplay();
+document.getElementById("currentVara").innerText = `${inventory[currentVaraIndex].name} (Nível ${inventory[currentVaraIndex].level})`;
 
-})
+});
 </script>
 </body>
 </html>
