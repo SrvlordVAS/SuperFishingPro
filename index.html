@@ -39,6 +39,14 @@ button:hover { background-color:#0088cc; }
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
   <p>Vara ativa: <span id="currentVara">Vara de Bambu (Nível 1)</span></p>
+  <p>Chance de falha na captura:</p>
+  <ul style="list-style:none;">
+    <li>Lvl 1: 50%</li>
+    <li>Lvl 2: 40%</li>
+    <li>Lvl 3: 30%</li>
+    <li>Lvl 4: 20%</li>
+    <li>Lvl 5+: 10%</li>
+  </ul>
   <div id="bolsaContainer">
     <h4>Bolsa de varas:</h4>
     <div id="bolsa"></div>
@@ -134,7 +142,6 @@ const fishes = [
   {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000}
 ];
 
-// Inventário inicial
 let inventory = [{name:"Bambu", level:1}];
 let bolsa = []; 
 let currentVaraIndex = 0;
@@ -226,10 +233,16 @@ function updateUpgrade(){
               removed++;
             }
           }
-          bolsa.push({name:name, level:parseInt(level)+1});
+          // Falha parcial: perde 1 vara, outra permanece
+          if(Math.random()*100 < 20){ // chance de falha 20% fixo ou pode calcular por level
+            bolsa.push({name:name, level:parseInt(level)});
+            alert("Upgrade falhou! Perdeu 1 vara, a outra permanece.");
+          } else {
+            bolsa.push({name:name, level:parseInt(level)+1});
+            alert("Upgrade realizado!");
+          }
           updateBolsa();
           updateUpgrade();
-          alert("Upgrade realizado!");
         }
       };
       upgradeDiv.appendChild(btn);
