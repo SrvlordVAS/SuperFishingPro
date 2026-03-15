@@ -205,25 +205,27 @@ function openBox(type){
   alert(`Você ganhou uma vara: ${selected.name} (Nível ${selected.level})`)
 }
 
-// Upgrade
+// Upgrade - agora mostra todas as varas
 function updateUpgradeDisplay(){
   const upgradeDiv = document.getElementById("upgradeArea")
   upgradeDiv.innerHTML = ""
-  const vara = getCurrentVara()
-  const nextLevel = vara.level + 1
-  const btn = document.createElement("button")
-  btn.innerText = `Upgrade para Nível ${nextLevel} (usa outra vara igual)`
-  btn.onclick = function(){
-    const indexMaterial = inventory.findIndex((v,i)=>i!==currentVaraIndex && v.name===vara.name && v.level===vara.level)
-    if(indexMaterial===-1){ alert("Você precisa de outra vara igual na bolsa!"); return }
-    // Remove material
-    inventory.splice(indexMaterial,1)
-    // Up level
-    vara.level = nextLevel
-    updateInventoryDisplay()
-    alert(`Upgrade de ${vara.name} realizado! Agora Nível ${vara.level}`)
-  }
-  upgradeDiv.appendChild(btn)
+  inventory.forEach((vara,i)=>{
+    const nextLevel = vara.level + 1
+    const btn = document.createElement("button")
+    btn.innerText = `${vara.name} (Nível ${vara.level}) -> Nível ${nextLevel} (usa outra vara igual)`
+    btn.onclick = function(){
+      const indexMaterial = inventory.findIndex((v,j)=>j!==i && v.name===vara.name && v.level===vara.level)
+      if(indexMaterial===-1){ alert("Você precisa de outra vara igual para upgrade!"); return }
+      // Remove material
+      inventory.splice(indexMaterial,1)
+      // Up level
+      vara.level = nextLevel
+      updateInventoryDisplay()
+      updateUpgradeDisplay()
+      alert(`Upgrade de ${vara.name} realizado! Agora Nível ${vara.level}`)
+    }
+    upgradeDiv.appendChild(btn)
+  })
 }
 
 // Abas
