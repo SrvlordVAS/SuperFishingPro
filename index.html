@@ -38,8 +38,8 @@ button:hover { background-color:#0088cc; }
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
-  <p>Vara ativa: <span id="currentVara">Vara de Bambu (Nível 1)</span></p>
-  <p>Chance de falha da vara ativa: <span id="activeVaraChance"></span>%</p>
+  <p>Vara ativa: <span id="currentVara">Vara de Bambu (Nível 1)</span> 
+  - Chance de falha: <span id="failChance">50%</span></p>
   <div id="bolsaContainer">
     <h4>Bolsa de varas:</h4>
     <div id="bolsa"></div>
@@ -139,6 +139,9 @@ const fishes = [
 let inventory = [{name:"Bambu", level:1}];
 let bolsa = []; 
 let currentVaraIndex = 0;
+let aquario = []; // peixes capturados
+
+const failRates = [50,40,30,20,10]; // falha por level 1-5
 
 function rarityClass(rarity){
   switch(rarity){
@@ -162,18 +165,11 @@ function getRandomFishByVara(vara){
   return allowed[Math.floor(Math.random()*allowed.length)];
 }
 
-// Atualiza chance da vara ativa
-function updateActiveVaraChance(){
+// Atualiza chance de falha da vara ativa
+function updateFailChance(){
   const vara = getCurrentVara();
-  let chance = 50;
-  switch(vara.level){
-    case 1: chance=50; break;
-    case 2: chance=40; break;
-    case 3: chance=30; break;
-    case 4: chance=20; break;
-    default: chance=10; break;
-  }
-  document.getElementById("activeVaraChance").innerText = chance;
+  const lvl = Math.min(vara.level, failRates.length);
+  document.getElementById("failChance").innerText = failRates[lvl-1]+"%";
 }
 
 // Atualiza bolsa
@@ -208,7 +204,7 @@ function updateBolsa(){
             document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
             updateBolsa();
             updateUpgrade();
-            updateActiveVaraChance();
+            updateFailChance();
           }
         };
         submenu.appendChild(btn);
@@ -235,30 +231,56 @@ function updateUpgrade(){
       btn.innerText = `${name} (Nível ${level}) → Upgrade`;
       btn.onclick = ()=>{
         if(confirm(`Deseja usar 2 varas ${name} Nível ${level} para criar 1 Nível ${parseInt(level)+1}?`)){
-          let removed=0;
+          const chanceFail = 20; // falha 20% no upgrade
+          let removed = 0;
           for(let i=bolsa.length-1;i>=0;i--){
             if(bolsa[i].name===name && bolsa[i].level===parseInt(level) && removed<2){
               bolsa.splice(i,1);
               removed++;
             }
           }
-          // chance de falha do upgrade
-          let failChance = 10 * parseInt(level); // exemplo: lvl1=10%, lvl2=20%, etc
-          if(Math.random()*100 < failChance){
-            bolsa.push({name:name, level:parseInt(level)}); // mantém 1
-            alert("Upgrade falhou! Perdeu uma das varas.");
+          if(Math.random()*100 < chanceFail){
+            // falha: perde uma, fica 1
+            bolsa.push({name:name, level:parseInt(level)});
+            alert("Upgrade falhou! Você perdeu uma das varas.");
           } else {
             bolsa.push({name:name, level:parseInt(level)+1});
-            alert("Upgrade realizado com sucesso!");
+            alert("Upgrade realizado!");
           }
           updateBolsa();
           updateUpgrade();
-          updateActiveVaraChance();
+          updateFailChance();
         }
       };
       upgradeDiv.appendChild(btn);
     }
   }
+}
+
+// Atualiza aquário
+function updateAquario(){
+  const aquarioDiv = document.getElementById("aquario");
+  aquarioDiv.innerHTML = "";
+  if(aquario.length===0){
+    aquarioDiv.innerHTML = "<p>O aquário está vazio.</p>";
+    return;
+  }
+  aquario.forEach((fish, index)=>{
+    const fishDiv = document.createElement("div");
+    fishDiv.innerHTML = `<span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> 
+                         <button onclick="venderPeixe(${index})">💰 Vender</button>`;
+    aquarioDiv.appendChild(fishDiv);
+  });
+}
+
+// Função vender peixe
+window.venderPeixe = function(index){
+  const peixe = aquario[index];
+  money += peixe.value;
+  document.getElementById("money").innerText = "Saldo: " + money;
+  aquario.splice(index,1);
+  updateAquario();
+  alert(`Você vendeu o ${peixe.name} por ${peixe.value}!`);
 }
 
 // Loja: Box
@@ -309,12 +331,12 @@ fishButton.onclick = function(){
   const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < varas[vara.name][0].chance){
+    if(Math.random()*100 < failRates[Math.min(vara.level,failRates.length)-1]){
       alert("O peixe escapou! 😢");
     } else {
-      money += fish.value;
-      document.getElementById("money").innerText = "Saldo: " + money;
-      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`;
+      aquario.push(fish);
+      updateAquario();
+      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span>! Foi para o aquário.`;
     }
     fishButton.disabled = false;
     skipButton.style.display = "none";
@@ -327,12 +349,12 @@ skipButton.onclick = function(){
     fishingTimeout = null;
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < varas[vara.name][0].chance){
+    if(Math.random()*100 < failRates[Math.min(vara.level,failRates.length)-1]){
       alert("O peixe escapou! 😢");
     } else {
-      money += fish.value;
-      document.getElementById("money").innerText = "Saldo: " + money;
-      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span> (+${fish.value})`;
+      aquario.push(fish);
+      updateAquario();
+      result.innerHTML = `Você pescou: <span class="${rarityClass(fish.rarity)}">${fish.name} [${fish.rarity}]</span>! Foi para o aquário.`;
     }
     fishButton.disabled = false;
     skipButton.style.display = "none";
@@ -350,11 +372,11 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
   };
 });
 
-// Inicializa
 document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
 updateBolsa();
 updateUpgrade();
-updateActiveVaraChance();
+updateFailChance();
+updateAquario();
 
 });
 </script>
