@@ -1,38 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Super Fishing Pro</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fishing Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #e0f7fa; text-align: center; }
+        #game { margin: 20px; padding: 20px; border: 2px solid #00796b; border-radius: 10px; background-color: #ffffff; } 
+        button { padding: 10px; margin: 5px; border-radius: 5px; }
+        .score { font-size: 22px; color: #00796b; }
+    </style>
 </head>
+<body>
+    <div id="game">
+        <h1>Fishing Mini Game</h1>
+        <div class="score" id="score">Score: 0</div>
+        <div id="fishCounter">Fish Caught: 0</div>
+        <button id="catchFish">Catch Fish</button>
+        <button id="resetGame">Reset Game</button>
+    </div>
+    <script>
+        let score = 0;
+        let fishCaught = 0;
+        const fishTypes = [
+            { name: 'Goldfish', rarity: 1 },
+            { name: 'Trout', rarity: 2 },
+            { name: 'Salmon', rarity: 3 },
+            { name: 'Shark', rarity: 5 }
+        ];
 
-<body style="text-align:center;font-family:Arial">
+        function catchFish() {
+            const fish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+            score += fish.rarity;
+            fishCaught++;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('fishCounter').textContent = `Fish Caught: ${fishCaught}`;
+            alert(`You caught a ${fish.name}!`);
+        }
 
-<h1>🎣 Super Fishing Pro</h1>
+        function resetGame() {
+            score = 0;
+            fishCaught = 0;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('fishCounter').textContent = `Fish Caught: ${fishCaught}`;
+        }
 
-<button onclick="pescar()" style="font-size:20px;padding:10px">
-Pescar
-</button>
-
-<p id="resultado"></p>
-
-<script>
-
-function pescar(){
-
-let peixes = [
-"Lambari",
-"Sardinha",
-"Tilápia"
-];
-
-let peixe = peixes[Math.floor(Math.random()*peixes.length)];
-
-document.getElementById("resultado").innerText =
-"🎣 Você pescou: " + peixe;
-
-}
-
-</script>
-
+        document.getElementById('catchFish').addEventListener('click', catchFish);
+        document.getElementById('resetGame').addEventListener('click', resetGame);
+    </script>
 </body>
 </html>
