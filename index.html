@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 80px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
+body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 120px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
 h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
 h3 { color:#004466; }
 #result { font-size:18px; margin:15px 0 30px 0; min-height:40px; }
@@ -24,14 +24,14 @@ button:hover { background-color:#0088cc; }
 #bottomMenu button { flex:1; margin:0 2px; padding:6px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 .submenu { margin-left:10px; display:none; }
-.submenu button { margin:3px 0; width:100%; text-align:left; }
-.bag-header { cursor:pointer; background:#0088cc; padding:5px; border-radius:5px; margin:3px 0; color:white; }
+.submenu button { margin:2px 0; width:100%; text-align:left; font-size:12px; }
+.bag-header { cursor:pointer; background:#0088cc; padding:5px; border-radius:5px; margin:3px 0; color:white; font-size:12px; }
 </style>
 </head>
 <body>
 
 <h1>🎣 Super Fishing</h1>
-<h3 id="money">Saldo: 500</h3>
+<h3 id="sunBalance">SUN: 0</h3>
 <h3 id="dailyCount">Tentativas hoje: 0/15</h3>
 
 <!-- PESCA -->
@@ -68,25 +68,20 @@ button:hover { background-color:#0088cc; }
 <!-- CARTEIRA -->
 <div id="walletSection" class="section">
   <h3>💰 Carteira</h3>
-  <p id="walletSun">Saldo SUN: 0</p>
-  <p id="walletTon">Saldo TON: 0</p>
-
   <div style="margin-top:10px;">
-    <label>Depositar TON:</label><br>
+    <label>Depositar TON → SUN:</label><br>
     <input type="number" id="depositInput" placeholder="0" min="0" step="0.01">
     <button id="depositBtn">💸 Depositar</button>
   </div>
-
   <div style="margin-top:10px;">
-    <label>Trocar SUN → TON:</label><br>
+    <label>Trocar SUN ↔ TON:</label><br>
     <input type="number" id="exchangeInput" placeholder="0" min="0" step="0.01">
     <button id="exchangeBtn">🔄 Trocar</button>
   </div>
-
   <div style="margin-top:10px;">
     <label>Sacar TON:</label><br>
     <input type="number" id="withdrawInput" placeholder="0" min="0" step="0.01">
-    <button id="withdrawBtn">🏧 Retirar</button>
+    <button id="withdrawBtn">🏧 Sacar</button>
   </div>
 </div>
 
@@ -102,10 +97,8 @@ button:hover { background-color:#0088cc; }
 document.addEventListener("DOMContentLoaded", function(){
 
 // ===== VARIÁVEIS =====
-let money = 500;
 let dailyCount = 0;
 const dailyLimit = 15;
-let fishingTimeout = null;
 
 // MOEDAS
 let sunBalance = 0;
@@ -150,6 +143,7 @@ const fishes = [
 let inventory = [{name:"Bambu", level:1}];
 let bolsa = [];
 let currentVaraIndex = 0;
+let fishingTimeout = null;
 
 // ===== FUNÇÕES =====
 function rarityClass(rarity){
@@ -337,8 +331,8 @@ fishButton.onclick = function(){
     if(Math.random()*100 < varas[vara.name][0].chance){
       alert("O peixe escapou! 😢");
     } else {
-      alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
       sunBalance += fish.value;
+      alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
       updateWalletUI();
     }
     fishButton.disabled = false;
@@ -355,8 +349,8 @@ skipButton.onclick = function(){
     if(Math.random()*100 < varas[vara.name][0].chance){
       alert("O peixe escapou! 😢");
     } else {
-      alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
       sunBalance += fish.value;
+      alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
       updateWalletUI();
     }
     fishButton.disabled = false;
@@ -364,63 +358,93 @@ skipButton.onclick = function(){
   }
 };
 
-// ===== CARTEIRA =====
-function updateWalletUI(){
-  document.getElementById("walletSun").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`;
-  document.getElementById("walletTon").innerText = `Saldo TON: ${tonBalance.toFixed(3)}`;
-}
-
-// Depósito TON
-document.getElementById("depositBtn").onclick = function(){
-  const amt = parseFloat(document.getElementById("depositInput").value);
-  if(isNaN(amt) || amt <= 0){ alert("Digite um valor válido."); return; }
-  tonBalance += amt;
-  updateWalletUI();
-  document.getElementById("depositInput").value = "";
-}
-
-// Troca SUN → TON
-document.getElementById("exchangeBtn").onclick = function(){
-  const amt = parseFloat(document.getElementById("exchangeInput").value);
-  if(isNaN(amt) || amt <= 0){ alert("Digite um valor válido."); return; }
-  if(amt > sunBalance){ alert("Saldo SUN insuficiente!"); return; }
-  sunBalance -= amt;
-  tonBalance += amt;
-  updateWalletUI();
-  document.getElementById("exchangeInput").value = "";
-}
-
-// Retirada TON
-document.getElementById("withdrawBtn").onclick = function(){
-  const amt = parseFloat(document.getElementById("withdrawInput").value);
-  if(isNaN(amt) || amt <= 0){ alert("Digite um valor válido."); return; }
-  if(amt > tonBalance){ alert("Saldo TON insuficiente!"); return; }
-  tonBalance -= amt;
-  updateWalletUI();
-  document.getElementById("withdrawInput").value = "";
-}
-
-// ===== ABAS =====
-const tabs = document.querySelectorAll(".tabButton");
-tabs.forEach(tab=>{
-  tab.onclick = function(){
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    const target = document.getElementById(tab.dataset.target);
-    target.classList.add("active");
-    tabs.forEach(t=>t.classList.remove("selected"));
-    tab.classList.add("selected");
+// ===== CARTEIRA CONTINUAÇÃO =====
+depositBtn.onclick = function(){
+  const amt = parseFloat(depositInput.value);
+  if(isNaN(amt) || amt <= 0){
+    alert("Digite um valor válido!");
+    return;
   }
+  tonBalance += amt;
+  updateWalletUI();
+  depositInput.value = "";
+};
+
+const exchangeInput = document.getElementById("exchangeInput");
+const exchangeBtn = document.getElementById("exchangeBtn");
+exchangeBtn.onclick = function(){
+  const amt = parseFloat(exchangeInput.value);
+  if(isNaN(amt) || amt <= 0){
+    alert("Digite um valor válido!");
+    return;
+  }
+  if(amt <= sunBalance){
+    sunBalance -= amt;
+    tonBalance += amt;
+    updateWalletUI();
+  } else if(amt <= tonBalance){
+    tonBalance -= amt;
+    sunBalance += amt;
+    updateWalletUI();
+  } else {
+    alert("Saldo insuficiente!");
+  }
+  exchangeInput.value = "";
+};
+
+const withdrawInput = document.getElementById("withdrawInput");
+const withdrawBtn = document.getElementById("withdrawBtn");
+withdrawBtn.onclick = function(){
+  const amt = parseFloat(withdrawInput.value);
+  if(isNaN(amt) || amt <= 0){
+    alert("Digite um valor válido!");
+    return;
+  }
+  if(amt > tonBalance){
+    alert("Saldo TON insuficiente!");
+    return;
+  }
+  tonBalance -= amt;
+  alert(`Você sacou ${amt} TON!`);
+  updateWalletUI();
+  withdrawInput.value = "";
+};
+
+// ===== UPDATE UI =====
+function updateWalletUI(){
+  document.getElementById("sunBalance").innerText = `SUN: ${sunBalance.toFixed(2)}`;
+  document.getElementById("walletSection").querySelector("#walletSun")?.remove();
+  const walletSun = document.createElement("p");
+  walletSun.id = "walletSun";
+  walletSun.innerText = `Saldo SUN: ${sunBalance.toFixed(2)}`;
+  document.getElementById("walletSection").prepend(walletSun);
+
+  document.getElementById("walletSection").querySelector("#walletTon")?.remove();
+  const walletTon = document.createElement("p");
+  walletTon.id = "walletTon";
+  walletTon.innerText = `Saldo TON: ${tonBalance.toFixed(2)}`;
+  document.getElementById("walletSection").prepend(walletTon);
+}
+
+// ===== TAB MENU =====
+const tabButtons = document.querySelectorAll(".tabButton");
+tabButtons.forEach(btn=>{
+  btn.onclick = function(){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    const target = document.getElementById(btn.dataset.target);
+    if(target) target.classList.add("active");
+    tabButtons.forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");
+  };
 });
 
-// Inicialização
-updateVaraInfo();
+// ===== INIT =====
 updateBolsa();
 updateUpgrade();
+updateVaraInfo();
 updateWalletUI();
-document.querySelector('.tabButton[data-target="pesca"]').classList.add("selected");
 
 });
 </script>
-
 </body>
 </html>
