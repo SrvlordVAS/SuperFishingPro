@@ -373,3 +373,23 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
       sec.classList.remove("active");
     });
     document.getElementById(target).
+document.querySelectorAll(".tabButton").forEach(btn=>{
+  btn.onclick = function(){
+    const target = this.dataset.target;
+    document.querySelectorAll(".section").forEach(sec=>{
+      sec.classList.remove("active");
+    });
+    document.getElementById(target).classList.add("active");
+  };
+});
+
+// Inicializações
+updateChanceDisplay();
+updateBolsa();
+updateUpgrade();
+
+});
+</script>
+
+</body>
+</html>
