@@ -21,19 +21,17 @@
 
 let money = 0
 
-document.getElementById("fishButton").onclick = function(){
-
-money += 1
-
-document.getElementById("result").innerText =
-"Você pescou um peixe!"
-
-document.getElementById("money").innerText =
-"Saldo: " + money
-
-}
-
-</script>
-
-</body>
-</html>
+// Lista de peixes com valor e raridade
+const fishes = [
+  {name:"Peixinho", value:1, rarity:"Muito Comum"},
+  {name:"Lambari", value:1, rarity:"Muito Comum"},
+  {name:"Sardinha", value:2, rarity:"Comum"},
+  {name:"Tilápia", value:3, rarity:"Comum"},
+  {name:"Carpa", value:5, rarity:"Incomum"},
+  {name:"Pacu", value:6, rarity:"Incomum"},
+  {name:"Tucunaré", value:10, rarity:"Raro"},
+  {name:"Dourado", value:12, rarity:"Raro"},
+  {name:"Salmão", value:18, rarity:"Épico"},
+  {name:"Atum Gigante", value:20, rarity:"Épico"},
+  {name:"Peixe Espada", value:30, rarity:"Lendário"},
+  {name:"Tubarão Martelo", value:
