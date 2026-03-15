@@ -170,22 +170,102 @@ function getRandomFishByVara(vara){
   return fish;
 }
 
-// ===== BOLSA =====
+// ===== BOLSA INTERATIVA =====
 function updateBolsa(){
   const bolsaDiv = document.getElementById("bolsa");
   bolsaDiv.innerHTML = "";
-  if(bolsa.length===0){ bolsaDiv.innerText="Sua bolsa está vazia."; return; }
+  if(bolsa.length===0){ 
+    bolsaDiv.innerText="Sua bolsa está vazia."; 
+    return; 
+  }
   
   const summary = {};
   bolsa.forEach(v=>{
-    const key = v.name+(v.level? " Nível "+v.level:"");
+    const key = v.name+" Nível "+v.level;
     summary[key] = summary[key]?summary[key]+1:1;
   });
-  
+
   for(const k in summary){
     const div = document.createElement("div");
     div.innerText = `${k} x${summary[k]}`;
+    div.style.cursor = "pointer";
+    div.style.background = "#aee1f7";
+    div.style.padding = "3px";
+    div.style.margin = "2px 0";
+    div.style.borderRadius = "3px";
+
+    div.onclick = ()=>{
+      const parts = k.split(" Nível ");
+      const name = parts[0];
+      const level = parseInt(parts[1]);
+      if(confirm(`Deseja mover ${k} para a sua vara ativa?`)){
+        // Remove uma vara da bolsa
+        let removed = false;
+        bolsa = bolsa.filter(b=>{
+          if(!removed && b.name===name && b.level===level){ removed=true; return false; }
+          return true;
+        });
+        inventory[currentVaraIndex] = {name:name, level:level};
+        updateBolsa();
+        updateVaraInfo();
+      }
+    };
+
     bolsaDiv.appendChild(div);
+  }
+}
+
+// ===== VARA ATIVA INFO =====
+function updateVaraInfo(){
+  const vara = getCurrentVara();
+  document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
+  document.getElementById("chanceInfo").innerText = `Chance de falha: ${varas[vara.name][0].chance}% | Bônus no peixe: ${(vara.level-1)*10}%`;
+}
+
+// ===== UPGRADE ANTIGO =====
+function tryUpgrade(varaName, level){
+  const count = bolsa.filter(v=>v.name===varaName && v.level===level).length;
+  if(count<2){ alert("Você precisa de 2 varas iguais para tentar o upgrade!"); return; }
+  
+  if(confirm(`Deseja tentar upar 2 varas ${varaName} Nível ${level}?`)){
+    let removed = 0;
+    bolsa = bolsa.filter(v=>{
+      if(removed<2 && v.name===varaName && v.level===level){ removed++; return false; }
+      return true;
+    });
+
+    const chance = 50;
+    if(Math.random()*100 < chance){
+      inventory.push({name:varaName, level:level+1});
+      alert(`Sucesso! Você conseguiu upar a vara para Nível ${level+1}`);
+    } else {
+      alert("Falhou! As varas foram perdidas.");
+    }
+    updateBolsa();
+    updateUpgrade();
+    updateVaraInfo();
+  }
+}
+
+function updateUpgrade(){
+  const upgradeDiv = document.getElementById("upgrade");
+  upgradeDiv.innerHTML = "";
+  const unique = {};
+  bolsa.forEach(v=>{
+    const key = v.name+" Nível "+v.level;
+    unique[key] = unique[key]?unique[key]+1:1;
+  });
+  
+  for(const k in unique){
+    if(unique[k]>=2){
+      const btn = document.createElement("button");
+      btn.innerText = `Tentar upar ${k} (${unique[k]} disponíveis)`;
+      btn.onclick = ()=>{
+        const parts = k.split(" Nível ");
+        tryUpgrade(parts[0], parseInt(parts[1]));
+      };
+      upgradeDiv.appendChild(btn);
+    }
   }
 }
 
@@ -319,7 +399,10 @@ tabs.forEach(tab=>{
 
 // Inicializa
 updateBolsa();
+updateVaraInfo();
 updateWalletUI();
+updateUpgrade();
+
 });
 </script>
 </body>
