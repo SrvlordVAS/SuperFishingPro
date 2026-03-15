@@ -5,37 +5,35 @@
 <title>Super Fishing</title>
 </head>
 
-<body style="text-align:center;font-family:Arial;background:#87CEEB">
+<body style="text-align:center;font-family:Arial">
 
 <h1>🎣 Super Fishing</h1>
 
-<h3 id="rod">Vara: Vara de Bambu</h3>
 <h3 id="money">Saldo: 0</h3>
 
 <p id="result">Clique em pescar</p>
 
-<button id="fishBtn" style="font-size:22px;padding:10px 20px">
+<button id="fishButton">
 🎣 PESCAR
-</button>
-
-<br><br>
-
-<button id="buyBtn">
-Comprar próxima vara
 </button>
 
 <script>
 
-let money = Number(localStorage.getItem("money")) || 0
-let rod = Number(localStorage.getItem("rod")) || 1
+let money = 0
 
-const fishes = [
-{name:"Peixinho", value:1},
-{name:"Sardinha", value:2},
-{name:"Tilápia", value:3},
-{name:"Carpa", value:4},
-{name:"Tucunaré", value:6},
-{name:"Salmão", value:8},
-{name:"Atum", value:10},
-{name:"Peixe Espada", value:15},
-{name:"T
+document.getElementById("fishButton").onclick = function(){
+
+money += 1
+
+document.getElementById("result").innerText =
+"Você pescou um peixe!"
+
+document.getElementById("money").innerText =
+"Saldo: " + money
+
+}
+
+</script>
+
+</body>
+</html>
