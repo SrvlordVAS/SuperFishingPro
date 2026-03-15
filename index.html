@@ -2,33 +2,31 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super Fishing</title>
-<style>
-body { text-align:center; font-family:Arial; }
-button { margin:5px; padding:5px 10px; cursor:pointer; }
-li button { margin-left:10px; cursor:pointer; }
-</style>
+<title>Super Fishing - Teste</title>
 </head>
 <body>
-
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo: 0</h3>
 
-<div>
-  <button id="fishButton">🎣 PESCAR</button>
-  <button id="rodMenuButton">📜 Varas</button>
-  <button id="fishMenuButton">🐟 Peixes</button>
-</div>
-
+<button id="fishButton">🎣 PESCAR</button>
 <p id="result">Clique em pescar</p>
-<div id="menu" style="display:none; border:1px solid #000; padding:10px; margin-top:10px;"></div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-
 let money = 0;
-let rod = 0;
+
+// Dados do jogador
+let rod = {name:"Vara de Bambu", maxRarity:"Muito Comum"};
 let caughtFishes = [];
 
-const rods = [
-  {name:"Vara de Bambu", max
+// Lista de peixes
+const fishes = [
+  {name:"Peixinho", value:1, rarity:"Muito Comum"},
+  {name:"Lambari", value:1, rarity:"Muito Comum"},
+  {name:"Sardinha", value:2, rarity:"Comum"},
+  {name:"Tilápia", value:3, rarity:"Comum"},
+  {name:"Carpa", value:5, rarity:"Incomum"},
+  {name:"Pacu", value:6, rarity:"Incomum"},
+  {name:"Tucunaré", value:10, rarity:"Raro"},
+  {name:"Dourado", value:12, rarity:"Raro"},
+  {name:"Salmão", value:18, rarity:"Épico"},
+  {name:"Atum
