@@ -1,74 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Super Fishing</title>
-
-<style>
-
-body{
-text-align:center;
-font-family:Arial;
-background:linear-gradient(#6ec6ff,#1e88e5);
-color:white;
-}
-
-h1{
-margin-top:20px;
-}
-
-button{
-font-size:22px;
-padding:15px 30px;
-border:none;
-border-radius:10px;
-background:#ffca28;
-cursor:pointer;
-}
-
-button:hover{
-background:#ffc107;
-}
-
-#fish{
-font-size:60px;
-margin:20px;
-}
-
-.card{
-background:rgba(0,0,0,0.2);
-padding:15px;
-border-radius:10px;
-margin:10px;
-display:inline-block;
-}
-
-</style>
-
 </head>
 
-<body>
+<body style="text-align:center;font-family:Arial;background:#87CEEB">
 
 <h1>🎣 Super Fishing</h1>
 
-<div class="card">
 <h3 id="rod">Vara: Vara de Bambu</h3>
 <h3 id="money">Saldo: 0</h3>
-</div>
 
-<div id="fish">🐟</div>
+<p id="result">Clique em pescar</p>
 
-<p id="result">Clique para pescar</p>
-
-<button onclick="fish()">🎣 PESCAR</button>
+<button id="fishBtn" style="font-size:22px;padding:10px 20px">
+🎣 PESCAR
+</button>
 
 <br><br>
 
-<button onclick="buyRod()">⬆ Comprar próxima vara</button>
+<button id="buyBtn">
+Comprar próxima vara
+</button>
 
 <script>
 
 let money = Number(localStorage.getItem("money")) || 0
-let rod =
+let rod = Number(localStorage.getItem("rod")) || 1
+
+const fishes = [
+{name:"Peixinho", value:1},
+{name:"Sardinha", value:2},
+{name:"Tilápia", value:3},
+{name:"Carpa", value:4},
+{name:"Tucunaré", value:6},
+{name:"Salmão", value:8},
+{name:"Atum", value:10},
+{name:"Peixe Espada", value:15},
+{name:"T
