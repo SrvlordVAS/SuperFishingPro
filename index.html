@@ -9,80 +9,40 @@
 
 <h1>🎣 Super Fishing</h1>
 
+<h3 id="rod">Vara: Bambu</h3>
 <h3 id="money">Saldo: 0</h3>
-<h4 id="limit">Pescas hoje: 0 / 15</h4>
 
 <p id="result">Clique para pescar</p>
 
-<button onclick="fish()">PESCAR</button>
+<button onclick="fish()" style="font-size:20px;padding:10px 20px">PESCAR</button>
+
+<br><br>
+
+<button onclick="buyRod()" style="font-size:16px">Comprar próxima vara</button>
 
 <script>
 
 let money = localStorage.getItem("money") || 0
-let fishesToday = localStorage.getItem("fishesToday") || 0
-<script>
-
-let money = localStorage.getItem("money") || 0
-let fishesToday = localStorage.getItem("fishesToday") || 0
+let rod = localStorage.getItem("rod") || 1
 
 money = Number(money)
-fishesToday = Number(fishesToday)
+rod = Number(rod)
 
 let fishes = [
-{name:"Peixinho", value:1, chance:30},
-{name:"Sardinha", value:2, chance:25},
-{name:"Tilápia", value:3, chance:15},
-{name:"Carpa", value:4, chance:10},
-{name:"Tucunaré", value:6, chance:8},
-{name:"Salmão", value:8, chance:5},
-{name:"Atum", value:10, chance:3},
-{name:"Peixe Espada", value:15, chance:2},
-{name:"Tubarão Pequeno", value:20, chance:1.5},
-{name:"Tubarão Gigante", value:30, chance:0.5}
+{name:"Peixinho", value:1},
+{name:"Sardinha", value:2},
+{name:"Tilápia", value:3},
+{name:"Carpa", value:4},
+{name:"Tucunaré", value:6},
+{name:"Salmão", value:8},
+{name:"Atum", value:10},
+{name:"Peixe Espada", value:15},
+{name:"Tubarão Pequeno", value:20},
+{name:"Tubarão Gigante", value:30}
 ]
 
-updateScreen()
-
-function fish(){
-
-if(fishesToday >= 15){
-document.getElementById("result").innerText =
-"Limite diário atingido!"
-return
-}
-
-let rand = Math.random()*100
-let sum = 0
-let caught = fishes[0]
-
-for(let fish of fishes){
-sum += fish.chance
-if(rand <= sum){
-caught = fish
-break
-}
-}
-
-money += caught.value
-fishesToday++
-
-localStorage.setItem("money",money)
-localStorage.setItem("fishesToday",fishesToday)
-
-document.getElementById("result").innerText =
-"Você pescou: " + caught.name + " (+ "+caught.value+")"
-
-updateScreen()
-
-}
-
-function updateScreen(){
-document.getElementById("money").innerText = "Saldo: "+money
-document.getElementById("limit").innerText =
-"Pescas hoje: "+fishesToday+" / 15"
-}
-
-</script>
-
-</body>
-</html>
+let rods = [
+{name:"Vara de Bambu", maxFish:1, price:0},
+{name:"Vara Simples", maxFish:2, price:100},
+{name:"Vara de Madeira", maxFish:3, price:300},
+{name:"Vara Reforçada", maxFish:4, price
