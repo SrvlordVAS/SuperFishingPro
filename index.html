@@ -4,28 +4,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
 <style>
-body {
-  font-family: 'Comic Sans MS', Arial, sans-serif;
-  margin:0; 
-  padding:20px 0 100px 0;
-  background: linear-gradient(to bottom, #87ceeb, #ffffff);
-  text-align:center;
-}
-h1 { color:#006994; text-shadow: 2px 2px #aee1f7; }
+body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 120px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
+h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
 h3 { color:#004466; }
 #result { font-size:18px; margin:15px 0 30px 0; min-height:40px; }
-button {
-  display:inline-block;
-  background-color:#00aaff;
-  color:white;
-  border:none;
-  border-radius:8px;
-  padding:10px 15px;
-  font-size:16px;
-  cursor:pointer;
-  margin:3px;
-  transition:0.2s;
-}
+button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:8px; padding:10px 15px; font-size:16px; cursor:pointer; margin:3px; transition:0.2s; }
 button:hover { background-color:#0088cc; }
 .fish-muito-comum {color:gray;}
 .fish-comum {color:green;}
@@ -37,8 +20,9 @@ button:hover { background-color:#0088cc; }
 .section { display:none; margin-top:20px; }
 .section.active { display:block; }
 #inventory, #shop { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.3); }
+#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
 #bottomMenu button { flex:1; margin:0 5px; }
+.selected { background-color:#ffcc00 !important; color:black !important; }
 </style>
 </head>
 <body>
@@ -51,24 +35,21 @@ button:hover { background-color:#0088cc; }
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
-  <p>
-    Vara atual: <span id="currentVara">Vara de Bambu (Nível 1)</span>
-  </p>
+  <p>Vara atual: <span id="currentVara">Vara de Bambu (Nível 1)</span></p>
 </div>
 
 <div id="inventorySection" class="section">
   <h3>Inventário</h3>
-  <div id="inventory">
-    <p id="inventoryList">Você possui: Vara de Bambu (Nível 1)</p>
-  </div>
+  <div id="inventory"></div>
 </div>
 
 <div id="shopSection" class="section">
   <h3>Loja</h3>
-  <div id="shop">
-    <p>Upgrade de varas:</p>
-    <!-- Os upgrades serão inseridos via JS -->
-    <div id="shopUpgrades"></div>
+  <div id="shopBuy">
+    <h4>Comprar novas varas:</h4>
+  </div>
+  <div id="shopUpgrades">
+    <h4>Upgrades:</h4>
   </div>
 </div>
 
@@ -82,11 +63,10 @@ button:hover { background-color:#0088cc; }
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-// Variáveis
 let money = 0
 let fishingTimeout = null
 
-// Varas e upgrades
+// Varas
 const varas = {
   "Bambu": [
     {level:1, chance:50, price:0, maxRarity:"Muito Comum"},
@@ -96,7 +76,7 @@ const varas = {
     {level:5, chance:10, price:200, maxRarity:"Épico"}
   ],
   "Fibra": [
-    {level:1, chance:40, price:0, maxRarity:"Comum"}, 
+    {level:1, chance:40, price:0, maxRarity:"Comum"},
     {level:2, chance:30, price:60, maxRarity:"Incomum"},
     {level:3, chance:20, price:120, maxRarity:"Raro"},
     {level:4, chance:10, price:180, maxRarity:"Épico"},
@@ -143,12 +123,13 @@ const fishes = [
   {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
 ];
 
-// Inventário
+// Inventário inicial
 let inventory = [
   {name:"Bambu", level:1}
 ];
 
-// Funções
+let currentVaraIndex = 0
+
 function rarityClass(rarity){
   switch(rarity){
     case "Muito Comum": return "fish-muito-comum";
@@ -163,7 +144,7 @@ function rarityClass(rarity){
 }
 
 function getCurrentVara(){
-  return inventory[0]
+  return inventory[currentVaraIndex]
 }
 
 function getRandomFishByVara(vara){
@@ -171,20 +152,55 @@ function getRandomFishByVara(vara){
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
     return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][vara.level-1].maxRarity);
   })
-  return allowed[Math.floor(Math.random() * allowed.length)]
+  return allowed[Math.floor(Math.random()*allowed.length)]
 }
 
+// Atualiza inventário e loja
 function updateInventoryDisplay(){
-  const vara = getCurrentVara()
-  document.getElementById("inventoryList").innerText = `Você possui: ${vara.name} (Nível ${vara.level})`
-  document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`
+  const invDiv = document.getElementById("inventory")
+  invDiv.innerHTML = ""
+  inventory.forEach((v,i)=>{
+    const btn = document.createElement("button")
+    btn.innerText = `${v.name} (Nível ${v.level})`
+    if(i===currentVaraIndex) btn.classList.add("selected")
+    btn.onclick = function(){
+      currentVaraIndex = i
+      updateInventoryDisplay()
+      document.getElementById("currentVara").innerText = `${v.name} (Nível ${v.level})`
+    }
+    invDiv.appendChild(btn)
+  })
   updateShop()
 }
 
-// Loja: cria os upgrades disponíveis
+// Loja: compra novas varas
 function updateShop(){
-  const shopDiv = document.getElementById("shopUpgrades")
-  shopDiv.innerHTML = ""
+  const shopBuyDiv = document.getElementById("shopBuy")
+  const shopUpgradesDiv = document.getElementById("shopUpgrades")
+  shopBuyDiv.innerHTML = "<h4>Comprar novas varas:</h4>"
+  shopUpgradesDiv.innerHTML = "<h4>Upgrades:</h4>"
+
+  // Comprar novas varas
+  for(const v in varas){
+    if(!inventory.some(inv=>inv.name===v)){
+      const btn = document.createElement("button")
+      btn.innerText = `Comprar ${v} (Preço Nível 1: ${varas[v][0].price}$)`
+      btn.onclick = function(){
+        if(money >= varas[v][0].price){
+          money -= varas[v][0].price
+          inventory.push({name:v, level:1})
+          currentVaraIndex = inventory.length-1
+          updateInventoryDisplay()
+          document.getElementById("money").innerText = "Saldo: "+money
+        } else {
+          alert("Saldo insuficiente!")
+        }
+      }
+      shopBuyDiv.appendChild(btn)
+    }
+  }
+
+  // Upgrade da vara atual
   const vara = getCurrentVara()
   const nextLevel = vara.level + 1
   if(varas[vara.name][nextLevel-1]){
@@ -196,15 +212,15 @@ function updateShop(){
         money -= upg.price
         vara.level = nextLevel
         updateInventoryDisplay()
-        document.getElementById("money").innerText = "Saldo: " + money
+        document.getElementById("money").innerText = "Saldo: "+money
         alert("Upgrade realizado com sucesso!")
       } else {
         alert("Saldo insuficiente!")
       }
     }
-    shopDiv.appendChild(btn)
+    shopUpgradesDiv.appendChild(btn)
   } else {
-    shopDiv.innerHTML = "<p>Vara no nível máximo!</p>"
+    shopUpgradesDiv.innerHTML += "<p>Vara no nível máximo!</p>"
   }
 }
 
@@ -263,8 +279,9 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
 })
 
 updateInventoryDisplay()
+document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`
+
 })
 </script>
-
 </body>
 </html>
