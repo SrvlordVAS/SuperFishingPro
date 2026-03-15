@@ -52,18 +52,17 @@ button:hover { background-color:#0088cc; }
 <h3>Escolha sua vara:</h3>
 <select id="varaSelect">
   <option value="Muito Comum">Vara de Bambu</option>
-  <option value="Incomum">Vara Simples</option>
-  <option value="Raro">Vara de Fibra</option>
-  <option value="Épico">Vara de Aço</option>
-  <option value="Lendário">Vara Profissional</option>
-  <option value="Mítico">Vara Mestre</option>
+  <option value="Incomum">Vara de Fibra</option>
+  <option value="Raro">Vara de Carbono</option>
+  <option value="Épico">Vara de Grafite</option>
+  <option value="Lendário">Vara Profissional do Oceano</option>
+  <option value="Mítico">Vara Mestre do Oceano</option>
 </select>
 
 <script>
 let money = 0
 let fishingTimeout = null
 
-// Peixes do mar com raridade, valor e tempo de espera em ms
 const fishes = [
   {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
   {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
@@ -94,7 +93,6 @@ function rarityClass(rarity){
   }
 }
 
-// Seleciona um peixe aleatório que a vara permite
 function getRandomFishByVara(varaRarity){
   const allowed = fishes.filter(f => {
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
@@ -126,7 +124,6 @@ fishButton.onclick = function(){
   }, fish.time)
 }
 
-// Pular espera
 skipButton.onclick = function(){
   if(fishingTimeout){
     clearTimeout(fishingTimeout)
