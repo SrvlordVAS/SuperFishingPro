@@ -1,68 +1,92 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super Fishing</title>
-</head>
-
-<body style="text-align:center;font-family:Arial">
-
 <h1>🎣 Super Fishing</h1>
-
 <h3 id="money">Saldo: 0</h3>
+
+<div>
+<button id="fishButton">🎣 PESCAR</button>
+<button id="rodMenuButton">📜 Varas</button>
+<button id="fishMenuButton">🐟 Peixes</button>
+</div>
 
 <p id="result">Clique em pescar</p>
 
-<button id="fishButton">
-🎣 PESCAR
-</button>
+<div id="menu" style="display:none; border:1px solid #000; padding:10px; margin-top:10px;"></div>
 
 <script>
-
 let money = 0
+let rod = 0
 
-let fishes = [
-
-{name:"Peixinho", value:1, rarity:"Muito Comum"},
-{name:"Lambari", value:1, rarity:"Muito Comum"},
-
-{name:"Sardinha", value:2, rarity:"Comum"},
-{name:"Tilápia", value:3, rarity:"Comum"},
-
-{name:"Carpa", value:5, rarity:"Incomum"},
-{name:"Pacu", value:6, rarity:"Incomum"},
-
-{name:"Tucunaré", value:10, rarity:"Raro"},
-{name:"Dourado", value:12, rarity:"Raro"},
-
-{name:"Salmão", value:18, rarity:"Épico"},
-{name:"Atum Gigante", value:20, rarity:"Épico"},
-
-{name:"Peixe Espada", value:30, rarity:"Lendário"},
-{name:"Tubarão Martelo", value:35, rarity:"Lendário"},
-
-{name:"Kraken Jovem", value:60, rarity:"Mítico"},
-{name:"Leviatã", value:100, rarity:"Mítico"}
-
+let rods = [
+{name:"Vara de Bambu", maxRarity:"Muito Comum", price:0},
+{name:"Vara Simples", maxRarity:"Comum", price:100},
+{name:"Vara de Madeira", maxRarity:"Incomum", price:300},
+{name:"Vara Reforçada", maxRarity:"Raro", price:700},
+{name:"Vara Profissional", maxRarity:"Épico", price:1500},
+{name:"Vara Lendária", maxRarity:"Lendário", price:5000},
+{name:"Vara Divina", maxRarity:"Mítico", price:20000}
 ]
 
-document.getElementById("fishButton").onclick = function(){
+let fishes = [
+{name:"Peixinho", value:1, rarity:"Muito Comum"},
+{name:"Lambari", value:1, rarity:"Muito Comum"},
+{name:"Sardinha", value:2, rarity:"Comum"},
+{name:"Tilápia", value:3, rarity:"Comum"},
+{name:"Carpa", value:5, rarity:"Incomum"},
+{name:"Pacu", value:6, rarity:"Incomum"},
+{name:"Tucunaré", value:10, rarity:"Raro"},
+{name:"Dourado", value:12, rarity:"Raro"},
+{name:"Salmão", value:18, rarity:"Épico"},
+{name:"Atum Gigante", value:20, rarity:"Épico"},
+{name:"Peixe Espada", value:30, rarity:"Lendário"},
+{name:"Tubarão Martelo", value:35, rarity:"Lendário"},
+{name:"Kraken Jovem", value:60, rarity:"Mítico"},
+{name:"Leviatã", value:100, rarity:"Mítico"}
+]
 
-let random = Math.floor(Math.random()*fishes.length)
+let caughtFishes = []
 
-let fish = fishes[random]
-
-money += fish.value
-
-document.getElementById("result").innerText =
-"Você pescou: " + fish.name + " (+" + fish.value + ")"
-
-document.getElementById("money").innerText =
-"Saldo: " + money
-
+function updateMoney(){
+  document.getElementById("money").innerText = "Saldo: " + money
 }
 
-</script>
+function getRandomFish(){
+  let currentRod = rods[rod]
+  let rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"]
+  let available = fishes.filter(f=> rarities.indexOf(f.rarity) <= rarities.indexOf(currentRod.maxRarity))
+  return available[Math.floor(Math.random()*available.length)]
+}
 
-</body>
-</html>
+document.getElementById("fishButton").onclick = function(){
+  let fish = getRandomFish()
+  money += fish.value
+  caughtFishes.push(fish)
+  document.getElementById("result").innerText = "Você pescou: " + fish.name + " [" + fish.rarity + "] (+" + fish.value + ")"
+  updateMoney()
+}
+
+document.getElementById("rodMenuButton").onclick = function(){
+  let menu = document.getElementById("menu")
+  let html = "<h3>Varas</h3><ul>"
+  rods.forEach((r,i)=>{
+    html += "<li>"+r.name+" (Max: "+r.maxRarity+")"
+    if(i>rod) html += " - Preço: "+r.price
+    else html += " - Usando"
+    html += "</li>"
+  })
+  html += "</ul>"
+  menu.innerHTML = html
+  menu.style.display = "block"
+}
+
+document.getElementById("fishMenuButton").onclick = function(){
+  let menu = document.getElementById("menu")
+  let html = "<h3>Peixes Pescados</h3><ul>"
+  caughtFishes.forEach(f=>{
+    html += "<li>"+f.name+" ["+f.rarity+"] (+ "+f.value+")</li>"
+  })
+  html += "</ul>"
+  menu.innerHTML = html
+  menu.style.display = "block"
+}
+
+updateMoney()
+</script>
