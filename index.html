@@ -38,6 +38,17 @@ button:hover { background-color:#0088cc; }
 .fish-epico {color:orange;}
 .fish-lendario {color:red;}
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
+
+#inventory, #shop {
+  border:1px solid #004466;
+  padding:10px;
+  margin:10px auto;
+  width:90%;
+  max-width:400px;
+  border-radius:8px;
+  background:#e0f7ff;
+  text-align:left;
+}
 </style>
 </head>
 <body>
@@ -49,79 +60,59 @@ button:hover { background-color:#0088cc; }
 <button id="fishButton">🎣 PESCAR</button>
 <button id="skipButton" style="display:none;">⏩ Pular espera</button>
 
-<h3>Escolha sua vara:</h3>
-<select id="varaSelect">
-  <!-- Muito Comum -->
-  <option value="Muito Comum|50">Vara de Bambu (50% peixe escapa)</option>
-  <!-- Incomum -->
-  <option value="Incomum|30">Vara de Fibra 1 (30% peixe escapa)</option>
-  <option value="Incomum|20">Vara de Fibra 2 (20% peixe escapa)</option>
-  <option value="Incomum|10">Vara de Fibra 3 (10% peixe escapa)</option>
-  <!-- Raro -->
-  <option value="Raro|30">Vara de Carbono 1 (30% peixe escapa)</option>
-  <option value="Raro|20">Vara de Carbono 2 (20% peixe escapa)</option>
-  <option value="Raro|10">Vara de Carbono 3 (10% peixe escapa)</option>
-  <!-- Épico -->
-  <option value="Épico|30">Vara de Grafite 1 (30% peixe escapa)</option>
-  <option value="Épico|20">Vara de Grafite 2 (20% peixe escapa)</option>
-  <option value="Épico|10">Vara de Grafite 3 (10% peixe escapa)</option>
-  <!-- Lendário -->
-  <option value="Lendário|30">Vara Profissional 1 (30% peixe escapa)</option>
-  <option value="Lendário|20">Vara Profissional 2 (20% peixe escapa)</option>
-  <option value="Lendário|10">Vara Profissional 3 (10% peixe escapa)</option>
-  <!-- Mítico -->
-  <option value="Mítico|30">Vara Mestre 1 (30% peixe escapa)</option>
-  <option value="Mítico|20">Vara Mestre 2 (20% peixe escapa)</option>
-  <option value="Mítico|10">Vara Mestre 3 (10% peixe escapa)</option>
-</select>
+<h3>Inventário</h3>
+<div id="inventory">
+  <p id="inventoryList">Você possui: Vara de Bambu</p>
+  <select id="selectedVara">
+    <option value="Muito Comum|50">Vara de Bambu (50% peixe escapa)</option>
+  </select>
+</div>
+
+<h3>Loja</h3>
+<div id="shop">
+  <p>Compre novas varas:</p>
+  <button class="buyVara" data-name="Vara de Fibra 1" data-rarity="Incomum" data-chance="30" data-price="50">Vara de Fibra 1 - 50$</button>
+  <button class="buyVara" data-name="Vara de Fibra 2" data-rarity="Incomum" data-chance="20" data-price="80">Vara de Fibra 2 - 80$</button>
+  <button class="buyVara" data-name="Vara de Fibra 3" data-rarity="Incomum" data-chance="10" data-price="120">Vara de Fibra 3 - 120$</button>
+</div>
 
 <script>
 let money = 0
 let fishingTimeout = null
 
+// Peixes
 const fishes = [
-  // Muito Comum
   {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
   {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
   {name:"Peixinho-lua", value:1, rarity:"Muito Comum", time:3000},
   {name:"Tainha", value:1, rarity:"Muito Comum", time:3000},
-
-  // Comum
   {name:"Robalo", value:2, rarity:"Comum", time:4000},
   {name:"Cavala", value:3, rarity:"Comum", time:4000},
   {name:"Corvina", value:3, rarity:"Comum", time:4000},
   {name:"Badejo-pequeno", value:2, rarity:"Comum", time:4000},
-
-  // Incomum
   {name:"Atum", value:5, rarity:"Incomum", time:5000},
   {name:"Badejo", value:6, rarity:"Incomum", time:5000},
   {name:"Garoupa juvenil", value:6, rarity:"Incomum", time:5000},
   {name:"Cavala-real", value:5, rarity:"Incomum", time:5000},
-
-  // Raro
   {name:"Garoupa adulta", value:10, rarity:"Raro", time:7000},
   {name:"Linguado", value:12, rarity:"Raro", time:7000},
   {name:"Pargo", value:10, rarity:"Raro", time:7000},
   {name:"Robalo-do-mar", value:12, rarity:"Raro", time:7000},
-
-  // Épico
   {name:"Salmão do Atlântico", value:18, rarity:"Épico", time:9000},
   {name:"Dourado do mar", value:20, rarity:"Épico", time:9000},
   {name:"Cavalinha-real", value:18, rarity:"Épico", time:9000},
   {name:"Bonito", value:20, rarity:"Épico", time:9000},
-
-  // Lendário
   {name:"Peixe-espada", value:30, rarity:"Lendário", time:12000},
   {name:"Tubarão", value:35, rarity:"Lendário", time:12000},
   {name:"Marlim-negro", value:32, rarity:"Lendário", time:12000},
   {name:"Marlim-azul jovem", value:35, rarity:"Lendário", time:12000},
-
-  // Mítico
   {name:"Tubarão-branco adulto", value:60, rarity:"Mítico", time:15000},
   {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000},
   {name:"Peixe-lua gigante", value:80, rarity:"Mítico", time:15000},
   {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
 ]
+
+let inventory = ["Vara de Bambu"]
 
 function rarityClass(rarity){
   switch(rarity){
@@ -144,16 +135,36 @@ function getRandomFishByVara(varaRarity){
   return allowed[Math.floor(Math.random() * allowed.length)]
 }
 
+function updateInventory(){
+  const list = inventory.join(", ")
+  document.getElementById("inventoryList").innerText = "Você possui: " + list
+  const select = document.getElementById("selectedVara")
+  select.innerHTML = ""
+  inventory.forEach(v => {
+    const opt = document.createElement("option")
+    // Procurar varas na loja para pegar raridade e chance
+    let shopBtn = document.querySelector(`.buyVara[data-name='${v}']`)
+    let rarity = shopBtn ? shopBtn.dataset.rarity : "Muito Comum"
+    let chance = shopBtn ? shopBtn.dataset.chance : "50"
+    opt.value = rarity + "|" + chance
+    opt.text = v
+    select.add(opt)
+  })
+}
+
+updateInventory()
+
+// Pesca
 const fishButton = document.getElementById("fishButton")
 const skipButton = document.getElementById("skipButton")
 const result = document.getElementById("result")
-const varaSelect = document.getElementById("varaSelect")
+const selectedVara = document.getElementById("selectedVara")
 
 fishButton.onclick = function(){
   fishButton.disabled = true
   skipButton.style.display = "inline-block"
   
-  const [varaRarity, chance] = varaSelect.value.split("|")
+  const [varaRarity, chance] = selectedVara.value.split("|")
   const fish = getRandomFishByVara(varaRarity)
   
   result.innerText = "Esperando o peixe morder a isca..."
@@ -171,11 +182,12 @@ fishButton.onclick = function(){
   }, fish.time)
 }
 
+// Pular espera
 skipButton.onclick = function(){
   if(fishingTimeout){
     clearTimeout(fishingTimeout)
     fishingTimeout = null
-    const [varaRarity, chance] = varaSelect.value.split("|")
+    const [varaRarity, chance] = selectedVara.value.split("|")
     const fish = getRandomFishByVara(varaRarity)
     
     if(Math.random()*100 < Number(chance)){
@@ -190,7 +202,29 @@ skipButton.onclick = function(){
     skipButton.style.display = "none"
   }
 }
-</script>
 
+// Loja
+document.querySelectorAll(".buyVara").forEach(btn=>{
+  btn.onclick = function(){
+    const name = this.dataset.name
+    const rarity = this.dataset.rarity
+    const chance = this.dataset.chance
+    const price = Number(this.dataset.price)
+    if(money >= price){
+      if(!inventory.includes(name)){
+        money -= price
+        inventory.push(name)
+        updateInventory()
+        document.getElementById("money").innerText = "Saldo: " + money
+        alert(name + " comprada com sucesso!")
+      } else {
+        alert("Você já possui esta vara!")
+      }
+    } else {
+      alert("Saldo insuficiente!")
+    }
+  }
+})
+</script>
 </body>
 </html>
