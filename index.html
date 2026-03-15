@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Fishing</title>
+</head>
+
+<body style="text-align:center;font-family:sans-serif;background:#87CEEB">
+
+<h1>🎣 Super Fishing</h1>
+
+<h3 id="money">Saldo: 0</h3>
+
+<p id="result">Clique para pescar</p>
+
+<button onclick="fish()">PESCAR</button>
+
+<script>
+
+let money = 0
+
+let fishes = [
+{name:"Peixinho", value:1},
+{name:"Sardinha", value:2},
+{name:"Tilápia", value:3},
+{name:"Carpa", value:4},
+{name:"Tucunaré", value:6},
+{name:"Salmão", value:8},
+{name:"Atum", value:10},
+{name:"Peixe Espada", value:15},
+{name:"Tubarao Pequeno", value:20},
+{name:"Tubarao Gigante", value:30}
+]
+
+function fish(){
+
+let random = Math.floor(Math.random()*fishes.length)
+
+let caught = fishes[random]
+
+money += caught.value
+
+document.getElementById("result").innerText =
+"Você pescou: " + caught.name + " (+ " + caught.value + ")"
+
+document.getElementById("money").innerText =
+"Saldo: " + money
+
+}
+
+</script>
+
+</body>
+</html>
