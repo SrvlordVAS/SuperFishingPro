@@ -39,4 +39,81 @@ let fishes = [
 {name:"Peixinho", value:1, rarity:"Muito Comum"},
 {name:"Lambari", value:1, rarity:"Muito Comum"},
 {name:"Sardinha", value:2, rarity:"Comum"},
-{name:"Tilápia", value:3, rarity:"
+{name:"Tilápia", value:3, rarity:"Comum"},
+{name:"Carpa", value:5, rarity:"Incomum"},
+{name:"Pacu", value:6, rarity:"Incomum"},
+{name:"Tucunaré", value:10, rarity:"Raro"},
+{name:"Dourado", value:12, rarity:"Raro"},
+{name:"Salmão", value:18, rarity:"Épico"},
+{name:"Atum Gigante", value:20, rarity:"Épico"},
+{name:"Peixe Espada", value:30, rarity:"Lendário"},
+{name:"Tubarão Martelo", value:35, rarity:"Lendário"},
+{name:"Kraken Jovem", value:60, rarity:"Mítico"},
+{name:"Leviatã", value:100, rarity:"Mítico"}
+]
+
+function updateMoney(){
+  document.getElementById("money").innerText = "Saldo: " + money
+}
+
+function getRandomFish(){
+  let currentRod = rods[rod]
+  let rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"]
+  let available = fishes.filter(f=> rarities.indexOf(f.rarity) <= rarities.indexOf(currentRod.maxRarity))
+  return available[Math.floor(Math.random()*available.length)]
+}
+
+document.getElementById("fishButton").addEventListener("click", function(){
+  let fish = getRandomFish()
+  money += fish.value
+  caughtFishes.push(fish)
+  document.getElementById("result").innerText = "Você pescou: " + fish.name + " [" + fish.rarity + "] (+" + fish.value + ")"
+  updateMoney()
+})
+
+function buyRod(index){
+  if(index <= rod){
+    alert("Você já tem esta vara ou uma melhor!")
+    return
+  }
+  
+  let rodToBuy = rods[index]
+  
+  if(money >= rodToBuy.price){
+    money -= rodToBuy.price
+    rod = index
+    updateMoney()
+    alert("Você comprou a " + rodToBuy.name + "!")
+    showRodMenu()
+  }else{
+    alert("Dinheiro insuficiente!")
+  }
+}
+
+function showRodMenu(){
+  let menu = document.getElementById("menu")
+  let html = "<h3>Varas</h3><ul>"
+  
+  rods.forEach((r,i)=>{
+    html += "<li>"+r.name+" (Max: "+r.maxRarity+") "
+    
+    if(i > rod){ 
+      html += "- Preço: "+r.price+" "
+      html += "<span id='buyRod"+i+"'>Comprar</span>"
+    }
+    else html += "- Usando"
+    
+    html += "</li>"
+  })
+  
+  html += "</ul>"
+  menu.innerHTML = html
+  menu.style.display = "block"
+  
+  // Adiciona evento de clique aos spans
+  rods.forEach((r,i)=>{
+    if(i > rod){
+      let btn = document.getElementById("buyRod"+i)
+      btn.style.cursor = "pointer"
+      btn.style.color = "blue"
+      btn.addEventListener("click", function(){ buyRod(i
