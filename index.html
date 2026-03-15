@@ -32,6 +32,7 @@ button:hover { background-color:#0088cc; }
 
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo: 500</h3>
+<p id="dailyCatchInfo">Peixes pescados hoje: 0 / 15</p>
 
 <!-- Seções -->
 <div id="pesca" class="section active">
@@ -81,9 +82,21 @@ document.addEventListener("DOMContentLoaded", function(){
 let money = 500;
 let fishingTimeout = null;
 
-// Novo: contador de peixes por dia
+// Limite diário de peixes
 let dailyCatch = 0;
 const dailyLimit = 15;
+const dailyCatchInfo = document.getElementById("dailyCatchInfo");
+
+function updateDailyCatchInfo() {
+    dailyCatchInfo.innerText = `Peixes pescados hoje: ${dailyCatch} / ${dailyLimit}`;
+    if(dailyCatch >= dailyLimit){
+        fishButton.disabled = true;
+        skipButton.disabled = true;
+    } else {
+        fishButton.disabled = false;
+        skipButton.disabled = false;
+    }
+}
 
 // Varas
 const varas = {
@@ -98,34 +111,10 @@ const varas = {
 
 // Box chances
 const boxChances = {
-  "Comum":[
-    {name:"Fibra", chance:70},
-    {name:"Grafite", chance:20},
-    {name:"Carbono", chance:7},
-    {name:"Titânio", chance:2},
-    {name:"Platina", chance:1}
-  ],
-  "Rara":[
-    {name:"Fibra", chance:50},
-    {name:"Grafite", chance:25},
-    {name:"Carbono", chance:15},
-    {name:"Titânio", chance:8},
-    {name:"Platina", chance:2}
-  ],
-  "Epica":[
-    {name:"Fibra", chance:40},
-    {name:"Grafite", chance:30},
-    {name:"Carbono", chance:20},
-    {name:"Titânio", chance:8},
-    {name:"Platina", chance:2}
-  ],
-  "Lendaria":[
-    {name:"Fibra", chance:30},
-    {name:"Grafite", chance:25},
-    {name:"Carbono", chance:20},
-    {name:"Titânio", chance:15},
-    {name:"Platina", chance:10}
-  ]
+  "Comum":[{name:"Fibra", chance:70},{name:"Grafite", chance:20},{name:"Carbono", chance:7},{name:"Titânio", chance:2},{name:"Platina", chance:1}],
+  "Rara":[{name:"Fibra", chance:50},{name:"Grafite", chance:25},{name:"Carbono", chance:15},{name:"Titânio", chance:8},{name:"Platina", chance:2}],
+  "Epica":[{name:"Fibra", chance:40},{name:"Grafite", chance:30},{name:"Carbono", chance:20},{name:"Titânio", chance:8},{name:"Platina", chance:2}],
+  "Lendaria":[{name:"Fibra", chance:30},{name:"Grafite", chance:25},{name:"Carbono", chance:20},{name:"Titânio", chance:15},{name:"Platina", chance:10}]
 };
 
 // Peixes e preços
@@ -238,7 +227,6 @@ function updateUpgrade(){
               removed++;
             }
           }
-          // Nova regra: se falhar, mantém 1 e perde a outra
           const failChance = parseInt(level)*10;
           if(Math.random()*100 < failChance){
             bolsa.push({name:name, level:parseInt(level)});
@@ -300,56 +288,44 @@ const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
 
-fishButton.onclick = function(){
-  if(dailyCatch >= dailyLimit){
-    alert("Você já pescou 15 peixes hoje! Volte amanhã 😢");
-    return;
-  }
-
-  fishButton.disabled = true;
-  skipButton.style.display = "inline-block";
-  const vara = getCurrentVara();
-  const fish = getRandomFishByVara(vara);
-  result.innerText = "Esperando o peixe morder a isca...";
-  fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < varas[vara.name][0].chance){
-      alert("O peixe escapou! 😢");
-    } else {
-      aquario.push(fish);
-      dailyCatch++;
-      updateAquario();
-      alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
-    }
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
-  }, fish.time);
-};
-
-skipButton.onclick = function(){
-  if(fishingTimeout){
-    clearTimeout(fishingTimeout);
-    fishingTimeout = null;
-
-    if(dailyCatch >= dailyLimit){
-      alert("Você já pescou 15 peixes hoje! Volte amanhã 😢");
-      fishButton.disabled = false;
-      skipButton.style.display = "none";
-      return;
-    }
-
+function attemptCatch() {
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
     if(Math.random()*100 < varas[vara.name][0].chance){
-      alert("O peixe escapou! 😢");
+        alert("O peixe escapou! 😢");
     } else {
-      aquario.push(fish);
-      dailyCatch++;
-      updateAquario();
-      alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
+        aquario.push(fish);
+        dailyCatch++;
+        updateAquario();
+        alert(`Você pescou um peixe e foi para o aquário: ${fish.name}`);
     }
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
-  }
+    updateDailyCatchInfo();
+}
+
+fishButton.onclick = function(){
+    if(dailyCatch >= dailyLimit){
+        alert("Você já pescou 15 peixes hoje! Volte amanhã 😢");
+        updateDailyCatchInfo();
+        return;
+    }
+    fishButton.disabled = true;
+    skipButton.style.display = "inline-block";
+    result.innerText = "Esperando o peixe morder a isca...";
+    fishingTimeout = setTimeout(()=>{
+        attemptCatch();
+        fishButton.disabled = false;
+        skipButton.style.display = "none";
+    }, getRandomFishByVara(getCurrentVara()).time);
+};
+
+skipButton.onclick = function(){
+    if(fishingTimeout){
+        clearTimeout(fishingTimeout);
+        fishingTimeout = null;
+        attemptCatch();
+        fishButton.disabled = false;
+        skipButton.style.display = "none";
+    }
 };
 
 // Abas
@@ -381,10 +357,12 @@ function updateAquario(){
   });
 }
 
+// Inicializações
 document.getElementById("currentVara").innerText = `${getCurrentVara().name} (Nível ${getCurrentVara().level})`;
 document.getElementById("chanceInfo").innerText = `Chance de falha: ${varas[getCurrentVara().name][0].chance}%`;
 updateBolsa();
 updateUpgrade();
+updateDailyCatchInfo();
 
 });
 </script>
