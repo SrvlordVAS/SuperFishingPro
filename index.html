@@ -254,8 +254,7 @@ function updateUpgrade(){
           }
           // Falha do upgrade
           if(Math.random()*100 < upgradeFailChance[parseInt(level)]){
-            // Falhou, mantém 1
-            bolsa.push({name:name, level:parseInt(level)});
+            bolsa.push({name:name, level:parseInt(level)}); // mantém 1
             alert("Upgrade falhou! Você perdeu uma das varas.");
           } else {
             bolsa.push({name:name, level:parseInt(level)+1});
@@ -354,7 +353,7 @@ function updateAquario(){
   aq.innerHTML = "";
   aquario.forEach((f,i)=>{
     const div = document.createElement("div");
-    div.innerHTML = `${f.name} (${f.rarity}) - <button onclick="sellFish(${i})">Vender por ${f.value} TRX</button>`;
+    div.innerHTML = `${f.name} (${f.rarity}) - <button onclick="sellFish(${i})">Vender por ${f.value.toFixed(3)} TRX</button>`;
     aq.appendChild(div);
   });
 }
@@ -373,4 +372,4 @@ document.querySelectorAll(".tabButton").forEach(btn=>{
     document.querySelectorAll(".section").forEach(sec=>{
       sec.classList.remove("active");
     });
-    document.getElementById(target).classList.add("active");
+    document.getElementById(target).
