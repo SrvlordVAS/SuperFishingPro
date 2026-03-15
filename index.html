@@ -19,7 +19,7 @@ button:hover { background-color:#0088cc; }
 .fish-mitico {color:black; background:yellow; padding:2px 5px; border-radius:3px;}
 .section { display:none; margin-top:20px; }
 .section.active { display:block; }
-#inventory, #shop { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
+#inventory, #upgrades, #shop { border:1px solid #004466; padding:10px; margin:10px auto; width:90%; max-width:400px; border-radius:8px; background:#e0f7ff; text-align:left; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); }
 #bottomMenu button { flex:1; margin:0 5px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
@@ -45,6 +45,11 @@ button:hover { background-color:#0088cc; }
   <div id="inventory"></div>
 </div>
 
+<div id="upgradesSection" class="section">
+  <h3>Upgrades</h3>
+  <div id="upgrades"></div>
+</div>
+
 <div id="shopSection" class="section">
   <h3>Loja</h3>
   <div id="shopBoxes">
@@ -60,6 +65,7 @@ button:hover { background-color:#0088cc; }
 <div id="bottomMenu">
   <button class="tabButton" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="inventorySection">🎒 Inventário</button>
+  <button class="tabButton" data-target="upgradesSection">⚒️ Upgrades</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
 </div>
 
@@ -69,7 +75,6 @@ document.addEventListener("DOMContentLoaded", function(){
 let money = 9999
 let fishingTimeout = null
 
-// Varas
 const varas = {
   "Bambu":[{level:1, chance:50,maxRarity:"Muito Comum"},{level:2, chance:40,maxRarity:"Muito Comum"},{level:3, chance:30,maxRarity:"Muito Comum"},{level:4, chance:20,maxRarity:"Muito Comum"},{level:5, chance:10,maxRarity:"Muito Comum"}],
   "Fibra":[{level:1, chance:50,maxRarity:"Comum"},{level:2, chance:40,maxRarity:"Comum"},{level:3, chance:30,maxRarity:"Comum"},{level:4, chance:20,maxRarity:"Comum"},{level:5, chance:10,maxRarity:"Comum"}],
@@ -80,7 +85,6 @@ const varas = {
   "Adamantium":[{level:1, chance:50,maxRarity:"Mítico"},{level:2, chance:40,maxRarity:"Mítico"},{level:3, chance:30,maxRarity:"Mítico"},{level:4, chance:20,maxRarity:"Mítico"},{level:5, chance:10,maxRarity:"Mítico"}]
 };
 
-// Peixes
 const fishes=[
 {name:"Sardinha",value:1,rarity:"Muito Comum",time:3000},
 {name:"Robalo",value:2,rarity:"Comum",time:4000},
@@ -91,7 +95,6 @@ const fishes=[
 {name:"Tubarão-branco adulto",value:60,rarity:"Mítico",time:15000}
 ];
 
-// Inventário inicial
 let inventory=[{name:"Bambu",level:1}]
 let currentVaraIndex=0
 
@@ -119,33 +122,41 @@ function updateInventoryDisplay(){
     const selectBtn=document.createElement("button")
     selectBtn.innerText="Selecionar"
     selectBtn.onclick=function(){currentVaraIndex=i;updateInventoryDisplay();document.getElementById("currentVara").innerText=`${v.name} (Nível ${v.level})`}
-    const upgradeBtn=document.createElement("button")
-    upgradeBtn.innerText="Upgrade"
-    // Checa se há outra vara do mesmo tipo e nível
-    const sameVaraIndex=inventory.findIndex((item,j)=>j!==i && item.name===v.name && item.level===v.level)
-    if(sameVaraIndex===-1) upgradeBtn.disabled=true
-    else upgradeBtn.onclick=function(){
-      // Remove a outra vara
-      inventory.splice(sameVaraIndex,1)
-      // Sobe a vara de nível
-      if(v.level<5) v.level++
-      updateInventoryDisplay()
-      alert("Upgrade realizado!")
-    }
     card.appendChild(span)
     card.appendChild(selectBtn)
-    card.appendChild(upgradeBtn)
     invDiv.appendChild(card)
+  })
+  updateUpgradesDisplay()
+}
+
+// Upgrades
+function updateUpgradesDisplay(){
+  const upDiv=document.getElementById("upgrades")
+  upDiv.innerHTML=""
+  inventory.forEach((v,i)=>{
+    const sameVaraIndex=inventory.findIndex((item,j)=>j!==i && item.name===v.name && item.level===v.level)
+    if(sameVaraIndex!==-1 && v.level<5){
+      const card=document.createElement("div")
+      card.className="varaCard"
+      const span=document.createElement("span")
+      span.innerText=`${v.name} (Nível ${v.level})`
+      const upBtn=document.createElement("button")
+      upBtn.innerText="Upgrade"
+      upBtn.onclick=function(){
+        inventory.splice(sameVaraIndex,1)
+        v.level++
+        updateInventoryDisplay()
+        alert("Upgrade realizado!")
+      }
+      card.appendChild(span)
+      card.appendChild(upBtn)
+      upDiv.appendChild(card)
+    }
   })
 }
 
 // Box system
-const boxDrops={
-  "box1":["Fibra","Grafite"],
-  "box2":["Fibra","Grafite","Carbono"],
-  "box3":["Grafite","Carbono","Titânio"],
-  "box4":["Carbono","Titânio","Platina"]
-}
+const boxDrops={"box1":["Fibra","Grafite"],"box2":["Fibra","Grafite","Carbono"],"box3":["Grafite","Carbono","Titânio"],"box4":["Carbono","Titânio","Platina"]}
 
 function openBox(box){
   const options=boxDrops[box]
