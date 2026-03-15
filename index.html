@@ -23,10 +23,10 @@ button:hover { background-color:#0088cc; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
-.submenu { margin-left:5px; display:none; }
-.submenu button { margin:2px 0; width:100%; text-align:left; font-size:13px; }
 .bag-header { cursor:pointer; background:#0088cc; padding:3px; border-radius:3px; margin:2px 0; color:white; font-size:13px; }
 input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
+.upgrade-item { cursor:pointer; border:1px solid #004466; padding:3px; margin:2px 0; border-radius:3px; background:#aee1f7; }
+.upgrade-item:hover { background:#88ccee; }
 </style>
 </head>
 <body>
@@ -170,102 +170,63 @@ function getRandomFishByVara(vara){
   return fish;
 }
 
-// ===== BOLSA INTERATIVA =====
+// ===== BOLSA =====
 function updateBolsa(){
   const bolsaDiv = document.getElementById("bolsa");
   bolsaDiv.innerHTML = "";
-  if(bolsa.length===0){ 
-    bolsaDiv.innerText="Sua bolsa está vazia."; 
-    return; 
-  }
+  if(bolsa.length===0){ bolsaDiv.innerText="Sua bolsa está vazia."; return; }
   
   const summary = {};
   bolsa.forEach(v=>{
-    const key = v.name+" Nível "+v.level;
+    const key = v.name+(v.level? " Nível "+v.level:"");
+    summary[key] = summary[key]?summary[key]+1:1;
+  });
+  
+  for(const k in summary){
+    const div = document.createElement("div");
+    div.innerText = `${k} x${summary[k]}`;
+    bolsaDiv.appendChild(div);
+  }
+
+  updateUpgrade(); // atualiza a seção de upgrade com as varas da bolsa
+}
+
+// ===== UPGRADE =====
+function updateUpgrade(){
+  const upgradeDiv = document.getElementById("upgrade");
+  upgradeDiv.innerHTML = "";
+  if(bolsa.length===0){ upgradeDiv.innerText="Você não tem varas para upar."; return; }
+
+  // Agrupa varas iguais
+  const summary = {};
+  bolsa.forEach(v=>{
+    const key = v.name+"_"+v.level;
     summary[key] = summary[key]?summary[key]+1:1;
   });
 
   for(const k in summary){
+    const [name, level] = k.split("_");
     const div = document.createElement("div");
-    div.innerText = `${k} x${summary[k]}`;
-    div.style.cursor = "pointer";
-    div.style.background = "#aee1f7";
-    div.style.padding = "3px";
-    div.style.margin = "2px 0";
-    div.style.borderRadius = "3px";
-
+    div.className="upgrade-item";
+    div.innerText=`${name} Nível ${level} x${summary[k]}`;
     div.onclick = ()=>{
-      const parts = k.split(" Nível ");
-      const name = parts[0];
-      const level = parseInt(parts[1]);
-      if(confirm(`Deseja mover ${k} para a sua vara ativa?`)){
-        // Remove uma vara da bolsa
-        let removed = false;
-        bolsa = bolsa.filter(b=>{
-          if(!removed && b.name===name && b.level===level){ removed=true; return false; }
-          return true;
-        });
-        inventory[currentVaraIndex] = {name:name, level:level};
-        updateBolsa();
-        updateVaraInfo();
+      if(summary[k]<2){ alert("Você precisa de pelo menos 2 varas iguais para upar."); return; }
+      // Remove duas varas
+      let removed=0;
+      for(let i=0;i<bolsa.length;i++){
+        if(bolsa[i].name===name && bolsa[i].level==parseInt(level)){
+          bolsa.splice(i,1);
+          i--;
+          removed++;
+          if(removed>=2) break;
+        }
       }
+      // Adiciona nova vara upar
+      bolsa.push({name:name, level:parseInt(level)+1});
+      alert(`${name} subiu para Nível ${parseInt(level)+1}!`);
+      updateBolsa();
     };
-
-    bolsaDiv.appendChild(div);
-  }
-}
-
-// ===== VARA ATIVA INFO =====
-function updateVaraInfo(){
-  const vara = getCurrentVara();
-  document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
-  document.getElementById("chanceInfo").innerText = `Chance de falha: ${varas[vara.name][0].chance}% | Bônus no peixe: ${(vara.level-1)*10}%`;
-}
-
-// ===== UPGRADE ANTIGO =====
-function tryUpgrade(varaName, level){
-  const count = bolsa.filter(v=>v.name===varaName && v.level===level).length;
-  if(count<2){ alert("Você precisa de 2 varas iguais para tentar o upgrade!"); return; }
-  
-  if(confirm(`Deseja tentar upar 2 varas ${varaName} Nível ${level}?`)){
-    let removed = 0;
-    bolsa = bolsa.filter(v=>{
-      if(removed<2 && v.name===varaName && v.level===level){ removed++; return false; }
-      return true;
-    });
-
-    const chance = 50;
-    if(Math.random()*100 < chance){
-      inventory.push({name:varaName, level:level+1});
-      alert(`Sucesso! Você conseguiu upar a vara para Nível ${level+1}`);
-    } else {
-      alert("Falhou! As varas foram perdidas.");
-    }
-    updateBolsa();
-    updateUpgrade();
-    updateVaraInfo();
-  }
-}
-
-function updateUpgrade(){
-  const upgradeDiv = document.getElementById("upgrade");
-  upgradeDiv.innerHTML = "";
-  const unique = {};
-  bolsa.forEach(v=>{
-    const key = v.name+" Nível "+v.level;
-    unique[key] = unique[key]?unique[key]+1:1;
-  });
-  
-  for(const k in unique){
-    if(unique[k]>=2){
-      const btn = document.createElement("button");
-      btn.innerText = `Tentar upar ${k} (${unique[k]} disponíveis)`;
-      btn.onclick = ()=>{
-        const parts = k.split(" Nível ");
-        tryUpgrade(parts[0], parseInt(parts[1]));
-      };
-      upgradeDiv.appendChild(btn);
-    }
+    upgradeDiv.appendChild(div);
   }
 }
 
@@ -399,10 +360,7 @@ tabs.forEach(tab=>{
 
 // Inicializa
 updateBolsa();
-updateVaraInfo();
 updateWalletUI();
-updateUpgrade();
-
 });
 </script>
 </body>
