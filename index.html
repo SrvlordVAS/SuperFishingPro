@@ -64,20 +64,47 @@ let money = 0
 let fishingTimeout = null
 
 const fishes = [
+  // Muito Comum
   {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
   {name:"Anchova", value:1, rarity:"Muito Comum", time:3000},
+  {name:"Peixinho-lua", value:1, rarity:"Muito Comum", time:3000},
+  {name:"Tainha", value:1, rarity:"Muito Comum", time:3000},
+
+  // Comum
   {name:"Robalo", value:2, rarity:"Comum", time:4000},
   {name:"Cavala", value:3, rarity:"Comum", time:4000},
+  {name:"Corvina", value:3, rarity:"Comum", time:4000},
+  {name:"Badejo-pequeno", value:2, rarity:"Comum", time:4000},
+
+  // Incomum
   {name:"Atum", value:5, rarity:"Incomum", time:5000},
   {name:"Badejo", value:6, rarity:"Incomum", time:5000},
-  {name:"Garoupa", value:10, rarity:"Raro", time:7000},
+  {name:"Garoupa juvenil", value:6, rarity:"Incomum", time:5000},
+  {name:"Cavala-real", value:5, rarity:"Incomum", time:5000},
+
+  // Raro
+  {name:"Garoupa adulta", value:10, rarity:"Raro", time:7000},
   {name:"Linguado", value:12, rarity:"Raro", time:7000},
+  {name:"Pargo", value:10, rarity:"Raro", time:7000},
+  {name:"Robalo-do-mar", value:12, rarity:"Raro", time:7000},
+
+  // Épico
   {name:"Salmão do Atlântico", value:18, rarity:"Épico", time:9000},
   {name:"Dourado do mar", value:20, rarity:"Épico", time:9000},
+  {name:"Cavalinha-real", value:18, rarity:"Épico", time:9000},
+  {name:"Bonito", value:20, rarity:"Épico", time:9000},
+
+  // Lendário
   {name:"Peixe-espada", value:30, rarity:"Lendário", time:12000},
   {name:"Tubarão", value:35, rarity:"Lendário", time:12000},
+  {name:"Marlim-negro", value:32, rarity:"Lendário", time:12000},
+  {name:"Marlim-azul jovem", value:35, rarity:"Lendário", time:12000},
+
+  // Mítico
   {name:"Tubarão-branco adulto", value:60, rarity:"Mítico", time:15000},
-  {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000}
+  {name:"Marlim Azul", value:100, rarity:"Mítico", time:15000},
+  {name:"Peixe-lua gigante", value:80, rarity:"Mítico", time:15000},
+  {name:"Peixe-saberto", value:90, rarity:"Mítico", time:15000}
 ]
 
 function rarityClass(rarity){
