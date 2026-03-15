@@ -340,6 +340,8 @@ fishButton.onclick = function(){
       updateWalletUI();
       alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
     }
+    dailyCount++;
+    document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
     fishButton.disabled = false;
     skipButton.style.display = "none";
   }, fish.time);
@@ -349,20 +351,24 @@ skipButton.onclick = function(){
   if(fishingTimeout){
     clearTimeout(fishingTimeout);
     fishingTimeout = null;
+
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
+
     if(Math.random()*100 < varas[vara.name][0].chance){
       alert("O peixe escapou! 😢");
     } else {
       sunBalance += fish.value;
       updateWalletUI();
       alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`);
-dailyCount++;
+    }
+
+    dailyCount++;
     document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
     fishButton.disabled = false;
     skipButton.style.display = "none";
   }
-}
+};
 
 // ===== WALLET =====
 function updateWalletUI(){
