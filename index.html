@@ -1,54 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Super Fishing</title>
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 120px 0; background:linear-gradient(to bottom,#87ceeb,#f0f8ff); }
+body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px; background:linear-gradient(to bottom,#87ceeb,#f0f8ff); }
 .container { max-width:600px; margin:0 auto; padding:20px; background:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
 h1 { text-align:center; }
 button { padding:10px 20px; margin:5px; font-size:16px; cursor:pointer; }
 #log { margin-top:20px; background:#f9f9f9; padding:10px; border-radius:8px; height:250px; overflow-y:auto; }
-select { padding:5px; margin:5px; font-size:16px; }
+select { padding:5px; margin:5px; font-size:16px; width:100%; }
 </style>
 </head>
 <body>
 <div class="container">
 <h1>Super Fishing</h1>
-<p>Saldo: <span id="saldo">100000</span> SUN</p>
+<p>Saldo: <span id="saldo"></span> SUN</p>
 
 <h3>Box Rara (50 SUN)</h3>
-<button onclick="abrirBox('rara')">Abrir Box</button>
+<button id="btnBoxRara">Abrir Box</button>
 
 <h3>Upgrade Vara</h3>
 <select id="minhaVara"></select>
-<button onclick="uparVara()">Up</button>
-<button onclick="calcularROI()">Calcular ROI</button>
+<button id="btnUp">Up</button>
+<button id="btnROI">Calcular ROI</button>
 
 <div id="log"></div>
 </div>
 
 <script>
-// saldo do jogador
+// ======== Variáveis do jogo ========
 let saldo = 100000;
-
-// coleção de varas do jogador
 let varas = [];
 
-// configuração das boxes
+const precoBox = 50;
 const boxRara = [
   {nome:'Vara Comum', taxa:70, baseLucro:2},
   {nome:'Vara Média', taxa:20, baseLucro:4},
   {nome:'Vara Rara', taxa:9, baseLucro:8},
   {nome:'Vara Lendária', taxa:1, baseLucro:16},
 ];
-const precoBox = 50; // R$ da box rara
 
+// ======== Inicialização ========
 function atualizarSaldo(){
   document.getElementById('saldo').innerText = saldo.toFixed(2);
 }
 
-// função para abrir box
+function atualizarSelect(){
+  const sel = document.getElementById('minhaVara');
+  sel.innerHTML = '';
+  varas.forEach((v,i)=>{
+    let opt = document.createElement('option');
+    opt.value = i;
+    opt.text = `${v.nome} lvl ${v.level} (Lucro: ${v.lucroAtual.toFixed(2)})`;
+    sel.add(opt);
+  });
+}
+
+function log(msg){
+  const l = document.getElementById('log');
+  l.innerHTML += msg + '<br>';
+  l.scrollTop = l.scrollHeight;
+}
+
+// ======== Abrir Box ========
 function abrirBox(tipo){
   if(saldo < precoBox){ log('❌ Saldo insuficiente!'); return; }
   saldo -= precoBox;
@@ -63,7 +79,6 @@ function abrirBox(tipo){
   for(let v of box){
     acumulado += v.taxa;
     if(rnd <= acumulado){
-      // cria a vara com nível inicial, XP e lucro
       dropped = {...v, level:1, xp:0, xpParaUp:50, lucroAtual:v.baseLucro, custoAcumulado:precoBox};
       break;
     }
@@ -73,45 +88,22 @@ function abrirBox(tipo){
   log(`🎣 Parabéns! Você pegou a ${dropped.nome} lvl ${dropped.level}`);
 }
 
-// atualizar lista de varas para upgrade
-function atualizarSelect(){
-  let sel = document.getElementById('minhaVara');
-  sel.innerHTML='';
-  varas.forEach((v,i)=>{
-    let opt = document.createElement('option');
-    opt.value=i;
-    opt.text = `${v.nome} lvl ${v.level} (Lucro: ${v.lucroAtual.toFixed(2)})`;
-    sel.add(opt);
-  });
-}
-
-// log
-function log(msg){
-  let l = document.getElementById('log');
-  l.innerHTML += msg+'<br>';
-  l.scrollTop = l.scrollHeight;
-}
-
-// upar vara
+// ======== Upar Vara ========
 function uparVara(){
-  let sel = document.getElementById('minhaVara');
-  let idx = parseInt(sel.value);
-  let v = varas[idx];
+  const sel = document.getElementById('minhaVara');
+  const idx = parseInt(sel.value);
+  const v = varas[idx];
   if(!v){ log('Selecione uma vara'); return; }
 
-  // XP necessário para o nível atual
-  let xpReq = v.xpParaUp;
-
-  // calcular quantas varas são necessárias para gerar XP
-  let varasNecessarias = Math.ceil(xpReq / 50);
+  const xpReq = v.xpParaUp;
+  const varasNecessarias = Math.ceil(xpReq / 50);
 
   if(varas.length-1 < varasNecessarias){
     log(`❌ Não há varas suficientes para upar (precisa sacrificar ${varasNecessarias})`);
     return;
   }
 
-  // remover varas para XP
-  let idxs = [];
+  const idxs = [];
   let count = 0;
   for(let i=0;i<varas.length;i++){
     if(i===idx) continue;
@@ -119,46 +111,48 @@ function uparVara(){
     count++;
     if(count>=varasNecessarias) break;
   }
-  let sacrificadas = [];
+
+  const sacrificadas = [];
   idxs.reverse().forEach(i=>{
     sacrificadas.push(varas.splice(i,1)[0]);
   });
 
-  // aplicar aumento aleatório 80-120%
-  let aumento = 0.8 + Math.random()*0.4;
+  // aumento aleatório 80-120%
+  const aumento = 0.8 + Math.random()*0.4;
   v.lucroAtual *= (1 + aumento);
 
-  // atualizar nível e XP
-  v.level +=1;
+  v.level += 1;
   v.xp = 0;
-  v.xpParaUp *=2; // dobra XP necessário
-
-  // atualizar custo acumulado
+  v.xpParaUp *= 2;
   v.custoAcumulado += precoBox * (varasNecessarias + 1);
 
-  log(`✨ Sua ${v.nome} subiu para lvl ${v.level}! Lucro atual: ${v.lucroAtual.toFixed(2)} SUN/dia (aumento ${(aumento*100).toFixed(0)}%)`);
-  log(`💀 Varas sacrificadas para XP: ${sacrificadas.map(x=>x.nome).join(', ')}`);
+  log(`✨ Sua ${v.nome} subiu para lvl ${v.level}! Lucro: ${v.lucroAtual.toFixed(2)} SUN/dia (aumento ${(aumento*100).toFixed(0)}%)`);
+  log(`💀 Varas sacrificadas: ${sacrificadas.map(x=>x.nome).join(', ')}`);
   atualizarSelect();
 }
 
-// calcular ROI mínimo e máximo
+// ======== Calcular ROI ========
 function calcularROI(){
-  let sel = document.getElementById('minhaVara');
-  let idx = parseInt(sel.value);
-  let v = varas[idx];
+  const sel = document.getElementById('minhaVara');
+  const idx = parseInt(sel.value);
+  const v = varas[idx];
   if(!v){ log('Selecione uma vara'); return; }
 
-  let lucroMin = v.lucroAtual / 1.1; // aproximação 80%
-  let lucroMax = v.lucroAtual * 1.1; // aproximação 120%
+  const lucroMin = v.lucroAtual / 1.1;
+  const lucroMax = v.lucroAtual * 1.1;
 
-  let roiMin = (v.custoAcumulado / lucroMax).toFixed(2);
-  let roiMax = (v.custoAcumulado / lucroMin).toFixed(2);
+  const roiMin = (v.custoAcumulado / lucroMax).toFixed(2);
+  const roiMax = (v.custoAcumulado / lucroMin).toFixed(2);
 
   log(`📊 ROI da ${v.nome} lvl ${v.level}: mínimo ${roiMin} dias, máximo ${roiMax} dias`);
 }
 
+// ======== Eventos ========
+document.getElementById('btnBoxRara').addEventListener('click',()=>abrirBox('rara'));
+document.getElementById('btnUp').addEventListener('click',uparVara);
+document.getElementById('btnROI').addEventListener('click',calcularROI);
+
+// ======== Inicialização UI ========
 atualizarSaldo();
 atualizarSelect();
-</script>
-</body>
-</html>
+log('🟢 Super Fishing iniciado! Abra uma box para começar.');
