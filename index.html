@@ -7,7 +7,7 @@
 body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 80px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
 h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
 h3 { color:#004466; }
-#result { font-size:16px; margin:15px 0 20px 0; min-height:30px; white-space:pre-line; }
+#result { font-size:16px; margin:15px 0 20px 0; min-height:30px; }
 button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; font-size:14px; cursor:pointer; margin:2px; transition:0.2s; }
 button:hover { background-color:#0088cc; }
 .fish-muito-comum {color:gray;}
@@ -207,15 +207,18 @@ function updateVaraInfo(){
         document.getElementById("varaStats").innerText = "";
         return;
     }
-
-    const baseChance = varas[vara.name][0].chance;
-    const chance = baseChance + (vara.level-1)*10;
-
-    const priceBonusPercent = ((vara.level-1)*10).toFixed(1);
-
+    const chance = varas[vara.name][0].chance + (vara.level-1)*10;
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
+
+    const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+    const maxRarityIndex = rarities.indexOf(varas[vara.name][0].maxRarity);
+    const fishList = fishes
+        .filter(f => rarities.indexOf(f.rarity) <= maxRarityIndex)
+        .map(f => `${f.name} (+${((vara.level-1)*10).toFixed(0)}% SUN)`)
+        .join(", ");
+
     document.getElementById("varaStats").innerText = 
-        `Chance de pegar peixe: ${chance}%\nBônus no preço do peixe: +${priceBonusPercent}%`;
+        `Chance de pegar peixe: ${chance}%\nPeixes possíveis: ${fishList}`;
 }
 
 // ===== BOX =====
@@ -241,9 +244,9 @@ boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
 
-        // Mostrar drops possíveis junto com confirmação
-        let dropList = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join("\n");
-        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas:\n${dropList}`)) return;
+        // Mostrar drops possíveis na confirmação
+        const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
+        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis drops: ${drops}`)) return;
 
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
