@@ -246,9 +246,9 @@ function addVaraToInventory(varaName){
 boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-        // Mostrar drops possíveis na confirmação
-        const drops = boxChances[type].map(i=>i.name).join(", ");
-        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}`)) return;
+        // Mostrar drops possíveis na confirmação com nome e chance
+const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join("\n");
+if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas:\n${drops}`)) return;
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
         let acc = 0;
