@@ -82,12 +82,13 @@ let xpReservoir = 0;
 
 // Varas
 const varas = {
-  "Comum":[{level:1, chance:50, maxRarity:"Comum", baseXP:0, baseProfit:30}],
-  "Incomum":[{level:1, chance:50, maxRarity:"Incomum", baseXP:100, baseProfit:100}],
-  "Rara":[{level:1, chance:50, maxRarity:"Rara", baseXP:160, baseProfit:100}],
-  "Épica":[{level:1, chance:50, maxRarity:"Épica", baseXP:240, baseProfit:100}],
-  "Lendária":[{level:1, chance:50, maxRarity:"Lendária", baseXP:360, baseProfit:100}],
-  "Mítico":[{level:1, chance:50, maxRarity:"Mítico", baseXP:460, baseProfit:100}]
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseXP:0, baseProfit:30}],
+  "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseXP:100, baseProfit:100}],
+  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseXP:160, baseProfit:100}],
+  "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseXP:240, baseProfit:100}],
+  "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseXP:360, baseProfit:100}],
+  "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseXP:460, baseProfit:100}],
+  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:600, baseProfit:100}]
 };
 
 // Peixes
@@ -106,7 +107,8 @@ let fishes = [
   {name:"Marlim Azul", value:1.164151906967163, rarity:"Mítico", time:15000}
 ];
 
-let inventory = [{name:"Comum", level:1, xp:0, profit:30}];
+// Inventário inicial com Bambu grátis
+let inventory = [{name:"Bambu", level:1, xp:0, profit:30}];
 let bolsa = [...inventory];
 let currentVaraIndex = 0;
 
@@ -116,7 +118,7 @@ function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function getRandomFishByVara(vara){
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
   let maxRarityIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
-  let minRarityIdx = Math.max(0, maxRarityIdx-1);
+  let minRarityIdx = (vara.name==="Comum")? maxRarityIdx : Math.max(0, maxRarityIdx-1);
   const allowed = fishes.filter(f => {
     const idx = rarities.indexOf(f.rarity);
     return idx <= maxRarityIdx && idx >= minRarityIdx;
@@ -159,9 +161,10 @@ function updateUpgrade(){
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
-        if(vara.name === "Comum") return;
+        if(vara.name === "Bambu") return; // Bambu não pode upar nem transformar
+
         const baseXP = varas[vara.name][0].baseXP;
-        const nextXP = baseXP * Math.pow(2, vara.level-1); // dobro a cada level
+        const nextXP = baseXP * Math.pow(2, vara.level-1); 
         const div = document.createElement("div");
         div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(1)}%`;
 
@@ -189,7 +192,6 @@ function updateUpgrade(){
             if(vara.xp >= nextXP){
                 vara.level++;
                 vara.xp = 0;
-                // Aplica aumento aleatório 90-120%
                 const bonus = 0.9 + Math.random()*0.3;
                 vara.profit *= (1+bonus);
                 alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado em ${(bonus*100).toFixed(1)}%`);
@@ -219,7 +221,7 @@ function updateVaraInfo(){
     const allowedFishes = fishes.filter(f => {
         const idx = rarities.indexOf(f.rarity);
         const maxIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
-        const minIdx = Math.max(0, maxIdx-1);
+        const minIdx = (vara.name==="Comum")? maxIdx : Math.max(0, maxIdx-1);
         return idx<=maxIdx && idx>=minIdx;
     });
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
@@ -230,10 +232,10 @@ function updateVaraInfo(){
 const boxTypes = ["Comum","Incomum","Rara","Epica"];
 const boxCosts = {"Comum":50,"Incomum":60,"Rara":75,"Epica":95};
 const boxChances = {
-  "Comum":[ {name:"Comum", chance:74}, {name:"Incomum", chance:25}, {name:"Mítico", chance:1} ],
-  "Incomum":[ {name:"Incomum", chance:74}, {name:"Rara", chance:25}, {name:"Mítico", chance:2} ],
-  "Rara":[ {name:"Rara", chance:74}, {name:"Épica", chance:25}, {name:"Mítico", chance:3} ],
-  "Epica":[ {name:"Épica", chance:74}, {name:"Lendária", chance:25}, {name:"Mítico", chance:4} ]
+  "Comum":[ {name:"Fibra", chance:74},{name:"Grafite", chance:25},{name:"Adamantium", chance:1} ],
+  "Incomum":[ {name:"Grafite", chance:73},{name:"Carbono", chance:25},{name:"Adamantium", chance:2} ],
+  "Rara":[ {name:"Carbono", chance:72},{name:"Titânio", chance:25},{name:"Adamantium", chance:3} ],
+  "Epica":[ {name:"Titânio", chance:71},{name:"Platina", chance:25},{name:"Adamantium", chance:4} ]
 };
 
 function addVaraToInventory(varaName){
