@@ -32,6 +32,7 @@ button:hover { background-color:#0088cc; }
 <h3 id="money">Saldo SUN: 100000</h3>
 <h3 id="dailyCount">Tentativas hoje: 0/15</h3>
 
+<!-- PESCA -->
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
@@ -44,6 +45,7 @@ button:hover { background-color:#0088cc; }
   </div>
 </div>
 
+<!-- LOJA -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
   <div id="shopBoxes">
@@ -53,15 +55,18 @@ button:hover { background-color:#0088cc; }
     <button id="boxRara">📦 Box Rara (150 SUN)</button>
     <button id="boxEpica">📦 Box Épica (200 SUN)</button>
     <button id="boxLendaria">📦 Box Lendária (250 SUN)</button>
+    <button id="boxMitica">📦 Box Mítica (300 SUN)</button>
   </div>
 </div>
 
+<!-- UPGRADE -->
 <div id="upgradeSection" class="section">
   <h3>Upgrade de Varas</h3>
   <p>XP disponível: <span id="xpReservoir">0</span></p>
   <div id="upgrade"></div>
 </div>
 
+<!-- BOTTOM MENU -->
 <div id="bottomMenu">
   <button class="tabButton selected" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
@@ -70,12 +75,14 @@ button:hover { background-color:#0088cc; }
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
+
 let sunBalance = 100000;
 let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
 let xpReservoir = 0;
 
+// ===== VARAS =====
 const varas = {
   "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseXP:0, baseProfit:1, canUpgrade:false}],
   "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseXP:100, baseProfit:5, canUpgrade:true}],
@@ -92,6 +99,7 @@ const varas = {
   "Adamantium Reforçada":[{level:1, chance:50, maxRarity:"Mítico", baseXP:600, baseProfit:37.5, canUpgrade:true}]
 };
 
+// ===== PEIXES =====
 let fishes = [
   {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
   {name:"Robalo", value:1, rarity:"Comum", time:4000},
@@ -111,7 +119,9 @@ let inventory = [{name:"Bambu", level:1, xp:0, profit:1}];
 let bolsa = [...inventory];
 let currentVaraIndex = 0;
 
+// ===== FUNÇÕES =====
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
+
 function getRandomFishByVara(vara){
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
   let maxRarityIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
@@ -123,7 +133,13 @@ function getRandomFishByVara(vara){
   return allowed[Math.floor(Math.random()*allowed.length)];
 }
 
-function setActiveVara(idx){ currentVaraIndex = idx; updateVaraInfo(); updateBolsa(); }
+// ===== BOLSA =====
+function setActiveVara(idx){
+    currentVaraIndex = idx;
+    updateVaraInfo();
+    updateBolsa();
+}
+
 function updateBolsa(){
     const bolsaDiv = document.getElementById("bolsa");
     bolsaDiv.innerHTML = "";
@@ -138,11 +154,75 @@ function updateBolsa(){
     });
 }
 
+// ===== UPGRADE =====
+function updateUpgrade(){
+    const upgradeDiv = document.getElementById("upgrade");
+    upgradeDiv.innerHTML = "";
+    document.getElementById("xpReservoir").innerText = xpReservoir;
+
+    const info = document.createElement("p");
+    info.style.marginTop = "10px";
+    info.style.fontSize = "14px";
+    info.style.color = "#004466";
+    info.innerText = "💡 Upar a vara aumenta aleatoriamente de 80% a 120% do lucro atual, até o nível 10.";
+    upgradeDiv.appendChild(info);
+
+    inventory.forEach((vara, idx) => {
+        if(!varas[vara.name][0].canUpgrade) return;
+        const baseXP = varas[vara.name][0].baseXP;
+        const nextXP = baseXP * Math.pow(2, vara.level-1);
+        const div = document.createElement("div");
+        div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(1)}%`;
+
+        const btnTransform = document.createElement("button");
+        btnTransform.innerText = "Transformar em XP";
+        btnTransform.onclick = () => {
+            xpReservoir += baseXP;
+            inventory.splice(idx,1);
+            bolsa.splice(bolsa.indexOf(vara),1);
+            if(currentVaraIndex === idx) currentVaraIndex = 0;
+            alert(`${vara.name} transformada em ${baseXP} XP!`);
+            updateBolsa();
+            updateUpgrade();
+            updateVaraInfo();
+        };
+
+        const btnUpgrade = document.createElement("button");
+        btnUpgrade.innerText = "Usar XP para upar";
+        btnUpgrade.onclick = () => {
+            if(xpReservoir <= 0){ alert("Sem XP disponível!"); return; }
+            if(vara.level>=10){ alert("Vara já no nível máximo!"); return; }
+            const xpToUse = Math.min(nextXP - vara.xp, xpReservoir);
+            vara.xp += xpToUse;
+            xpReservoir -= xpToUse;
+            if(vara.xp >= nextXP){
+                vara.level++;
+                vara.xp = 0;
+                const bonus = 0.8 + Math.random()*0.4;
+                vara.profit *= (1+bonus);
+                alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado em ${(bonus*100).toFixed(1)}%`);
+            }
+            updateUpgrade();
+            updateVaraInfo();
+        };
+
+        div.appendChild(document.createElement("br"));
+        div.appendChild(btnTransform);
+        div.appendChild(btnUpgrade);
+        upgradeDiv.appendChild(div);
+    });
+}
+
+// ===== VARA ATIVA =====
 function updateVaraInfo(){
     const vara = getCurrentVara();
-    if(!vara) { document.getElementById("currentVara").innerText = "Nenhuma vara ativa"; document.getElementById("varaStats").innerText = ""; return; }
+    if(!vara) {
+        document.getElementById("currentVara").innerText = "Nenhuma vara ativa";
+        document.getElementById("varaStats").innerText = "";
+        return;
+    }
     const baseChance = 50;
-    const chanceBonus = (vara.level-1)*(3+Math.random()*2);
+    const chanceBonus = (vara.level-1)*(3+Math.random()*2); // 3-5% por level
     const chance = baseChance + chanceBonus;
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
@@ -157,14 +237,15 @@ function updateVaraInfo(){
 }
 
 // ===== BOXES =====
-const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria"];
-const boxCosts = {"Comum":50,"Incomum":100,"Rara":150,"Epica":200,"Lendaria":250};
+const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria","Mitica"];
+const boxCosts = {"Comum":50,"Incomum":100,"Rara":150,"Epica":200,"Lendaria":250,"Mitica":300};
 const boxChances = {
   "Comum":[ {name:"Fibra", chance:80},{name:"Fibra Reforçada", chance:20} ],
   "Incomum":[ {name:"Grafite", chance:80},{name:"Grafite Reforçada", chance:20} ],
   "Rara":[ {name:"Carbono", chance:80},{name:"Carbono Reforçada", chance:20} ],
   "Epica":[ {name:"Titânio", chance:80},{name:"Titânio Reforçada", chance:20} ],
-  "Lendaria":[ {name:"Platina", chance:80},{name:"Adamantium Reforçada", chance:20} ]
+  "Lendaria":[ {name:"Platina", chance:80},{name:"Platina Reforçada", chance:20} ],
+  "Mitica":[ {name:"Adamantium", chance:80},{name:"Adamantium Reforçada", chance:20} ]
 };
 
 function addVaraToInventory(varaName){
@@ -235,65 +316,9 @@ skipButton.onclick = function(){
   }
 };
 
-function updateWalletUI(){ document.getElementById("money").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`; }
-
-// ===== UPGRADE =====
-function updateUpgrade(){
-    const upgradeDiv = document.getElementById("upgrade");
-    upgradeDiv.innerHTML = "";
-    document.getElementById("xpReservoir").innerText = xpReservoir;
-
-    const info = document.createElement("p");
-    info.style.marginTop = "10px";
-    info.style.fontSize = "14px";
-    info.style.color = "#004466";
-    info.innerText = "💡 Upar a vara aumenta aleatoriamente de 80% a 120% do lucro atual, até o nível 10.";
-    upgradeDiv.appendChild(info);
-
-    inventory.forEach((vara, idx) => {
-        if(!varas[vara.name][0].canUpgrade) return;
-        const baseXP = varas[vara.name][0].baseXP;
-        const nextXP = baseXP * Math.pow(2, vara.level-1);
-        const div = document.createElement("div");
-        div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(1)}%`;
-
-        const btnTransform = document.createElement("button");
-        btnTransform.innerText = "Transformar em XP";
-        btnTransform.onclick = () => {
-            xpReservoir += baseXP;
-            inventory.splice(idx,1);
-            bolsa.splice(bolsa.indexOf(vara),1);
-            if(currentVaraIndex === idx) currentVaraIndex = 0;
-            alert(`${vara.name} transformada em ${baseXP} XP!`);
-            updateBolsa();
-            updateUpgrade();
-            updateVaraInfo();
-        };
-
-        const btnUpgrade = document.createElement("button");
-        btnUpgrade.innerText = "Usar XP para upar";
-        btnUpgrade.onclick = () => {
-            if(xpReservoir <= 0){ alert("Sem XP disponível!"); return; }
-            if(vara.level>=10){ alert("Vara já no nível máximo!"); return; }
-            const xpToUse = Math.min(nextXP - vara.xp, xpReservoir);
-            vara.xp += xpToUse;
-            xpReservoir -= xpToUse;
-            if(vara.xp >= nextXP){
-                vara.level++;
-                vara.xp = 0;
-                const bonus = 0.8 + Math.random()*0.4;
-                vara.profit *= (1+bonus);
-                alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado em ${(bonus*100).toFixed(1)}%`);
-            }
-            updateUpgrade();
-            updateVaraInfo();
-        };
-
-        div.appendChild(document.createElement("br"));
-        div.appendChild(btnTransform);
-        div.appendChild(btnUpgrade);
-        upgradeDiv.appendChild(div);
-    });
+// ===== WALLET =====
+function updateWalletUI(){ 
+  document.getElementById("money").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`; 
 }
 
 // ===== TABS =====
@@ -307,7 +332,7 @@ tabs.forEach(tab=>{
   }
 });
 
-// ===== INICIALIZAÇÃO =====
+// ===== INICIALIZA =====
 updateBolsa();
 updateUpgrade();
 updateVaraInfo();
