@@ -39,7 +39,7 @@ button:hover{background:#0088cc;}
 .section{display:none;margin-top:15px;}
 .section.active{display:block;}
 
-#inventory,#shop,#upgradeSection,#bolsa{
+#bolsa{
 border:1px solid #004466;
 padding:8px;
 margin:8px auto;
@@ -91,7 +91,6 @@ color:black !important;
 <button id="skipButton" style="display:none;">⏩ Pular espera</button>
 
 <p id="currentVara"></p>
-<p id="varaStats"></p>
 
 <h4>Bolsa de Varas</h4>
 <div id="bolsa"></div>
@@ -99,13 +98,12 @@ color:black !important;
 </div>
 
 <div id="shopSection" class="section">
-
 <h3>Loja</h3>
 
-<button id="boxComum">📦 Box Comum (81)</button>
-<button id="boxRara">📦 Box Rara (135)</button>
-<button id="boxEpica">📦 Box Épica (162)</button>
-<button id="boxLendaria">📦 Box Lendária (189)</button>
+<button>📦 Box Comum (81)</button>
+<button>📦 Box Rara (135)</button>
+<button>📦 Box Épica (162)</button>
+<button>📦 Box Lendária (189)</button>
 
 </div>
 
@@ -113,8 +111,6 @@ color:black !important;
 
 <h3>Upgrade</h3>
 XP disponível: <span id="xpReservoir">0</span>
-
-<div id="upgrade"></div>
 
 </div>
 
@@ -130,12 +126,15 @@ XP disponível: <span id="xpReservoir">0</span>
 
 document.addEventListener("DOMContentLoaded",function(){
 
+const result = document.getElementById("result")
+const skipButton = document.getElementById("skipButton")
+const fishButton = document.getElementById("fishButton")
+
 let sunBalance=500
 let dailyCount=0
 const dailyLimit=15
 
 let fishingTimeout=null
-let xpReservoir=0
 
 const rarityOrder=[
 "Muito Comum",
@@ -168,15 +167,7 @@ const fishTimes={
 }
 
 const varas={
-
-"Bambu":{maxRarity:"Muito Comum",chance:50,xp:0},
-"Fibra":{maxRarity:"Comum",chance:50,xp:50},
-"Grafite":{maxRarity:"Incomum",chance:50,xp:80},
-"Carbono":{maxRarity:"Raro",chance:50,xp:120},
-"Titânio":{maxRarity:"Épico",chance:50,xp:180},
-"Platina":{maxRarity:"Lendário",chance:50,xp:230},
-"Adamantium":{maxRarity:"Mítico",chance:50,xp:300}
-
+"Bambu":{maxRarity:"Muito Comum",chance:50}
 }
 
 const fishes=[
@@ -196,7 +187,7 @@ const fishes=[
 
 ]
 
-let inventory=[{name:"Bambu",level:1,xp:0}]
+let inventory=[{name:"Bambu",level:1}]
 let currentVaraIndex=0
 
 function getCurrentVara(){
@@ -212,21 +203,13 @@ return rarity
 .replace("á","a")
 }
 
-function getRandomFishByVara(vara){
-
-const maxIndex=rarityOrder.indexOf(varas[vara.name].maxRarity)
-
-const allowed=fishes.filter(f=>
-rarityOrder.indexOf(f.rarity)<=maxIndex
-)
+function getRandomFish(){
 
 let weighted=[]
 
-allowed.forEach(fish=>{
+fishes.forEach(fish=>{
 
 let weight=rarityWeights[fish.rarity]
-
-weight+=rarityOrder.indexOf(fish.rarity)*(vara.level-1)*2
 
 for(let i=0;i<weight;i++){
 weighted.push(fish)
@@ -236,12 +219,6 @@ weighted.push(fish)
 
 return weighted[Math.floor(Math.random()*weighted.length)]
 
-}
-
-function setActiveVara(i){
-currentVaraIndex=i
-updateBolsa()
-updateVaraInfo()
 }
 
 function updateBolsa(){
@@ -255,24 +232,9 @@ const btn=document.createElement("button")
 
 btn.innerText=v.name+" Nv"+v.level
 
-btn.onclick=()=>setActiveVara(i)
-
-if(i===currentVaraIndex){
-btn.style.border="2px solid gold"
-}
-
 bolsa.appendChild(btn)
 
 })
-
-}
-
-function updateVaraInfo(){
-
-const vara=getCurrentVara()
-
-document.getElementById("currentVara").innerText=
-"Vara ativa: "+vara.name+" (Nv "+vara.level+")"
 
 }
 
@@ -285,16 +247,14 @@ document.getElementById("dailyCount").innerText=
 "Tentativas hoje: "+dailyCount+"/"+dailyLimit
 }
 
-document.getElementById("fishButton").onclick=function(){
+fishButton.onclick=function(){
 
 if(dailyCount>=dailyLimit){
 result.innerText="Limite diário atingido"
 return
 }
 
-const vara=getCurrentVara()
-
-const fish=getRandomFishByVara(vara)
+const fish=getRandomFish()
 
 const time=fishTimes[fish.rarity]
 
@@ -304,18 +264,7 @@ skipButton.style.display="inline-block"
 
 fishingTimeout=setTimeout(()=>{
 
-const chancePerda=100-(varas[vara.name].chance+(vara.level-1)*10)
-
-if(Math.random()*100<chancePerda){
-
-result.innerHTML="😢 O peixe escapou!"
-
-}else{
-
 let value=fish.value
-
-if(vara.name==="Bambu") value*=0.3
-else value*=1+(vara.level-1)*0.1
 
 sunBalance+=value
 
@@ -330,8 +279,6 @@ result.innerHTML="✨ PEIXE "+fish.rarity.toUpperCase()+"!<br>"+result.innerHTML
 
 updateWallet()
 
-}
-
 dailyCount++
 
 updateDaily()
@@ -342,9 +289,9 @@ skipButton.style.display="none"
 
 }
 
-document.getElementById("skipButton").onclick=function(){
+skipButton.onclick=function(){
 clearTimeout(fishingTimeout)
-document.getElementById("fishButton").click()
+fishButton.click()
 }
 
 const tabs=document.querySelectorAll(".tabButton")
@@ -365,7 +312,6 @@ tab.classList.add("selected")
 })
 
 updateBolsa()
-updateVaraInfo()
 updateWallet()
 updateDaily()
 
