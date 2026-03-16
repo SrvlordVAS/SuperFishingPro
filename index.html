@@ -142,7 +142,7 @@ function updateBolsa(){
         btn.className = "bag-item";
         btn.innerText = v.name + ` (Nível ${v.level})`;
         btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
-        btn.onclick = () => setActiveVara(idx); // Apenas ativar aqui
+        btn.onclick = () => setActiveVara(idx);
         bolsaDiv.appendChild(btn);
     });
 }
@@ -165,7 +165,6 @@ function updateUpgrade(){
         btnTransform.onclick = () => {
             const gainedXP = baseXP + (vara.level-1)*10;
             xpReservoir += gainedXP;
-            // remove da bolsa e inventário
             const invIdx = inventory.indexOf(vara);
             if(invIdx>=0) inventory.splice(invIdx,1);
             const bolsaIdx = bolsa.indexOf(vara);
@@ -235,8 +234,14 @@ function addVaraToInventory(varaName){
 boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?`)) return;
+
+        // CONFIRMAÇÃO COM DROPS
+        let dropsList = boxChances[type].map(item => `${item.name} (${item.chance}%)`).join("\n");
+        const confirmBox = confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas:\n${dropsList}`);
+        if(!confirmBox) return;
+
         sunBalance -= boxCosts[type];
+
         let rand = Math.random()*100;
         let acc = 0;
         for(const item of boxChances[type]){
@@ -247,7 +252,10 @@ boxTypes.forEach(type=>{
                 break;
             }
         }
+
         updateWalletUI();
+        updateBolsa();
+        updateUpgrade();
     }
 });
 
