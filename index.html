@@ -50,11 +50,11 @@ button:hover { background-color:#0088cc; }
   <h3>Loja</h3>
   <div id="shopBoxes">
     <h4>Abra uma box:</h4>
-    <button id="boxComum">📦 Box Comum</button>
-    <button id="boxIncomum">📦 Box Incomum</button>
-    <button id="boxRara">📦 Box Rara</button>
-    <button id="boxEpica">📦 Box Épica</button>
-    <button id="boxLendaria">📦 Box Lendária</button>
+    <button id="boxComum">📦 Box Comum (50 SUN)</button>
+    <button id="boxIncomum">📦 Box Incomum (60 SUN)</button>
+    <button id="boxRara">📦 Box Rara (75 SUN)</button>
+    <button id="boxEpica">📦 Box Épica (95 SUN)</button>
+    <button id="boxLendaria">📦 Box Lendária (120 SUN)</button>
   </div>
 </div>
 
@@ -118,7 +118,7 @@ function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function getRandomFishByVara(vara){
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
   let maxRarityIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
-  let minRarityIdx = (vara.name==="Bambu")? maxRarityIdx : Math.max(0, maxRarityIdx-1);
+  let minRarityIdx = (vara.name==="Comum")? maxRarityIdx : Math.max(0, maxRarityIdx-1);
   const allowed = fishes.filter(f => {
     const idx = rarities.indexOf(f.rarity);
     return idx <= maxRarityIdx && idx >= minRarityIdx;
@@ -161,9 +161,9 @@ function updateUpgrade(){
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
-        if(vara.name === "Bambu") return; // gratuita
+        if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
-        const nextXP = baseXP * Math.pow(2, vara.level-1);
+        const nextXP = baseXP * Math.pow(2, vara.level-1); // dobro a cada level
         const div = document.createElement("div");
         div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(1)}%`;
 
@@ -220,7 +220,7 @@ function updateVaraInfo(){
     const allowedFishes = fishes.filter(f => {
         const idx = rarities.indexOf(f.rarity);
         const maxIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
-        const minIdx = (vara.name==="Bambu")? maxIdx : Math.max(0, maxIdx-1);
+        const minIdx = (vara.name==="Comum")? maxIdx : Math.max(0, maxIdx-1);
         return idx<=maxIdx && idx>=minIdx;
     });
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
@@ -228,22 +228,27 @@ function updateVaraInfo(){
 }
 
 // ===== BOXES =====
-const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria"]; // sem acento
-const boxCosts = {"Comum":50,"Incomum":60,"Rara":75,"Epica":90,"Lendaria":120};
-
-// Configuração de drops
 const boxChances = {
-  "Comum":[ {name:"Fibra", chance:74},{name:"Bambu", chance:25},{name:"Adamantium", chance:1} ],
-  "Incomum":[ {name:"Grafite", chance:73},{name:"Fibra", chance:25},{name:"Adamantium", chance:2} ],
-  "Rara":[ {name:"Carbono", chance:72},{name:"Grafite", chance:25},{name:"Adamantium", chance:3} ],
-  "Epica":[ {name:"Titanio", chance:71},{name:"Carbono", chance:25},{name:"Adamantium", chance:4} ],
-  "Lendaria":[ {name:"Platina", chance:70},{name:"Titanio", chance:25},{name:"Adamantium", chance:5} ]
+  "Comum":[ {name:"Fibra", chance:74},{name:"Grafite", chance:25},{name:"Adamantium", chance:1} ],
+  "Incomum":[ {name:"Grafite", chance:74},{name:"Carbono", chance:25},{name:"Adamantium", chance:2} ],
+  "Rara":[ {name:"Carbono", chance:74},{name:"Titânio", chance:25},{name:"Adamantium", chance:3} ],
+  "Epica":[ {name:"Titânio", chance:74},{name:"Platina", chance:25},{name:"Adamantium", chance:4} ],
+  "Lendaria":[ {name:"Platina", chance:74},{name:"Adamantium", chance:26} ]
 };
+const boxCosts = {"Comum":50,"Incomum":60,"Rara":75,"Epica":95,"Lendaria":120};
 
-boxTypes.forEach(type=>{
-    const btn = document.getElementById("box"+type);
-    if(!btn) return; // evita erro se algum botão não existir
-    btn.onclick = ()=>{
+function addVaraToInventory(varaName){
+    const baseProfit = varas[varaName][0].baseProfit;
+    const newVara = {name: varaName, level:1, xp:0, profit: baseProfit};
+    inventory.push(newVara);
+    bolsa.push(newVara);
+    updateBolsa();
+    updateUpgrade();
+    updateVaraInfo();
+}
+
+["Comum","Incomum","Rara","Epica","Lendaria"].forEach(type=>{
+    document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
         const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
         if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}\nTem certeza?`)) return;
