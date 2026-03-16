@@ -202,16 +202,45 @@ function updateVaraInfo(){
 }  
   
 // ===== BOX =====  
-const boxTypes = ["Comum","Rara","Epica","Lendaria","Mitica"];  
-const boxCosts = {"Comum":200,"Rara":330,"Epica":432,"Lendaria":504,"Mitica":600};  
-const boxChances = {  
-  "Comum":[{name:"Comum Fibra", chance:99},{name:"Mítico Adamantium", chance:1}],  
-  "Rara":[{name:"Comum Fibra", chance:49.5},{name:"Incomum Grafite", chance:49.5},{name:"Mítico Adamantium", chance:1}],  
-  "Epica":[{name:"Comum Fibra", chance:29.7},{name:"Incomum Grafite", chance:29.7},{name:"Raro Carbono", chance:39.6},{name:"Mítico Adamantium", chance:1}],  
-  "Lendaria":[{name:"Comum Fibra", chance:14.85},{name:"Incomum Grafite", chance:19.8},{name:"Raro Carbono", chance:29.7},{name:"Épico Titânio", chance:34.45},{name:"Mítico Adamantium", chance:1}],  
-  "Mitica":[{name:"Comum Fibra", chance:10},{name:"Incomum Grafite", chance:15},{name:"Raro Carbono", chance:20},{name:"Épico Titânio", chance:25},{name:"Lendário Platina", chance:30},{name:"Mítico Adamantium", chance:100}]  
+const boxChances = {
+
+"Comum":[
+{name:"Comum Fibra", chance:99},
+{name:"Mítico Adamantium", chance:1}
+],
+
+"Rara":[
+{name:"Comum Fibra", chance:49.5},
+{name:"Incomum Grafite", chance:49.5},
+{name:"Mítico Adamantium", chance:1}
+],
+
+"Epica":[
+{name:"Comum Fibra", chance:29.7},
+{name:"Incomum Grafite", chance:29.7},
+{name:"Raro Carbono", chance:39.6},
+{name:"Mítico Adamantium", chance:1}
+],
+
+"Lendaria":[
+{name:"Comum Fibra", chance:14.85},
+{name:"Incomum Grafite", chance:19.8},
+{name:"Raro Carbono", chance:29.7},
+{name:"Épico Titânio", chance:34.5},
+{name:"Mítico Adamantium", chance:1}
+],
+
+"Mitica":[
+{name:"Comum Fibra", chance:5},
+{name:"Incomum Grafite", chance:10},
+{name:"Raro Carbono", chance:15},
+{name:"Épico Titânio", chance:20},
+{name:"Lendário Platina", chance:30},
+{name:"Mítico Adamantium", chance:20}
+]
+
 };  
-  
+
 function addVaraToInventory(varaName){  
     const newVara = {name: varaName, level: 1, xp: 0};  
     inventory.push(newVara);  
