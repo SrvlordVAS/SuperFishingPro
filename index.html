@@ -50,10 +50,10 @@ button:hover { background-color:#0088cc; }
   <h3>Loja</h3>
   <div id="shopBoxes">
     <h4>Abra uma box:</h4>
-    <button id="boxComum">📦 Box Comum (38 SUN)</button>
-    <button id="boxIncomum">📦 Box Incomum (92 SUN)</button>
-    <button id="boxRara">📦 Box Rara (143 SUN)</button>
-    <button id="boxEpica">📦 Box Épica (224 SUN)</button>
+    <button id="boxComum">📦 Box Comum</button>
+    <button id="boxIncomum">📦 Box Incomum</button>
+    <button id="boxRara">📦 Box Rara</button>
+    <button id="boxEpica">📦 Box Épica</button>
   </div>
 </div>
 
@@ -88,26 +88,25 @@ const varas = {
   "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseXP:240, baseProfit:100}],
   "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseXP:360, baseProfit:100}],
   "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseXP:460, baseProfit:100}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:600, baseProfit:100}]
+  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:600, baseProfit:1200}]
 };
 
-// Peixes
+// Peixes (todos valendo 1 SUN)
 let fishes = [
-  {name:"Sardinha", value:0.1, rarity:"Muito Comum", time:3000},
-  {name:"Robalo", value:0.125, rarity:"Comum", time:4000},
-  {name:"Tainha", value:0.15625, rarity:"Comum", time:4500},
-  {name:"Corvina", value:0.1953125, rarity:"Comum", time:5000},
-  {name:"Atum", value:0.244140625, rarity:"Incomum", time:5000},
-  {name:"Garoupa pequena", value:0.30517578125, rarity:"Incomum", time:6000},
-  {name:"Pargo", value:0.3814697265625, rarity:"Incomum", time:6500},
-  {name:"Garoupa adulta", value:0.476837158203125, rarity:"Raro", time:7000},
-  {name:"Salmão do Atlântico", value:0.5960464477539062, rarity:"Épico", time:9000},
-  {name:"Truta", value:0.7450572204589844, rarity:"Épico", time:9500},
-  {name:"Tubarão", value:0.9313215255737305, rarity:"Lendário", time:12000},
-  {name:"Marlim Azul", value:1.164151906967163, rarity:"Mítico", time:15000}
+  {name:"Sardinha", value:1, rarity:"Muito Comum", time:3000},
+  {name:"Robalo", value:1, rarity:"Comum", time:4000},
+  {name:"Tainha", value:1, rarity:"Comum", time:4500},
+  {name:"Corvina", value:1, rarity:"Comum", time:5000},
+  {name:"Atum", value:1, rarity:"Incomum", time:5000},
+  {name:"Garoupa pequena", value:1, rarity:"Incomum", time:6000},
+  {name:"Pargo", value:1, rarity:"Incomum", time:6500},
+  {name:"Garoupa adulta", value:1, rarity:"Raro", time:7000},
+  {name:"Salmão do Atlântico", value:1, rarity:"Épico", time:9000},
+  {name:"Truta", value:1, rarity:"Épico", time:9500},
+  {name:"Tubarão", value:1, rarity:"Lendário", time:12000},
+  {name:"Marlim Azul", value:1, rarity:"Mítico", time:15000}
 ];
 
-// Inventário inicial com Bambu grátis
 let inventory = [{name:"Bambu", level:1, xp:0, profit:30}];
 let bolsa = [...inventory];
 let currentVaraIndex = 0;
@@ -118,7 +117,7 @@ function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function getRandomFishByVara(vara){
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
   let maxRarityIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
-  let minRarityIdx = (vara.name==="Comum")? maxRarityIdx : Math.max(0, maxRarityIdx-1);
+  let minRarityIdx = Math.max(0, maxRarityIdx-1);
   const allowed = fishes.filter(f => {
     const idx = rarities.indexOf(f.rarity);
     return idx <= maxRarityIdx && idx >= minRarityIdx;
@@ -161,10 +160,9 @@ function updateUpgrade(){
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
-        if(vara.name === "Bambu") return; // Bambu não pode upar nem transformar
-
+        if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
-        const nextXP = baseXP * Math.pow(2, vara.level-1); 
+        const nextXP = baseXP * Math.pow(2, vara.level-1);
         const div = document.createElement("div");
         div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(1)}%`;
 
@@ -192,7 +190,7 @@ function updateUpgrade(){
             if(vara.xp >= nextXP){
                 vara.level++;
                 vara.xp = 0;
-                const bonus = 0.9 + Math.random()*0.3;
+                const bonus = 0.9 + Math.random()*0.3; // 90-120%
                 vara.profit *= (1+bonus);
                 alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado em ${(bonus*100).toFixed(1)}%`);
             }
@@ -221,7 +219,7 @@ function updateVaraInfo(){
     const allowedFishes = fishes.filter(f => {
         const idx = rarities.indexOf(f.rarity);
         const maxIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
-        const minIdx = (vara.name==="Comum")? maxIdx : Math.max(0, maxIdx-1);
+        const minIdx = Math.max(0, maxIdx-1);
         return idx<=maxIdx && idx>=minIdx;
     });
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
