@@ -119,7 +119,17 @@ function getCurrentVara(){ return inventory[currentVaraIndex]; }
 function getRandomFishByVara(vara){
   const bonus = (vara.level-1)*0.1;
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-  const allowed = fishes.filter(f => rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity));
+  const varaRarityIndex = rarities.indexOf(varas[vara.name][0].maxRarity);
+
+  // Índice mínimo e máximo da raridade permitida (±1)
+  const minIndex = Math.max(0, varaRarityIndex - 1);
+  const maxIndex = Math.min(rarities.length - 1, varaRarityIndex + 1);
+
+  const allowed = fishes.filter(f => {
+    const idx = rarities.indexOf(f.rarity);
+    return idx >= minIndex && idx <= maxIndex;
+  });
+
   const fish = allowed[Math.floor(Math.random()*allowed.length)];
   if(vara.name === "Bambu") fish.value *= 0.3;
   else fish.value *= (1 + bonus);
@@ -216,11 +226,17 @@ function updateVaraInfo(){
     }
     const chance = varas[vara.name][0].chance + (vara.level-1)*10;
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
+
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-    const allowedFishes = fishes.filter(f => rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity));
-    let profitPerc = 0;
-    if(vara.name === "Bambu"){ profitPerc = 30; }
-    else { profitPerc = 100 + (vara.level-1)*10; }
+    const varaRarityIndex = rarities.indexOf(varas[vara.name][0].maxRarity);
+    const minIndex = Math.max(0, varaRarityIndex - 1);
+    const maxIndex = Math.min(rarities.length - 1, varaRarityIndex + 1);
+    const allowedFishes = fishes.filter(f => {
+        const idx = rarities.indexOf(f.rarity);
+        return idx >= minIndex && idx <= maxIndex;
+    });
+
+    let profitPerc = vara.name === "Bambu" ? 30 : 100 + (vara.level-1)*10;
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
     document.getElementById("varaStats").innerText = `Chance de captura: ${chance}% | Lucro médio: ${profitPerc}%\nPeixes que pode pegar: ${fishNames}`;
 }
