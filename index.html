@@ -83,19 +83,31 @@ let xpReservoir = 0;
 
 // ===== VARAS =====
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseXP:0, baseProfit:1, canUpgrade:false}],
-  "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseXP:100, baseProfit:5, canUpgrade:true}],
-  "Fibra Reforçada":[{level:1, chance:50, maxRarity:"Comum", baseXP:100, baseProfit:6.25, canUpgrade:true}],
-  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseXP:160, baseProfit:10, canUpgrade:true}],
-  "Grafite Reforçada":[{level:1, chance:50, maxRarity:"Incomum", baseXP:160, baseProfit:12.5, canUpgrade:true}],
-  "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseXP:240, baseProfit:15, canUpgrade:true}],
-  "Carbono Reforçada":[{level:1, chance:50, maxRarity:"Raro", baseXP:240, baseProfit:18.75, canUpgrade:true}],
-  "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseXP:360, baseProfit:20, canUpgrade:true}],
-  "Titânio Reforçada":[{level:1, chance:50, maxRarity:"Épico", baseXP:360, baseProfit:25, canUpgrade:true}],
-  "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseXP:460, baseProfit:25, canUpgrade:true}],
-  "Platina Reforçada":[{level:1, chance:50, maxRarity:"Lendário", baseXP:460, baseProfit:31.25, canUpgrade:true}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:600, baseProfit:30, canUpgrade:true}],
-  "Adamantium Reforçada":[{level:1, chance:50, maxRarity:"Mítico", baseXP:600, baseProfit:37.5, canUpgrade:true}]
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseProfit:0.333, canUpgrade:false}],
+  "Fibra":[
+    {level:1, chance:50, maxRarity:"Comum", baseProfit:0.333, canUpgrade:true},
+    {level:1, chance:50, maxRarity:"Comum", baseProfit:0.417, canUpgrade:true} // reforçada
+  ],
+  "Grafite":[
+    {level:1, chance:50, maxRarity:"Incomum", baseProfit:0.644, canUpgrade:true},
+    {level:1, chance:50, maxRarity:"Incomum", baseProfit:0.806, canUpgrade:true}
+  ],
+  "Carbono":[
+    {level:1, chance:50, maxRarity:"Raro", baseProfit:0.94, canUpgrade:true},
+    {level:1, chance:50, maxRarity:"Raro", baseProfit:1.175, canUpgrade:true}
+  ],
+  "Titânio":[
+    {level:1, chance:50, maxRarity:"Épico", baseProfit:1.25, canUpgrade:true},
+    {level:1, chance:50, maxRarity:"Épico", baseProfit:1.563, canUpgrade:true}
+  ],
+  "Platina":[
+    {level:1, chance:50, maxRarity:"Lendário", baseProfit:1.57, canUpgrade:true},
+    {level:1, chance:50, maxRarity:"Lendário", baseProfit:1.96, canUpgrade:true}
+  ],
+  "Adamantium":[
+    {level:1, chance:50, maxRarity:"Mítico", baseProfit:1.97, canUpgrade:true},
+    {level:1, chance:50, maxRarity:"Mítico", baseProfit:2.46, canUpgrade:true}
+  ]
 };
 
 // ===== PEIXES =====
@@ -114,7 +126,7 @@ let fishes = [
   {name:"Marlim Azul", value:1, rarity:"Mítico", time:5000}
 ];
 
-let inventory = [{name:"Bambu", level:1, xp:0, profit:1}];
+let inventory = [{name:"Bambu", level:1, xp:0, profit:0.333}];
 let bolsa = [...inventory];
 let currentVaraIndex = 0;
 
@@ -129,11 +141,7 @@ function getRandomFishByVara(vara){
     const idx = rarities.indexOf(f.rarity);
     return idx <= maxRarityIdx && idx >= minRarityIdx;
   });
-  const fish = allowed[Math.floor(Math.random()*allowed.length)];
-  // Chance de captura vs fuga
-  const chance = varas[vara.name][0].chance + (vara.level-1)*(3+Math.random()*2);
-  if(Math.random()*100 <= chance) return fish; // capturado
-  else return null; // escapou
+  return allowed[Math.floor(Math.random()*allowed.length)];
 }
 
 // ===== BOLSA =====
@@ -163,28 +171,20 @@ function updateUpgrade(){
     upgradeDiv.innerHTML = "";
     document.getElementById("xpReservoir").innerText = xpReservoir;
 
-    const info = document.createElement("p");
-    info.style.marginTop = "10px";
-    info.style.fontSize = "14px";
-    info.style.color = "#004466";
-    info.innerText = "💡 Upar a vara aumenta aleatoriamente de 80% a 120% do lucro atual, até o nível 10.";
-    upgradeDiv.appendChild(info);
-
     inventory.forEach((vara, idx) => {
         if(!varas[vara.name][0].canUpgrade) return;
-        const baseXP = varas[vara.name][0].baseXP;
-        const nextXP = baseXP * Math.pow(2, vara.level-1);
+        const nextXP = 50 * vara.level; 
         const div = document.createElement("div");
-        div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(1)}%`;
+        div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP} | Lucro atual: ${vara.profit.toFixed(3)} SFP2`;
 
         const btnTransform = document.createElement("button");
         btnTransform.innerText = "Transformar em XP";
         btnTransform.onclick = () => {
-            xpReservoir += baseXP;
+            xpReservoir += nextXP;
             inventory.splice(idx,1);
             bolsa.splice(bolsa.indexOf(vara),1);
             if(currentVaraIndex === idx) currentVaraIndex = 0;
-            alert(`${vara.name} transformada em ${baseXP} XP!`);
+            alert(`${vara.name} transformada em ${nextXP} XP!`);
             updateBolsa();
             updateUpgrade();
             updateVaraInfo();
@@ -201,9 +201,9 @@ function updateUpgrade(){
             if(vara.xp >= nextXP){
                 vara.level++;
                 vara.xp = 0;
-                const bonus = 0.8 + Math.random()*0.4;
-                vara.profit *= (1+bonus);
-                alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado em ${(bonus*100).toFixed(1)}%`);
+                const bonus = 0.03 + Math.random()*0.02; // 3-5% chance bônus por level
+                vara.profit *= (1 + bonus);
+                alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado ${(bonus*100).toFixed(1)}%`);
             }
             updateUpgrade();
             updateVaraInfo();
@@ -225,7 +225,7 @@ function updateVaraInfo(){
         return;
     }
     const baseChance = 50;
-    const chanceBonus = (vara.level-1)*(3+Math.random()*2);
+    const chanceBonus = (vara.level-1)*(3+Math.random()*2); // 3-5% por level
     const chance = baseChance + chanceBonus;
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
@@ -236,19 +236,19 @@ function updateVaraInfo(){
         return idx<=maxIdx && idx>=minIdx;
     });
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
-    document.getElementById("varaStats").innerText = `Chance de captura: ${chance.toFixed(1)}% | Lucro atual: ${vara.profit.toFixed(1)}%\nPeixes que pode pegar: ${fishNames}`;
+    document.getElementById("varaStats").innerText = `Chance de captura: ${chance.toFixed(1)}% | Lucro atual: ${vara.profit.toFixed(3)} SFP2\nPeixes que pode pegar: ${fishNames}`;
 }
 
 // ===== BOXES =====
 const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria","Mitica"];
 const boxCosts = {"Comum":50,"Incomum":100,"Rara":150,"Epica":200,"Lendaria":250,"Mitica":300};
 const boxChances = {
-  "Comum":[ {name:"Fibra", chance:80},{name:"Fibra Reforçada", chance:20} ],
-  "Incomum":[ {name:"Grafite", chance:80},{name:"Grafite Reforçada", chance:20} ],
-  "Rara":[ {name:"Carbono", chance:80},{name:"Carbono Reforçada", chance:20} ],
-  "Epica":[ {name:"Titânio", chance:80},{name:"Titânio Reforçada", chance:20} ],
-  "Lendaria":[ {name:"Platina", chance:80},{name:"Platina Reforçada", chance:20} ],
-  "Mitica":[ {name:"Adamantium", chance:80},{name:"Adamantium Reforçada", chance:20} ]
+  "Comum":[ {name:"Fibra", chance:80},{name:"Fibra", chance:20} ],
+  "Incomum":[ {name:"Grafite", chance:80},{name:"Grafite", chance:20} ],
+  "Rara":[ {name:"Carbono", chance:80},{name:"Carbono", chance:20} ],
+  "Epica":[ {name:"Titânio", chance:80},{name:"Titânio", chance:20} ],
+  "Lendaria":[ {name:"Platina", chance:80},{name:"Platina", chance:20} ],
+  "Mitica":[ {name:"Adamantium", chance:80},{name:"Adamantium", chance:20} ]
 };
 
 function addVaraToInventory(varaName){
@@ -290,19 +290,23 @@ fishButton.onclick = function(){
   const vara = getCurrentVara();
   if(!vara){ alert("Nenhuma vara ativa!"); return; }
   fishButton.disabled = true;
+  const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    const fish = getRandomFishByVara(vara);
-    if(fish){
-        sunBalance += fish.value * (vara.profit/100);
-        alert(`Você pescou: ${fish.name} e ganhou ${(fish.value*(vara.profit/100)).toFixed(3)} SFP2`);
+    // chance captura
+    const chanceBonus = (vara.level-1)*(3+Math.random()*2);
+    const chance = 50 + chanceBonus;
+    if(Math.random()*100 <= chance){
+      sunBalance += fish.value * vara.profit;
+      alert(`Você pescou: ${fish.name} e ganhou ${(fish.value*vara.profit).toFixed(3)} SFP2`);
     } else {
-        alert(`O peixe escapou!`);
+      alert(`${fish.name} escapou!`);
     }
     dailyCount++;
     document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
     updateWalletUI();
     fishButton.disabled = false;
+    result.innerText = "Clique em pescar";
   },5000);
 };
 
