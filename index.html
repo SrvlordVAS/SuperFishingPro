@@ -157,21 +157,6 @@ function updateBolsa(){
       updateVaraInfo();
       updateUpgrade();
     }
-    btn.oncontextmenu = (e)=>{
-      e.preventDefault();
-      const vara = bolsa[index];
-      if(vara.name==="Bambu"){ alert("Vara Bambu não pode ser transformada em XP!"); return; }
-      if(confirm(`Transformar ${vara.name} em XP?`)){
-        const xpGain = varas[vara.name][0].baseXP + (vara.level-1)*50;
-        xpReservatorio += xpGain;
-        bolsa.splice(index,1);
-        if(currentVaraIndex >= bolsa.length) currentVaraIndex = bolsa.length-1;
-        updateBolsa();
-        updateVaraInfo();
-        updateUpgrade();
-        alert(`${xpGain} XP adicionados ao reservatório!`);
-      }
-    }
     bolsaDiv.appendChild(btn);
   });
 }
@@ -181,18 +166,22 @@ function updateUpgrade(){
   const upgradeDiv = document.getElementById("upgrade");
   upgradeDiv.innerHTML = "";
   document.getElementById("xpReservatorio").innerText = xpReservatorio;
+
   const vara = getCurrentVara();
   if(!vara){ upgradeDiv.innerText = "Nenhuma vara selecionada."; return; }
-  if(vara.name==="Bambu"){ upgradeDiv.innerText = "Vara Bambu não pode ser upada."; return; }
 
-  const maxLevel = 5;
-  let currentXP = 0;
+  // ----------------- Upgrade de nível -----------------
+  if(vara.name==="Bambu"){
+    upgradeDiv.innerText = "Vara Bambu não pode ser upada nem transformada em XP.";
+    return;
+  }
+
   let requiredXP = varas[vara.name][0].baseXP;
   for(let i=1;i<vara.level;i++){ requiredXP *= 1.4; }
 
-  const btn = document.createElement("button");
-  btn.innerText = `↑ Upgrader ${vara.name} (Nível ${vara.level}) - Precisa ${requiredXP.toFixed(0)} XP`;
-  btn.onclick = ()=>{
+  const lvlBtn = document.createElement("button");
+  lvlBtn.innerText = `↑ Upgrader ${vara.name} (Nível ${vara.level}) - Precisa ${requiredXP.toFixed(0)} XP`;
+  lvlBtn.onclick = ()=>{
     if(xpReservatorio < requiredXP){ alert("XP insuficiente!"); return; }
     xpReservatorio -= requiredXP;
     vara.level++;
@@ -201,13 +190,25 @@ function updateUpgrade(){
     updateUpgrade();
     alert(`${vara.name} agora é Nível ${vara.level}`);
   }
-  upgradeDiv.appendChild(btn);
-}
+  upgradeDiv.appendChild(lvlBtn);
 
-// Atualiza info da vara ativa
-function updateVaraInfo(){
-  const vara = getCurrentVara();
-  if(vara) document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
+  // ----------------- Transformar em XP -----------------
+  const xpBtn = document.createElement("button");
+  xpBtn.innerText = `💥 Transformar ${vara.name} em XP`;
+  xpBtn.onclick = ()=>{
+    if(confirm(`Tem certeza que deseja transformar ${vara.name} em XP?`)){
+      const xpGain = varas[vara.name][0].baseXP + (vara.level-1)*50;
+      xpReservatorio += xpGain;
+      bolsa.splice(currentVaraIndex,1);
+      if(currentVaraIndex >= bolsa.length) currentVaraIndex = bolsa.length-1;
+      updateBolsa();
+      updateVaraInfo();
+      updateUpgrade();
+      alert(`${xpGain} XP adicionados ao reservatório!`);
+    }
+  }
+  upgradeDiv.appendChild(document.createElement("br"));
+  upgradeDiv.appendChild(xpBtn);
 }
 
 // ===== BOX =====
