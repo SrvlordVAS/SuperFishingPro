@@ -37,7 +37,7 @@ button:hover { background-color:#0088cc; }
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
-  <p id="currentVara">Vara ativa: Nenhuma</p>
+  <p id="currentVara">Vara ativa: Bambu</p>
   <p id="varaStats"></p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
@@ -107,10 +107,10 @@ let fishes = [
   {name:"Marlim Azul", value:0.165, rarity:"Mítico", time:15000}
 ];
 
-// Inventário inicial
+// Inventário
 let inventory = [{name:"Bambu", level:1, xp:0}];
 let bolsa = [...inventory];
-let currentVaraIndex = 0; // Bambu ativa inicial
+let currentVaraIndex = 0;
 
 // ===== FUNÇÕES =====
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
@@ -160,7 +160,7 @@ function updateUpgrade(){
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
-        if(vara.name === "Bambu") return; // Bambu não entra no upgrade
+        if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
         const nextXP = Math.floor(baseXP * Math.pow(1.4, vara.level-1));
         const div = document.createElement("div");
@@ -175,7 +175,7 @@ function updateUpgrade(){
             if(invIdx>=0) inventory.splice(invIdx,1);
             const bolsaIdx = bolsa.indexOf(vara);
             if(bolsaIdx>=0) bolsa.splice(bolsaIdx,1);
-            if(currentVaraIndex === bolsaIdx) currentVaraIndex = 0; // volta para Bambu se remover a ativa
+            if(currentVaraIndex === bolsaIdx) currentVaraIndex = 0;
             alert(`${vara.name} transformada em ${gainedXP} XP!`);
             updateBolsa();
             updateUpgrade();
@@ -228,10 +228,10 @@ function updateVaraInfo(){
 const boxTypes = ["Rara","Epica","Lendaria","Mitica"];
 const boxCosts = {"Rara":135,"Epica":162,"Lendaria":189,"Mitica":300};
 const boxChances = {
-  "Rara":[ {name:"Fibra", chance:60},{name:"Grafite", chance:25},{name:"Carbono", chance:15} ],
-  "Epica":[ {name:"Grafite", chance:60},{name:"Carbono", chance:25},{name:"Titânio", chance:15} ],
-  "Lendaria":[ {name:"Carbono", chance:60},{name:"Titânio", chance:25},{name:"Platina", chance:15} ],
-  "Mitica":[ {name:"Titânio", chance:60},{name:"Platina", chance:25},{name:"Adamantium", chance:15} ]
+  "Rara":[ {name:"Fibra", chance:70},{name:"Grafite", chance:20},{name:"Carbono", chance:9},{name:"Adamantium", chance:1} ],
+  "Epica":[ {name:"Grafite", chance:70},{name:"Carbono", chance:20},{name:"Titânio", chance:9},{name:"Adamantium", chance:1} ],
+  "Lendaria":[ {name:"Carbono", chance:70},{name:"Titânio", chance:20},{name:"Platina", chance:9},{name:"Adamantium", chance:1} ],
+  "Mitica":[ {name:"Titânio", chance:70},{name:"Platina", chance:20},{name:"Adamantium", chance:10} ]
 };
 
 function addVaraToInventory(varaName){
@@ -247,8 +247,8 @@ function addVaraToInventory(varaName){
 boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-        let drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
-        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas e chances:\n${drops}\n\nTem certeza que deseja comprar?`)) return;
+        const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
+        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}\nTem certeza que quer abrir?`)) return;
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
         let acc = 0;
