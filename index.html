@@ -116,7 +116,6 @@ let currentVaraIndex = 0;
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
-  const bonus = (vara.level-1)*0.05;
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
   let maxRarityIdx = rarities.indexOf(varas[vara.name][0].maxRarity);
   let minRarityIdx = (vara.name==="Comum")? maxRarityIdx : Math.max(0, maxRarityIdx-1);
@@ -159,13 +158,14 @@ function updateUpgrade(){
     info.style.marginTop = "10px";
     info.style.fontSize = "14px";
     info.style.color = "#004466";
-    info.innerText = "💡 Upar a vara aumenta 5% o valor dos peixes e 5% a chance de captura, até o nível 10.";
+    info.innerText = "💡 Upar a vara aumenta 5% o valor dos peixes e 5% a chance de captura, até o nível 10. O XP necessário dobra a cada nível.";
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
         if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
-        const nextXP = Math.floor(baseXP * Math.pow(1.4, vara.level-1));
+        const nextXP = baseXP * Math.pow(2, vara.level-1); // DOBRA A CADA NÍVEL
+
         const div = document.createElement("div");
         div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP}`;
 
