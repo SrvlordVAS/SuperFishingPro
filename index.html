@@ -108,7 +108,7 @@ let fishes = [
 ];
 
 // ===== INVENTÁRIO =====
-let inventory = [{name:"Bambu", level:1, xp:0, profit:30, chance:50}];
+let inventory = [{name:"Fibra", level:1, xp:0, profit:100, chance:50}];
 let bolsa = [...inventory];
 let currentVaraIndex = 0;
 
@@ -157,11 +157,10 @@ function updateUpgrade(){
     info.style.marginTop = "10px";
     info.style.fontSize = "14px";
     info.style.color = "#004466";
-    info.innerText = "💡 Upar a vara aumenta aleatoriamente de 80% a 120% do lucro e 3~5% da chance de captura, até o nível 10.";
+    info.innerText = "💡 Upar a vara aumenta aleatoriamente o lucro e a chance de captura, até o nível 10.";
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
-        if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
         const nextXP = baseXP * Math.pow(2, vara.level-1);
         const div = document.createElement("div");
@@ -195,15 +194,15 @@ function updateUpgrade(){
                 vara.level++;
                 vara.xp = 0;
 
-                // Lucro aleatório 80~120%
-                const bonusProfit = 0.8 + Math.random()*0.4;
-                vara.profit *= (1 + bonusProfit);
+                // Lucro aleatório 235~255%
+                const bonusProfit = 2.35 + Math.random()*(2.55-2.35);
+                vara.profit *= bonusProfit;
 
-                // Chance de captura aleatória 3~5%
-                const bonusChance = 3 + Math.random()*2;
+                // Chance de captura aleatória 1~7%
+                const bonusChance = 1 + Math.random()*6;
                 vara.chance += bonusChance;
 
-                alert(`${vara.name} subiu para Nível ${vara.level}!\nLucro +${(bonusProfit*100).toFixed(1)}%\nChance de captura +${bonusChance.toFixed(1)}%`);
+                alert(`${vara.name} subiu para Nível ${vara.level}!\nLucro agora: ${vara.profit.toFixed(1)}%\nChance de captura: ${vara.chance.toFixed(1)}%`);
             }
             updateUpgrade();
             updateVaraInfo();
@@ -262,7 +261,7 @@ boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
         const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
-        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}\nTem certeza que deseja comprar?`)) return;
+        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}\nTem certeza?`)) return;
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
         let acc = 0;
@@ -312,7 +311,6 @@ skipButton.onclick = function(){
     dailyCount++;
     document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
     fishButton.disabled = false;
-    skipButton.stylefishButton.disabled = false;
     skipButton.style.display = "none";
   }
 };
