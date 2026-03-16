@@ -29,7 +29,7 @@ button:hover { background-color:#0088cc; }
 <body>
 
 <h1>🎣 Super Fishing</h1>
-<h3 id="money">Saldo SUN: 5000</h3>
+<h3 id="money">Saldo SUN: 500</h3>
 <h3 id="dailyCount">Tentativas hoje: 0/15</h3>
 
 <!-- PESCA -->
@@ -74,7 +74,7 @@ button:hover { background-color:#0088cc; }
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-let sunBalance = 5000;
+let sunBalance = 500;
 let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
@@ -107,8 +107,8 @@ let fishes = [
 ];
 
 // Inventário
-let inventory = [];
-let bolsa = [];
+let inventory = [{name:"Fibra", level:1, xp:0}];
+let bolsa = [...inventory];
 let currentVaraIndex = 0;
 
 // ===== FUNÇÕES =====
@@ -219,7 +219,7 @@ function updateVaraInfo(){
     document.getElementById("varaStats").innerText = `Chance de captura: ${chance}% | Lucro médio: ${profitPerc}%\nPeixes que pode pegar: ${fishNames}`;
 }
 
-// ===== ADD VARA =====
+// ===== BOX =====
 function addVaraToInventory(varaName){
     const newVara = {name: varaName, level: 1, xp: 0};
     inventory.push(newVara);
@@ -229,27 +229,52 @@ function addVaraToInventory(varaName){
     updateVaraInfo();
 }
 
-// ===== BOXES =====
 ["Rara","Epica","Lendaria","Mitica"].forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         const costs = {"Rara":135,"Epica":162,"Lendaria":189,"Mitica":300};
         if(sunBalance < costs[type]){ alert("Saldo SUN insuficiente!"); return; }
 
-        let infoDrop = "";
+        // Definindo drops com 60-25-15
+        let drops = [];
         switch(type){
-            case "Rara": infoDrop = "Fibra, Grafite, Carbono"; break;
-            case "Epica": infoDrop = "Grafite, Carbono, Titânio"; break;
-            case "Lendaria": infoDrop = "Carbono, Titânio, Platina"; break;
-            case "Mitica": infoDrop = "Titânio, Platina, Adamantium"; break;
+            case "Rara": drops = [
+                {name:"Fibra", chance:60},
+                {name:"Grafite", chance:25},
+                {name:"Carbono", chance:15}
+            ]; break;
+            case "Epica": drops = [
+                {name:"Grafite", chance:60},
+                {name:"Carbono", chance:25},
+                {name:"Titânio", chance:15}
+            ]; break;
+            case "Lendaria": drops = [
+                {name:"Carbono", chance:60},
+                {name:"Titânio", chance:25},
+                {name:"Platina", chance:15}
+            ]; break;
+            case "Mitica": drops = [
+                {name:"Titânio", chance:60},
+                {name:"Platina", chance:25},
+                {name:"Adamantium", chance:15}
+            ]; break;
         }
 
+        const infoDrop = drops.map(d => `${d.name} (${d.chance}%)`).join(", ");
         if(!confirm(`Abrir Box ${type} por ${costs[type]} SUN?\nPossíveis varas: ${infoDrop}\nTem certeza que quer comprar?`)) return;
 
         sunBalance -= costs[type];
 
-        let allowed = infoDrop.split(", ").map(s => s.trim());
-        const randIndex = Math.floor(Math.random()*allowed.length);
-        const varaSorteada = allowed[randIndex];
+        // Sorteio da vara baseado nas % 60-25-15
+        let rand = Math.random()*100;
+        let acc = 0;
+        let varaSorteada = drops[0].name;
+        for(const d of drops){
+            acc += d.chance;
+            if(rand <= acc){
+                varaSorteada = d.name;
+                break;
+            }
+        }
 
         addVaraToInventory(varaSorteada);
         alert(`🎉 Você recebeu a vara: ${varaSorteada}`);
