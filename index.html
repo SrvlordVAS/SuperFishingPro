@@ -39,7 +39,7 @@ input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
   <p>Vara ativa: <span id="currentVara">Bambu (Nível 1)</span></p>
-  <p id="chanceInfo">Chance de falha: 50% | Bônus no peixe: 0%</p>
+  <p id="chanceInfo">Chance de perder o peixe: 50% | Bônus no peixe: 0%</p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
     <div id="bolsa" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
@@ -60,8 +60,8 @@ input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
 
 <!-- UPGRADE -->
 <div id="upgradeSection" class="section">
-  <h3>Upgrade de Varas (XP)</h3>
-  <p>XP disponível para gastar: <span id="xpReservatorio">0</span></p>
+  <h3>Upgrade de Varas</h3>
+  <div>XP no reservatório: <span id="xpReservatorio">0</span></div>
   <div id="upgrade"></div>
 </div>
 
@@ -79,16 +79,27 @@ let sunBalance = 500;
 let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
+
 let xpReservatorio = 0;
 
+const raridadeXP = {
+  "Bambu":0,
+  "Fibra":50,
+  "Grafite":80,
+  "Carbono":120,
+  "Titânio":180,
+  "Platina":240,
+  "Adamantium":300
+};
+
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseXP:0}],
-  "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseXP:50}],
-  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseXP:80}],
-  "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseXP:120}],
-  "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseXP:180}],
-  "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseXP:240}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:300}]
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum"}],
+  "Fibra":[{level:1, chance:50, maxRarity:"Comum"}],
+  "Grafite":[{level:1, chance:50, maxRarity:"Incomum"}],
+  "Carbono":[{level:1, chance:50, maxRarity:"Raro"}],
+  "Titânio":[{level:1, chance:50, maxRarity:"Épico"}],
+  "Platina":[{level:1, chance:50, maxRarity:"Lendário"}],
+  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico"}]
 };
 
 const fishes = [
@@ -107,7 +118,7 @@ const fishes = [
 ];
 
 let inventory = [{name:"Bambu", level:1}];
-let bolsa = [...inventory];
+let bolsa = [];
 let currentVaraIndex = 0;
 
 // ===== FUNÇÕES =====
@@ -124,7 +135,7 @@ function rarityClass(rarity){
   }
 }
 
-function getCurrentVara(){ return bolsa[currentVaraIndex]; }
+function getCurrentVara(){ return inventory[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
   const bonus = (vara.level-1)*0.1;
@@ -143,20 +154,43 @@ function updateBolsa(){
   bolsaDiv.innerHTML = "";
   if(bolsa.length === 0){ bolsaDiv.innerText = "Sua bolsa está vazia."; return; }
 
-  bolsa.forEach((v, index)=>{
+  bolsa.forEach((v,index)=>{
     const btn = document.createElement("button");
-    btn.innerText = v.name + (v.level ? ` Nível ${v.level}` : "");
+    btn.innerText = v.name + ` Nível ${v.level}`;
     btn.className = "bag-item";
     btn.style.border = index === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
     btn.style.background = "#e0f7ff";
     btn.style.borderRadius = "4px";
     btn.style.padding = "3px 5px";
+
     btn.onclick = ()=>{
-      currentVaraIndex = index;
-      updateBolsa();
-      updateVaraInfo();
-      updateUpgrade();
+      const options = ["Colocar como vara ativa"];
+      if(v.name !== "Bambu") options.push("Transformar em XP");
+
+      const choice = prompt(`O que deseja fazer com ${v.name} (Nível ${v.level})?\n` +
+        options.map((o,i)=>`${i+1}. ${o}`).join("\n"));
+
+      if(choice==="1"){
+        currentVaraIndex = index;
+        updateVaraInfo();
+        updateUpgrade();
+        updateBolsa();
+        alert(`${v.name} agora está ativa!`);
+      } else if(choice==="2" && options.includes("Transformar em XP")){
+        const baseXP = raridadeXP[v.name] || 0;
+        const xpGain = Math.floor(baseXP*(1+0.2*(v.level-1))); // XP aumenta 20% por lvl
+        xpReservatorio += xpGain;
+        bolsa.splice(index,1);
+        if(currentVaraIndex >= bolsa.length) currentVaraIndex = bolsa.length-1;
+        updateBolsa();
+        updateVaraInfo();
+        updateUpgrade();
+        alert(`${xpGain} XP adicionados ao reservatório!`);
+      } else {
+        alert("Operação cancelada ou inválida!");
+      }
     }
+
     bolsaDiv.appendChild(btn);
   });
 }
@@ -168,47 +202,28 @@ function updateUpgrade(){
   document.getElementById("xpReservatorio").innerText = xpReservatorio;
 
   const vara = getCurrentVara();
-  if(!vara){ upgradeDiv.innerText = "Nenhuma vara selecionada."; return; }
+  if(!vara){ upgradeDiv.innerText="Nenhuma vara selecionada."; return; }
+  if(vara.name==="Bambu"){ upgradeDiv.innerText="Vara Bambu não pode upar."; return; }
 
-  // ----------------- Upgrade de nível -----------------
-  if(vara.name==="Bambu"){
-    upgradeDiv.innerText = "Vara Bambu não pode ser upada nem transformada em XP.";
-    return;
-  }
-
-  let requiredXP = varas[vara.name][0].baseXP;
-  for(let i=1;i<vara.level;i++){ requiredXP *= 1.4; }
-
-  const lvlBtn = document.createElement("button");
-  lvlBtn.innerText = `↑ Upgrader ${vara.name} (Nível ${vara.level}) - Precisa ${requiredXP.toFixed(0)} XP`;
-  lvlBtn.onclick = ()=>{
-    if(xpReservatorio < requiredXP){ alert("XP insuficiente!"); return; }
-    xpReservatorio -= requiredXP;
+  let nextXP = Math.floor(raridadeXP[vara.name]*Math.pow(1.4,vara.level-1));
+  const btn = document.createElement("button");
+  btn.innerText = `Upgradear ${vara.name} (Nível ${vara.level}) - XP necessário: ${nextXP}`;
+  btn.onclick = ()=>{
+    if(xpReservatorio<nextXP){ alert("XP insuficiente!"); return; }
+    xpReservatorio -= nextXP;
     vara.level++;
+    updateUpgrade();
     updateBolsa();
     updateVaraInfo();
-    updateUpgrade();
-    alert(`${vara.name} agora é Nível ${vara.level}`);
+    alert(`${vara.name} subiu para Nível ${vara.level}`);
   }
-  upgradeDiv.appendChild(lvlBtn);
+  upgradeDiv.appendChild(btn);
+}
 
-  // ----------------- Transformar em XP -----------------
-  const xpBtn = document.createElement("button");
-  xpBtn.innerText = `💥 Transformar ${vara.name} em XP`;
-  xpBtn.onclick = ()=>{
-    if(confirm(`Tem certeza que deseja transformar ${vara.name} em XP?`)){
-      const xpGain = varas[vara.name][0].baseXP + (vara.level-1)*50;
-      xpReservatorio += xpGain;
-      bolsa.splice(currentVaraIndex,1);
-      if(currentVaraIndex >= bolsa.length) currentVaraIndex = bolsa.length-1;
-      updateBolsa();
-      updateVaraInfo();
-      updateUpgrade();
-      alert(`${xpGain} XP adicionados ao reservatório!`);
-    }
-  }
-  upgradeDiv.appendChild(document.createElement("br"));
-  upgradeDiv.appendChild(xpBtn);
+// Atualiza info da vara ativa
+function updateVaraInfo(){
+  const vara = getCurrentVara();
+  if(vara) document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
 }
 
 // ===== BOX =====
@@ -224,24 +239,19 @@ const boxChances = {
 boxTypes.forEach(type=>{
   document.getElementById("box"+type).onclick = ()=>{
     if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-    
-    let message = `Abrir Box ${type} (custo ${boxCosts[type]} SUN)?\n\nChances de receber:`;
-    boxChances[type].forEach(v=>message+=`\n${v.name}: ${v.chance}%`);
-    
-    if(confirm(message)){
-      sunBalance -= boxCosts[type];
-      const rand = Math.random()*100;
-      let acc=0;
-      let chosen=null;
-      for(const item of boxChances[type]){
-        acc += item.chance;
-        if(rand <= acc){ chosen=item.name; break; }
-      }
-      if(chosen) bolsa.push({name:chosen, level:1});
-      updateBolsa();
-      alert(`Você recebeu: ${chosen}`);
+    if(!confirm(`Abrir Box ${type} (custo ${boxCosts[type]} SUN)?`)) return;
+    sunBalance -= boxCosts[type];
+    const rand = Math.random()*100;
+    let acc=0;
+    let chosen=null;
+    for(const item of boxChances[type]){
+      acc += item.chance;
+      if(rand<=acc){ chosen=item.name; break; }
     }
-  };
+    if(chosen) bolsa.push({name:chosen, level:1});
+    updateBolsa();
+    alert(`Você recebeu: ${chosen}`);
+  }
 });
 
 // ===== PESCA =====
@@ -250,41 +260,41 @@ const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
 
 fishButton.onclick = function(){
-  if(dailyCount >= dailyLimit){ alert("Limite diário atingido! Volte amanhã."); return; }
+  if(dailyCount>=dailyLimit){ alert("Limite diário atingido!"); return; }
   fishButton.disabled = true;
-  skipButton.style.display = "inline-block";
+  skipButton.style.display="inline-block";
   const vara = getCurrentVara();
   const fish = getRandomFishByVara(vara);
-  result.innerText = "Esperando o peixe morder a isca...";
+  result.innerText="Esperando o peixe morder a isca...";
   fishingTimeout = setTimeout(()=>{
-    if(Math.random()*100 < varas[vara.name][0].chance - (vara.level-1)*10){ alert("O peixe escapou! 😢"); }
-    else { sunBalance += fish.value*(1+(vara.level-1)*0.1); updateWalletUI(); alert(`Você pescou: ${fish.name} e ganhou ${(fish.value*(1+(vara.level-1)*0.1)).toFixed(3)} SUN`); }
+    const failChance = Math.max(0,varas[vara.name][0].chance-(vara.level-1)*10);
+    if(Math.random()*100<failChance) alert("O peixe escapou! 😢");
+    else { sunBalance += fish.value*(1+(vara.level-1)*0.1); alert(`Você pescou: ${fish.name} e ganhou ${(fish.value*(1+(vara.level-1)*0.1)).toFixed(3)} SUN`); }
     dailyCount++;
-    document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
-  }, fish.time);
+    document.getElementById("dailyCount").innerText=`Tentativas hoje: ${dailyCount}/${dailyLimit}`;
+    updateBolsa(); updateVaraInfo(); updateUpgrade(); updateWalletUI();
+    fishButton.disabled=false; skipButton.style.display="none";
+  },fish.time);
 };
 
 skipButton.onclick = function(){
   if(fishingTimeout){
     clearTimeout(fishingTimeout);
-    fishingTimeout = null;
+    fishingTimeout=null;
     const vara = getCurrentVara();
     const fish = getRandomFishByVara(vara);
-    if(Math.random()*100 < varas[vara.name][0].chance - (vara.level-1)*10){ alert("O peixe escapou! 😢"); }
-    else { sunBalance += fish.value*(1+(vara.level-1)*0.1); updateWalletUI(); alert(`Você pescou: ${fish.name} e ganhou ${(fish.value*(1+(vara.level-1)*0.1)).toFixed(3)} SUN`); }
+    const failChance = Math.max(0,varas[vara.name][0].chance-(vara.level-1)*10);
+    if(Math.random()*100<failChance) alert("O peixe escapou! 😢");
+    else { sunBalance += fish.value*(1+(vara.level-1)*0.1); alert(`Você pescou: ${fish.name} e ganhou ${(fish.value*(1+(vara.level-1)*0.1)).toFixed(3)} SUN`); }
     dailyCount++;
-    document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/${dailyLimit}`;
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
+    document.getElementById("dailyCount").innerText=`Tentativas hoje: ${dailyCount}/${dailyLimit}`;
+    updateBolsa(); updateVaraInfo(); updateUpgrade(); updateWalletUI();
+    fishButton.disabled=false; skipButton.style.display="none";
   }
 };
 
 // ===== WALLET =====
-function updateWalletUI(){
-  document.getElementById("money").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`;
-}
+function updateWalletUI(){ document.getElementById("money").innerText=`Saldo SUN: ${sunBalance.toFixed(3)}`; }
 
 // ===== TABS =====
 const tabs = document.querySelectorAll(".tabButton");
@@ -299,9 +309,10 @@ tabs.forEach(tab=>{
 
 // Inicializa
 updateBolsa();
-updateWalletUI();
 updateVaraInfo();
 updateUpgrade();
+updateWalletUI();
+
 });
 </script>
 </body>
