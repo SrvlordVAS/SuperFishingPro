@@ -9,7 +9,7 @@ body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px; b
 .container { max-width:600px; margin:0 auto; padding:20px; background:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
 h1 { text-align:center; }
 button { padding:10px 20px; margin:5px; font-size:16px; cursor:pointer; }
-#log { margin-top:20px; background:#f9f9f9; padding:10px; border-radius:8px; height:250px; overflow-y:auto; }
+#log { margin-top:20px; background:#f9f9f9; padding:10px; border-radius:8px; height:300px; overflow-y:auto; }
 select { padding:5px; margin:5px; font-size:16px; width:100%; }
 </style>
 </head>
@@ -18,31 +18,54 @@ select { padding:5px; margin:5px; font-size:16px; width:100%; }
 <h1>Super Fishing</h1>
 <p>Saldo: <span id="saldo"></span> SUN</p>
 
-<h3>Box Rara (50 SUN)</h3>
-<button id="btnBoxRara">Abrir Box</button>
+<h3>Boxes</h3>
+<button id="btnBoxRara">Abrir Box Rara (50 SUN)</button>
 
-<h3>Upgrade Vara</h3>
+<h3>Minhas Varas</h3>
 <select id="minhaVara"></select>
 <button id="btnUp">Up</button>
-<button id="btnROI">Calcular ROI</button>
+<button id="btnPescar">Pescar</button>
 
 <div id="log"></div>
 </div>
 
 <script>
-// ======== Variáveis do jogo ========
+// ====== Variáveis do jogo ======
 let saldo = 100000;
 let varas = [];
 
+// Configuração das boxes
 const precoBox = 50;
 const boxRara = [
-  {nome:'Vara Comum', taxa:70, baseLucro:2},
-  {nome:'Vara Média', taxa:20, baseLucro:4},
-  {nome:'Vara Rara', taxa:9, baseLucro:8},
-  {nome:'Vara Lendária', taxa:1, baseLucro:16},
+  {nome:'Vara Comum', taxa:70, baseLucro:2, raridade:'comum'},
+  {nome:'Vara Média', taxa:20, baseLucro:4, raridade:'incomum'},
+  {nome:'Vara Rara', taxa:9, baseLucro:8, raridade:'raro'},
+  {nome:'Vara Lendária', taxa:1, baseLucro:16, raridade:'epico'},
 ];
 
-// ======== Inicialização ========
+// Configuração dos peixes
+const peixes = [
+  {nome:'Peixe Comum 1', raridade:'comum', preco:0.1},
+  {nome:'Peixe Comum 2', raridade:'comum', preco:0.125},
+  {nome:'Peixe Comum 3', raridade:'comum', preco:0.15625},
+  {nome:'Peixe Incomum 1', raridade:'incomum', preco:0.1953125},
+  {nome:'Peixe Incomum 2', raridade:'incomum', preco:0.244140625},
+  {nome:'Peixe Incomum 3', raridade:'incomum', preco:0.30517578},
+  {nome:'Peixe Raro 1', raridade:'raro', preco:0.38146973},
+  {nome:'Peixe Raro 2', raridade:'raro', preco:0.47683716},
+  {nome:'Peixe Raro 3', raridade:'raro', preco:0.5960464},
+  {nome:'Peixe Epico 1', raridade:'epico', preco:0.7450580},
+  {nome:'Peixe Epico 2', raridade:'epico', preco:0.9313225},
+  {nome:'Peixe Epico 3', raridade:'epico', preco:1.164153},
+  {nome:'Peixe Lendário 1', raridade:'lendario', preco:1.455191},
+  {nome:'Peixe Lendário 2', raridade:'lendario', preco:1.818988},
+  {nome:'Peixe Lendário 3', raridade:'lendario', preco:2.273735},
+  {nome:'Peixe Mitico 1', raridade:'mitico', preco:2.842168},
+  {nome:'Peixe Mitico 2', raridade:'mitico', preco:3.55271},
+  {nome:'Peixe Mitico 3', raridade:'mitico', preco:4.44089},
+];
+
+// ====== Funções ======
 function atualizarSaldo(){
   document.getElementById('saldo').innerText = saldo.toFixed(2);
 }
@@ -51,8 +74,8 @@ function atualizarSelect(){
   const sel = document.getElementById('minhaVara');
   sel.innerHTML = '';
   varas.forEach((v,i)=>{
-    let opt = document.createElement('option');
-    opt.value = i;
+    const opt = document.createElement('option');
+    opt.value=i;
     opt.text = `${v.nome} lvl ${v.level} (Lucro: ${v.lucroAtual.toFixed(2)})`;
     sel.add(opt);
   });
@@ -64,19 +87,16 @@ function log(msg){
   l.scrollTop = l.scrollHeight;
 }
 
-// ======== Abrir Box ========
-function abrirBox(tipo){
+// Abrir Box
+function abrirBox(){
   if(saldo < precoBox){ log('❌ Saldo insuficiente!'); return; }
   saldo -= precoBox;
   atualizarSaldo();
-  
-  let box;
-  if(tipo==='rara') box = boxRara;
 
-  let rnd = Math.random()*100;
+  const rnd = Math.random()*100;
   let acumulado=0;
   let dropped;
-  for(let v of box){
+  for(let v of boxRara){
     acumulado += v.taxa;
     if(rnd <= acumulado){
       dropped = {...v, level:1, xp:0, xpParaUp:50, lucroAtual:v.baseLucro, custoAcumulado:precoBox};
@@ -88,7 +108,30 @@ function abrirBox(tipo){
   log(`🎣 Parabéns! Você pegou a ${dropped.nome} lvl ${dropped.level}`);
 }
 
-// ======== Upar Vara ========
+// Pescar
+function pescar(){
+  const sel = document.getElementById('minhaVara');
+  const idx = parseInt(sel.value);
+  const v = varas[idx];
+  if(!v){ log('Selecione uma vara'); return; }
+
+  // determinar raridades possíveis
+  const raridade = v.raridade;
+  let possiveis = peixes.filter(p=>{
+    if(raridade==='comum') return p.raridade==='comum';
+    const ordem = ['comum','incomum','raro','epico','lendario','mitico'];
+    const idxR = ordem.indexOf(raridade);
+    const idxP = ordem.indexOf(p.raridade);
+    return idxP === idxR || idxP === idxR-1;
+  });
+
+  const drop = possiveis[Math.floor(Math.random()*possiveis.length)];
+  saldo += drop.preco;
+  atualizarSaldo();
+  log(`🐟 Você pescou um ${drop.nome} por ${drop.preco.toFixed(2)} SUN`);
+}
+
+// Upar Vara
 function uparVara(){
   const sel = document.getElementById('minhaVara');
   const idx = parseInt(sel.value);
@@ -104,7 +147,7 @@ function uparVara(){
   }
 
   const idxs = [];
-  let count = 0;
+  let count=0;
   for(let i=0;i<varas.length;i++){
     if(i===idx) continue;
     idxs.push(i);
@@ -120,39 +163,22 @@ function uparVara(){
   // aumento aleatório 80-120%
   const aumento = 0.8 + Math.random()*0.4;
   v.lucroAtual *= (1 + aumento);
-
-  v.level += 1;
-  v.xp = 0;
-  v.xpParaUp *= 2;
-  v.custoAcumulado += precoBox * (varasNecessarias + 1);
+  v.level +=1;
+  v.xp =0;
+  v.xpParaUp *=2;
+  v.custoAcumulado += precoBox*(varasNecessarias+1);
 
   log(`✨ Sua ${v.nome} subiu para lvl ${v.level}! Lucro: ${v.lucroAtual.toFixed(2)} SUN/dia (aumento ${(aumento*100).toFixed(0)}%)`);
   log(`💀 Varas sacrificadas: ${sacrificadas.map(x=>x.nome).join(', ')}`);
   atualizarSelect();
 }
 
-// ======== Calcular ROI ========
-function calcularROI(){
-  const sel = document.getElementById('minhaVara');
-  const idx = parseInt(sel.value);
-  const v = varas[idx];
-  if(!v){ log('Selecione uma vara'); return; }
-
-  const lucroMin = v.lucroAtual / 1.1;
-  const lucroMax = v.lucroAtual * 1.1;
-
-  const roiMin = (v.custoAcumulado / lucroMax).toFixed(2);
-  const roiMax = (v.custoAcumulado / lucroMin).toFixed(2);
-
-  log(`📊 ROI da ${v.nome} lvl ${v.level}: mínimo ${roiMin} dias, máximo ${roiMax} dias`);
-}
-
-// ======== Eventos ========
-document.getElementById('btnBoxRara').addEventListener('click',()=>abrirBox('rara'));
+// ====== Eventos ======
+document.getElementById('btnBoxRara').addEventListener('click',abrirBox);
 document.getElementById('btnUp').addEventListener('click',uparVara);
-document.getElementById('btnROI').addEventListener('click',calcularROI);
+document.getElementById('btnPescar').addEventListener('click',pescar);
 
-// ======== Inicialização UI ========
+// Inicialização
 atualizarSaldo();
 atualizarSelect();
 log('🟢 Super Fishing iniciado! Abra uma box para começar.');
