@@ -62,8 +62,8 @@ button:hover { background-color:#0088cc; }
 <div id="upgradeSection" class="section">
   <h3>Upgrade de Varas</h3>
   <p>XP disponível: <span id="xpReservoir">0</span></p>
+  <p>O upgrade aumenta 5% o valor do peixe e 5% a chance de captura por nível</p>
   <div id="upgrade"></div>
-  <p style="margin-top:10px; font-size:13px; color:#004466;">Ao upar o nível da vara, aumenta 10% do valor do peixe e 10% de chance de captura. (Exceto Bambu)</p>
 </div>
 
 <!-- BOTTOM MENU -->
@@ -95,18 +95,16 @@ const varas = {
 
 // Peixes
 let fishes = [
-  {name:"Muito Comum Sardinha", value:0.075, rarity:"Muito Comum", time:3000},
-  {name:"Comum Robalo", value:0.15, rarity:"Comum", time:4000},
-  {name:"Comum Tainha", value:0.3, rarity:"Comum", time:4500},
-  {name:"Comum Corvina", value:0.45, rarity:"Comum", time:5000},
-  {name:"Incomum Atum", value:0.6, rarity:"Incomum", time:5000},
-  {name:"Incomum Garoupa pequena", value:0.75, rarity:"Incomum", time:6000},
-  {name:"Incomum Pargo", value:0.9, rarity:"Incomum", time:6500},
-  {name:"Raro Garoupa adulta", value:1.05, rarity:"Raro", time:7000},
-  {name:"Épico Salmão do Atlântico", value:1.2, rarity:"Épico", time:9000},
-  {name:"Épico Truta", value:1.35, rarity:"Épico", time:9500},
-  {name:"Lendário Tubarão", value:1.5, rarity:"Lendário", time:12000},
-  {name:"Mítico Marlim Azul", value:1.65, rarity:"Mítico", time:15000}
+  {name:"Comum Sardinha", value:0.075, rarity:"Comum", time:3000},
+  {name:"Comum Robalo", value:0.150, rarity:"Comum", time:4000},
+  {name:"Incomum Tainha", value:0.300, rarity:"Incomum", time:4500},
+  {name:"Incomum Corvina", value:0.450, rarity:"Incomum", time:5000},
+  {name:"Raro Atum", value:0.600, rarity:"Raro", time:5000},
+  {name:"Raro Garoupa", value:0.750, rarity:"Raro", time:6000},
+  {name:"Épico Pargo", value:0.900, rarity:"Épico", time:6500},
+  {name:"Épico Salmão", value:1.200, rarity:"Épico", time:9000},
+  {name:"Lendário Tubarão", value:1.500, rarity:"Lendário", time:12000},
+  {name:"Mítico Marlim Azul", value:2.000, rarity:"Mítico", time:15000}
 ];
 
 // Inventário
@@ -118,12 +116,12 @@ let currentVaraIndex = 0;
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
-  const bonus = (vara.level-1)*0.1;
+  const bonus = (vara.level-1)*0.05;
   const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-  const allowed = fishes.filter(f => rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity));
+  const maxIndex = rarities.indexOf(varas[vara.name][0].maxRarity);
+  const allowed = fishes.filter(f => rarities.indexOf(f.rarity) <= maxIndex);
   const fish = allowed[Math.floor(Math.random()*allowed.length)];
-  if(vara.name === "Bambu") fish.value *= 0.3;
-  else fish.value *= (1 + bonus);
+  fish.value *= (1 + bonus);
   return fish;
 }
 
@@ -213,7 +211,6 @@ function updateVaraInfo(){
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
     const allowedFishes = fishes.filter(f => rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity));
     let profitPerc = 100 + (vara.level-1)*5;
-    if(vara.name === "Bambu") profitPerc = 30;
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
     document.getElementById("varaStats").innerText = `Chance de captura: ${chance}% | Lucro médio: ${profitPerc}%\nPeixes que pode pegar: ${fishNames}`;
 }
@@ -222,11 +219,11 @@ function updateVaraInfo(){
 const boxTypes = ["Comum","Rara","Epica","Lendaria","Mitica"];
 const boxCosts = {"Comum":200,"Rara":330,"Epica":432,"Lendaria":504,"Mitica":600};
 const boxChances = {
-  "Comum":[{name:"Comum Fibra", chance:99},{name:"Mítico Adamantium", chance:1}],
-  "Rara":[{name:"Comum Fibra", chance:49.5},{name:"Incomum Grafite", chance:49.5},{name:"Mítico Adamantium", chance:1}],
-  "Epica":[{name:"Comum Fibra", chance:29.7},{name:"Incomum Grafite", chance:29.7},{name:"Raro Carbono", chance:39.6},{name:"Mítico Adamantium", chance:1}],
-  "Lendaria":[{name:"Comum Fibra", chance:14.85},{name:"Incomum Grafite", chance:19.8},{name:"Raro Carbono", chance:29.7},{name:"Épico Titânio", chance:34.45},{name:"Mítico Adamantium", chance:1}],
-  "Mitica":[{name:"Comum Fibra", chance:10},{name:"Incomum Grafite", chance:15},{name:"Raro Carbono", chance:20},{name:"Épico Titânio", chance:25},{name:"Lendário Platina", chance:30},{name:"Mítico Adamantium", chance:100}]
+  "Comum":[ {name:"Comum Fibra", chance:59},{name:"Incomum Grafite", chance:25},{name:"Raro Carbono", chance:10},{name:"Épico Titânio", chance:5},{name:"Platina Lendário", chance:1},{name:"Mítico Adamantium", chance:1} ],
+  "Rara":[ {name:"Comum Fibra", chance:29},{name:"Incomum Grafite", chance:35},{name:"Raro Carbono", chance:20},{name:"Épico Titânio", chance:10},{name:"Platina Lendário", chance:4},{name:"Mítico Adamantium", chance:1} ],
+  "Epica":[ {name:"Comum Fibra", chance:14},{name:"Incomum Grafite", chance:20},{name:"Raro Carbono", chance:25},{name:"Épico Titânio", chance:20},{name:"Platina Lendário", chance:15},{name:"Mítico Adamantium", chance:1} ],
+  "Lendaria":[ {name:"Comum Fibra", chance:5},{name:"Incomum Grafite", chance:10},{name:"Raro Carbono", chance:20},{name:"Épico Titânio", chance:25},{name:"Platina Lendário", chance:25},{name:"Mítico Adamantium", chance:1} ],
+  "Mitica":[ {name:"Comum Fibra", chance:0},{name:"Incomum Grafite", chance:0},{name:"Raro Carbono", chance:5},{name:"Épico Titânio", chance:10},{name:"Platina Lendário", chance:30},{name:"Mítico Adamantium", chance:55} ]
 };
 
 function addVaraToInventory(varaName){
@@ -241,7 +238,7 @@ function addVaraToInventory(varaName){
 boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-        const drops = boxChances[type].map(i=>i.name + " (" + i.chance + "%)").join(", ");
+        const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
         if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}`)) return;
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
