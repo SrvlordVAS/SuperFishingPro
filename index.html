@@ -24,7 +24,6 @@ button:hover { background-color:#0088cc; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 .bag-item { cursor:pointer; }
-input[type=number]{width:60px; padding:3px; font-size:12px; margin:2px;}
 </style>
 </head>
 <body>
@@ -134,23 +133,6 @@ function setActiveVara(idx){
     updateBolsa();
 }
 
-function transformVaraToXP(idx){
-    const vara = bolsa[idx];
-    if(!vara || vara.name === "Bambu") return;
-    if(!confirm(`Deseja transformar ${vara.name} em XP?`)) return;
-    const gainedXP = varas[vara.name][0].baseXP + (vara.level-1)*10;
-    xpReservoir += gainedXP;
-    // remove da bolsa e inventário
-    bolsa.splice(idx,1);
-    const invIdx = inventory.indexOf(vara);
-    if(invIdx>=0) inventory.splice(invIdx,1);
-    if(currentVaraIndex === idx) currentVaraIndex = 0;
-    alert(`${vara.name} transformada em ${gainedXP} XP!`);
-    updateBolsa();
-    updateUpgrade();
-    updateVaraInfo();
-}
-
 function updateBolsa(){
     const bolsaDiv = document.getElementById("bolsa");
     bolsaDiv.innerHTML = "";
@@ -160,13 +142,7 @@ function updateBolsa(){
         btn.className = "bag-item";
         btn.innerText = v.name + ` (Nível ${v.level})`;
         btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
-        btn.onclick = () => {
-            const options = ["Colocar como ativa"];
-            if(v.name !== "Bambu") options.push("Transformar em XP");
-            const choice = prompt(`Escolha uma opção:\n${options.map((o,i)=>`${i+1}. ${o}`).join("\n")}`);
-            if(choice === "1") setActiveVara(idx);
-            else if(choice === "2" && v.name !== "Bambu") transformVaraToXP(idx);
-        };
+        btn.onclick = () => setActiveVara(idx); // Apenas ativar aqui
         bolsaDiv.appendChild(btn);
     });
 }
@@ -178,11 +154,28 @@ function updateUpgrade(){
     document.getElementById("xpReservoir").innerText = xpReservoir;
 
     inventory.forEach((vara, idx) => {
-        if(vara.name === "Bambu") return; // apenas Bambu não aparece
+        if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
         const nextXP = Math.floor(baseXP * Math.pow(1.4, vara.level-1));
         const div = document.createElement("div");
         div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP}`;
+
+        const btnTransform = document.createElement("button");
+        btnTransform.innerText = "Transformar em XP";
+        btnTransform.onclick = () => {
+            const gainedXP = baseXP + (vara.level-1)*10;
+            xpReservoir += gainedXP;
+            // remove da bolsa e inventário
+            const invIdx = inventory.indexOf(vara);
+            if(invIdx>=0) inventory.splice(invIdx,1);
+            const bolsaIdx = bolsa.indexOf(vara);
+            if(bolsaIdx>=0) bolsa.splice(bolsaIdx,1);
+            if(currentVaraIndex === bolsaIdx) currentVaraIndex = 0;
+            alert(`${vara.name} transformada em ${gainedXP} XP!`);
+            updateBolsa();
+            updateUpgrade();
+            updateVaraInfo();
+        };
 
         const btnUpgrade = document.createElement("button");
         btnUpgrade.innerText = "Usar XP para upar";
@@ -201,6 +194,7 @@ function updateUpgrade(){
         };
 
         div.appendChild(document.createElement("br"));
+        div.appendChild(btnTransform);
         div.appendChild(btnUpgrade);
         upgradeDiv.appendChild(div);
     });
@@ -214,11 +208,9 @@ function updateVaraInfo(){
         document.getElementById("varaStats").innerText = "";
         return;
     }
-    const baseXP = varas[vara.name][0].baseXP;
-    const nextXP = Math.floor(baseXP * Math.pow(1.4, vara.level-1));
     const chance = varas[vara.name][0].chance + (vara.level-1)*10;
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
-    document.getElementById("varaStats").innerText = `XP: ${vara.xp}/${nextXP} | Chance de pegar peixe: ${chance}%`;
+    document.getElementById("varaStats").innerText = `Chance de pegar peixe: ${chance}%`;
 }
 
 // ===== BOX =====
@@ -298,9 +290,7 @@ skipButton.onclick = function(){
 };
 
 // ===== WALLET =====
-function updateWalletUI(){
-  document.getElementById("money").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`;
-}
+function updateWalletUI(){ document.getElementById("money").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`; }
 
 // ===== TABS =====
 const tabs = document.querySelectorAll(".tabButton");
