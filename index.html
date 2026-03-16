@@ -228,10 +228,10 @@ function updateVaraInfo(){
 }
 
 // ===== BOXES =====
-const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria"];
+const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria"]; // sem acento
 const boxCosts = {"Comum":50,"Incomum":60,"Rara":75,"Epica":90,"Lendaria":120};
 
-// Configuração de drops (principal + mítica)
+// Configuração de drops
 const boxChances = {
   "Comum":[ {name:"Fibra", chance:74},{name:"Bambu", chance:25},{name:"Adamantium", chance:1} ],
   "Incomum":[ {name:"Grafite", chance:73},{name:"Fibra", chance:25},{name:"Adamantium", chance:2} ],
@@ -240,18 +240,10 @@ const boxChances = {
   "Lendaria":[ {name:"Platina", chance:70},{name:"Titanio", chance:25},{name:"Adamantium", chance:5} ]
 };
 
-function addVaraToInventory(varaName){
-    const baseProfit = varas[varaName][0].baseProfit;
-    const newVara = {name: varaName, level:1, xp:0, profit: baseProfit};
-    inventory.push(newVara);
-    bolsa.push(newVara);
-    updateBolsa();
-    updateUpgrade();
-    updateVaraInfo();
-}
-
 boxTypes.forEach(type=>{
-    document.getElementById("box"+type).onclick = ()=>{
+    const btn = document.getElementById("box"+type);
+    if(!btn) return; // evita erro se algum botão não existir
+    btn.onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
         const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
         if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}\nTem certeza?`)) return;
