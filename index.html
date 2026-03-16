@@ -62,6 +62,9 @@ button:hover { background-color:#0088cc; }
   <h3>Upgrade de Varas</h3>
   <p>XP disponível: <span id="xpReservoir">0</span></p>
   <div id="upgrade"></div>
+  <p style="margin-top:8px; font-size:13px; color:#004466;">
+    Cada upgrade aumenta <strong>5%</strong> do valor do peixe e <strong>5%</strong> a chance de captura.
+  </p>
 </div>
 
 <!-- BOTTOM MENU -->
@@ -91,20 +94,20 @@ const varas = {
   "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:300}]
 };
 
-// Peixes
+// Peixes com valores multiplicados 16x para ROI ~30 dias
 let fishes = [
-  {name:"Sardinha", value:0.0075, rarity:"Muito Comum", time:3000},
-  {name:"Robalo", value:0.015, rarity:"Comum", time:4000},
-  {name:"Tainha", value:0.03, rarity:"Comum", time:4500},
-  {name:"Corvina", value:0.045, rarity:"Comum", time:5000},
-  {name:"Atum", value:0.06, rarity:"Incomum", time:5000},
-  {name:"Garoupa pequena", value:0.075, rarity:"Incomum", time:6000},
-  {name:"Pargo", value:0.09, rarity:"Incomum", time:6500},
-  {name:"Garoupa adulta", value:0.105, rarity:"Raro", time:7000},
-  {name:"Salmão do Atlântico", value:0.12, rarity:"Épico", time:9000},
-  {name:"Truta", value:0.135, rarity:"Épico", time:9500},
-  {name:"Tubarão", value:0.15, rarity:"Lendário", time:12000},
-  {name:"Marlim Azul", value:0.165, rarity:"Mítico", time:15000}
+  {name:"Sardinha", value:0.12, rarity:"Muito Comum", time:3000},
+  {name:"Robalo", value:0.24, rarity:"Comum", time:4000},
+  {name:"Tainha", value:0.48, rarity:"Comum", time:4500},
+  {name:"Corvina", value:0.72, rarity:"Comum", time:5000},
+  {name:"Atum", value:0.96, rarity:"Incomum", time:5000},
+  {name:"Garoupa pequena", value:1.20, rarity:"Incomum", time:6000},
+  {name:"Pargo", value:1.44, rarity:"Incomum", time:6500},
+  {name:"Garoupa adulta", value:1.68, rarity:"Raro", time:7000},
+  {name:"Salmão do Atlântico", value:1.92, rarity:"Épico", time:9000},
+  {name:"Truta", value:2.16, rarity:"Épico", time:9500},
+  {name:"Tubarão", value:2.40, rarity:"Lendário", time:12000},
+  {name:"Marlim Azul", value:2.64, rarity:"Mítico", time:15000}
 ];
 
 // Inventário
@@ -116,7 +119,7 @@ let currentVaraIndex = 0;
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
-  const bonus = (vara.level-1)*0.05; // +5% por level
+  const bonus = (vara.level-1)*0.05; // 5% por level
   const allowed = fishes.filter(f => {
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
     return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity);
@@ -158,23 +161,11 @@ function updateUpgrade(){
         if(vara.name === "Bambu") return;
         const baseXP = varas[vara.name][0].baseXP;
         const nextXP = Math.floor(baseXP * Math.pow(1.4, vara.level-1));
-
-        const container = document.createElement("div");
-        container.style.marginBottom = "8px";
-
-        const title = document.createElement("div");
-        title.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP}`;
-        container.appendChild(title);
-
-        const info = document.createElement("div");
-        info.style.fontSize = "12px";
-        info.style.color = "#004466";
-        info.innerText = "Cada upgrade aumenta +5% no valor do peixe e +5% na chance de captura. Nível máximo: 10";
-        container.appendChild(info);
+        const div = document.createElement("div");
+        div.innerHTML = `<strong>${vara.name}</strong> Nível ${vara.level} | XP: ${vara.xp}/${nextXP}`;
 
         const btnTransform = document.createElement("button");
         btnTransform.innerText = "Transformar em XP";
-        btnTransform.style.marginRight = "5px";
         btnTransform.onclick = () => {
             const gainedXP = baseXP + (vara.level-1)*10;
             xpReservoir += gainedXP;
@@ -188,27 +179,28 @@ function updateUpgrade(){
             updateUpgrade();
             updateVaraInfo();
         };
-        container.appendChild(btnTransform);
 
         const btnUpgrade = document.createElement("button");
         btnUpgrade.innerText = "Usar XP para upar";
         btnUpgrade.onclick = () => {
             if(xpReservoir <= 0){ alert("Sem XP disponível!"); return; }
-            if(vara.level >= 10){ alert("Nível máximo atingido!"); return; }
+            if(vara.level >= 10){ alert("Vara já está no nível máximo!"); return; }
             const xpToUse = Math.min(nextXP - vara.xp, xpReservoir);
             vara.xp += xpToUse;
             xpReservoir -= xpToUse;
             if(vara.xp >= nextXP){
                 vara.level++;
                 vara.xp = 0;
-                alert(`${vara.name} subiu para Nível ${vara.level}! (+5% valor do peixe, +5% chance de captura)`);
+                alert(`${vara.name} subiu para Nível ${vara.level}!`);
             }
             updateUpgrade();
             updateVaraInfo();
         };
-        container.appendChild(btnUpgrade);
 
-        upgradeDiv.appendChild(container);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(btnTransform);
+        div.appendChild(btnUpgrade);
+        upgradeDiv.appendChild(div);
     });
 }
 
@@ -220,13 +212,11 @@ function updateVaraInfo(){
         document.getElementById("varaStats").innerText = "";
         return;
     }
-    const baseChance = varas[vara.name][0].chance;
-    const chance = baseChance + (vara.level-1)*5; // +5% por level
+    let chance = varas[vara.name][0].chance + (vara.level-1)*5; // 5% por level
+    let profitPerc = (vara.name==="Bambu"?30:100 + (vara.level-1)*5); // 5% por level
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
-
     const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
     const allowedFishes = fishes.filter(f => rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity));
-    let profitPerc = vara.name === "Bambu" ? 30 : 100 + (vara.level-1)*5; // +5% por level
     const fishNames = allowedFishes.map(f=>f.name).join(", ");
     document.getElementById("varaStats").innerText = `Chance de captura: ${chance}% | Lucro médio: ${profitPerc}%\nPeixes que pode pegar: ${fishNames}`;
 }
@@ -253,7 +243,7 @@ function addVaraToInventory(varaName){
 boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-        const drops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
+        const drops = boxChances[type].map(i=>i.name + " (" + i.chance + "%)").join(", ");
         if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${drops}`)) return;
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
