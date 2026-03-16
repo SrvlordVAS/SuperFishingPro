@@ -30,7 +30,6 @@ button:hover { background-color:#0088cc; }
 
 <h1>🎣 Super Fishing</h1>
 <h3 id="money">Saldo SUN: 500</h3>
-<h3 id="dailyCount">Arremessos disponíveis: 0</h3>
 
 <!-- PESCA -->
 <div id="pesca" class="section active">
@@ -39,7 +38,6 @@ button:hover { background-color:#0088cc; }
   <button id="skipButton" style="display:none;">⏩ Pular espera</button>
   <p id="currentVara">Vara ativa: Nenhuma</p>
   <p id="varaStats"></p>
-  <p id="varaFishInfo"></p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
     <div id="bolsa" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
@@ -76,43 +74,42 @@ button:hover { background-color:#0088cc; }
 document.addEventListener("DOMContentLoaded", function(){
 
 let sunBalance = 500;
+let fishingTimeout = null;
 let xpReservoir = 0;
 
 // Varas
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseXP:0, arremessos:25}],
-  "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseXP:50, arremessos:25}],
-  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseXP:80, arremessos:25}],
-  "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseXP:120, arremessos:25}],
-  "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseXP:180, arremessos:25}],
-  "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseXP:230, arremessos:25}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:300, arremessos:25}]
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseXP:0}],
+  "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseXP:50}],
+  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseXP:80}],
+  "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseXP:120}],
+  "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseXP:180}],
+  "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseXP:230}],
+  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseXP:300}]
 };
 
-// Peixes
+// Peixes (preço aumentado 50% exceto Bambu)
 const fishes = [
-  {name:"Sardinha", value:0.01, rarity:"Muito Comum", time:3000},
-  {name:"Robalo", value:0.03, rarity:"Comum", time:4000},
-  {name:"Tainha", value:0.04, rarity:"Comum", time:4500},
-  {name:"Corvina", value:0.06, rarity:"Comum", time:5000},
-  {name:"Atum", value:0.08, rarity:"Incomum", time:5000},
-  {name:"Garoupa pequena", value:0.15, rarity:"Incomum", time:6000},
-  {name:"Pargo", value:0.18, rarity:"Incomum", time:6500},
-  {name:"Garoupa adulta", value:0.21, rarity:"Raro", time:7000},
-  {name:"Salmão do Atlântico", value:0.24, rarity:"Épico", time:9000},
-  {name:"Truta", value:0.27, rarity:"Épico", time:9500},
-  {name:"Tubarão", value:0.30, rarity:"Lendário", time:12000},
-  {name:"Marlim Azul", value:0.33, rarity:"Mítico", time:15000}
+  {name:"Sardinha", value:0.015, rarity:"Muito Comum", time:3000},
+  {name:"Robalo", value:0.015, rarity:"Comum", time:4000},
+  {name:"Tainha", value:0.03, rarity:"Comum", time:4500},
+  {name:"Corvina", value:0.045, rarity:"Comum", time:5000},
+  {name:"Atum", value:0.06, rarity:"Incomum", time:5000},
+  {name:"Garoupa pequena", value:0.075, rarity:"Incomum", time:6000},
+  {name:"Pargo", value:0.09, rarity:"Incomum", time:6500},
+  {name:"Garoupa adulta", value:0.105, rarity:"Raro", time:7000},
+  {name:"Salmão do Atlântico", value:0.12, rarity:"Épico", time:9000},
+  {name:"Truta", value:0.135, rarity:"Épico", time:9500},
+  {name:"Tubarão", value:0.15, rarity:"Lendário", time:12000},
+  {name:"Marlim Azul", value:0.165, rarity:"Mítico", time:15000}
 ];
 
-// Nerf Bambu
-fishes.forEach(f=>{f.bambuValue=f.value*0.3;});
-
 // Inventário
-let inventory = [{name:"Bambu", level:1, xp:0, arremessosRestantes:25}];
+let inventory = [{name:"Bambu", level:1, xp:0, remainingThrows:25}];
 let bolsa = [...inventory];
 let currentVaraIndex = 0;
 
+// ===== FUNÇÕES =====
 function getCurrentVara(){ return inventory[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
@@ -122,11 +119,11 @@ function getRandomFishByVara(vara){
     return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity);
   });
   const fish = allowed[Math.floor(Math.random()*allowed.length)];
-  fish.value = (vara.name==="Bambu"?fish.bambuValue:fish.value)*(1+bonus);
+  fish.value = fish.value*(1+bonus);
   return fish;
 }
 
-// Bolsa
+// ===== BOLSA =====
 function setActiveVara(idx){
     currentVaraIndex = idx;
     updateVaraInfo();
@@ -140,14 +137,14 @@ function updateBolsa(){
     bolsa.forEach((v, idx) => {
         const btn = document.createElement("button");
         btn.className = "bag-item";
-        btn.innerText = v.name + ` (Nível ${v.level}) [${v.arremessosRestantes} arremessos]`;
+        btn.innerText = v.name + ` (Nível ${v.level})`;
         btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
         btn.onclick = () => setActiveVara(idx);
         bolsaDiv.appendChild(btn);
     });
 }
 
-// Upgrade
+// ===== UPGRADE =====
 function updateUpgrade(){
     const upgradeDiv = document.getElementById("upgrade");
     upgradeDiv.innerHTML = "";
@@ -199,26 +196,28 @@ function updateUpgrade(){
     });
 }
 
-// Info Vara
+// ===== ATUALIZA INFO VARA ATIVA =====
 function updateVaraInfo(){
     const vara = getCurrentVara();
     if(!vara) {
         document.getElementById("currentVara").innerText = "Nenhuma vara ativa";
         document.getElementById("varaStats").innerText = "";
-        document.getElementById("varaFishInfo").innerText = "";
         return;
     }
     const chance = varas[vara.name][0].chance + (vara.level-1)*10;
+
+    const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
+    const fishList = fishes.filter(f => rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity))
+                           .map(f=>`${f.name} (R$ ${(vara.name==="Bambu"?f.value*0.3:f.value).toFixed(3)})`).join(", ");
+
     document.getElementById("currentVara").innerText = `${vara.name} (Nível ${vara.level})`;
-    document.getElementById("varaStats").innerText = `Chance de pegar peixe: ${chance}%`;
-    const allowedFishes = fishes.filter(f => {
-        const rarities = ["Muito Comum","Comum","Incomum","Raro","Épico","Lendário","Mítico"];
-        return rarities.indexOf(f.rarity) <= rarities.indexOf(varas[vara.name][0].maxRarity);
-    }).map(f => `${f.name} (${((vara.name==="Bambu"?f.bambuValue:f.value)*(1+(vara.level-1)*0.1)).toFixed(3)} SUN)`);
-    document.getElementById("varaFishInfo").innerText = `Peixes possíveis: ${allowedFishes.join(", ")}`;
+    document.getElementById("varaStats").innerHTML = `
+      Chance de pegar peixe: ${chance}%<br>
+      Peixes possíveis: ${fishList}
+    `;
 }
 
-// Box
+// ===== BOX =====
 const boxTypes = ["Comum","Rara","Epica","Lendaria"];
 const boxCosts = {"Comum":81,"Rara":135,"Epica":162,"Lendaria":189};
 const boxChances = {
@@ -229,7 +228,7 @@ const boxChances = {
 };
 
 function addVaraToInventory(varaName){
-    const newVara = {name: varaName, level: 1, xp: 0, arremessosRestantes:25};
+    const newVara = {name: varaName, level: 1, xp: 0, remainingThrows:25};
     inventory.push(newVara);
     bolsa.push(newVara);
     updateBolsa();
@@ -240,8 +239,10 @@ function addVaraToInventory(varaName){
 boxTypes.forEach(type=>{
     document.getElementById("box"+type).onclick = ()=>{
         if(sunBalance < boxCosts[type]){ alert("Saldo SUN insuficiente!"); return; }
-        const possibleDrops = boxChances[type].map(i=>i.name).join(", ");
-        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis varas: ${possibleDrops}`)) return;
+        // mostra drops possíveis antes da confirmação
+        const possibleDrops = boxChances[type].map(i=>`${i.name} (${i.chance}%)`).join(", ");
+        if(!confirm(`Abrir Box ${type} por ${boxCosts[type]} SUN?\nPossíveis drops: ${possibleDrops}`)) return;
+
         sunBalance -= boxCosts[type];
         let rand = Math.random()*100;
         let acc = 0;
@@ -257,46 +258,63 @@ boxTypes.forEach(type=>{
     }
 });
 
-// Pesca
-const fishButton = document.getElementById("fishButton");
-const skipButton = document.getElementById("skipButton");
-const result = document.getElementById("result");
-
+// ===== PESCA =====
 fishButton.onclick = function(){
   const vara = getCurrentVara();
   if(!vara){ alert("Nenhuma vara ativa!"); return; }
-  if(vara.arremessosRestantes <=0){ alert("Sem arremessos restantes para esta vara hoje!"); return; }
-  fishButton.disabled = true; skipButton.style.display="inline-block";
+  if(vara.remainingThrows <= 0){ alert("Limite diário desta vara atingido! Volte amanhã."); return; }
+
+  fishButton.disabled = true;
+  skipButton.style.display="inline-block";
+
   const fish = getRandomFishByVara(vara);
   result.innerText = "Esperando o peixe morder a isca...";
-  setTimeout(()=>{
+  
+  fishingTimeout = setTimeout(()=>{
     const chancePerda = 100 - (varas[vara.name][0].chance + (vara.level-1)*10);
-    if(Math.random()*100 < chancePerda){ alert("O peixe escapou! 😢"); }
-    else { sunBalance += fish.value; updateWalletUI(); alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`); }
-    vara.arremessosRestantes--;
-    updateBolsa();
-    fishButton.disabled = false; skipButton.style.display="none";
+    let valor = fish.value;
+    if(vara.name === "Bambu") valor *= 0.3;
+
+    if(Math.random()*100 < chancePerda){ 
+      alert("O peixe escapou! 😢"); 
+    } else { 
+      sunBalance += valor; 
+      updateWalletUI(); 
+      alert(`Você pescou: ${fish.name} e ganhou ${valor.toFixed(3)} SUN`);
+    }
+    vara.remainingThrows--;
+    fishButton.disabled = false;
+    skipButton.style.display="none";
   }, fish.time);
 };
 
 skipButton.onclick = function(){
-  const vara = getCurrentVara();
-  if(!vara || vara.arremessosRestantes <=0) return;
-  clearTimeout(fishingTimeout);
-  const fish = getRandomFishByVara(vara);
-  const chancePerda = 100 - (varas[vara.name][0].chance + (vara.level-1)*10);
-  if(Math.random()*100 < chancePerda){ alert("O peixe escapou! 😢"); }
-  else { sunBalance += fish.value; updateWalletUI(); alert(`Você pescou: ${fish.name} e ganhou ${fish.value.toFixed(3)} SUN`); }
-  vara.arremessosRestantes--;
-  updateBolsa();
-  fishButton.disabled = false;
-  skipButton.style.display="none";
+  if(fishingTimeout){
+    clearTimeout(fishingTimeout);
+    fishingTimeout = null;
+    const vara = getCurrentVara();
+    const fish = getRandomFishByVara(vara);
+    const chancePerda = 100 - (varas[vara.name][0].chance + (vara.level-1)*10);
+    let valor = fish.value;
+    if(vara.name === "Bambu") valor *= 0.3;
+
+    if(Math.random()*100 < chancePerda){ 
+      alert("O peixe escapou! 😢"); 
+    } else { 
+      sunBalance += valor; 
+      updateWalletUI(); 
+      alert(`Você pescou: ${fish.name} e ganhou ${valor.toFixed(3)} SUN`);
+    }
+    vara.remainingThrows--;
+    fishButton.disabled = false;
+    skipButton.style.display="none";
+  }
 };
 
-// Wallet
+// ===== WALLET =====
 function updateWalletUI(){ document.getElementById("money").innerText = `Saldo SUN: ${sunBalance.toFixed(3)}`; }
 
-// Tabs
+// ===== TABS =====
 const tabs = document.querySelectorAll(".tabButton");
 tabs.forEach(tab=>{
   tab.onclick = ()=>{
@@ -307,7 +325,7 @@ tabs.forEach(tab=>{
   }
 });
 
-// Inicializa
+// ===== INICIALIZA =====
 updateBolsa();
 updateUpgrade();
 updateVaraInfo();
