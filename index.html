@@ -4,71 +4,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing Game</title>
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff);}
+body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px; background:linear-gradient(to bottom,#87ceeb,#ffffff);}
 .container { max-width:700px; margin:auto; padding:10px;}
 button { padding:10px 20px; margin:5px; font-size:16px;}
 #log { margin-top:20px; padding:10px; border:1px solid #333; height:250px; overflow:auto; background:#f0f0f0;}
+#bag { margin-top:10px; border:1px solid #aaa; padding:5px; min-height:50px; background:#fff;}
 </style>
 </head>
 <body>
 <div class="container">
-<h2>Super Fishing Game 100%</h2>
+<h2>Super Fishing Game</h2>
 
 <!-- Box Buttons -->
 <div>
-  <button onclick="buyBox('comum')">Comprar Box Comum (15 SUN)</button>
-  <button onclick="buyBox('incomum')">Comprar Box Incomum (30 SUN)</button>
-  <button onclick="buyBox('rara')">Comprar Box Rara (45 SUN)</button>
-  <button onclick="buyBox('epica')">Comprar Box Épica (60 SUN)</button>
-  <button onclick="buyBox('lendaria')">Comprar Box Lendária (75 SUN)</button>
+  <button onclick="buyBox('comum')">Comprar Box Comum (50 SUN)</button>
+  <button onclick="buyBox('incomum')">Comprar Box Incomum (100 SUN)</button>
+  <button onclick="buyBox('rara')">Comprar Box Rara (150 SUN)</button>
+  <button onclick="buyBox('epica')">Comprar Box Épica (200 SUN)</button>
+  <button onclick="buyBox('lendaria')">Comprar Box Lendária (250 SUN)</button>
 </div>
 
-<!-- Bolsa -->
 <h3>Bolsa</h3>
 <div id="bag"></div>
 
-<!-- Conta -->
 <h3>Saldo SUN: <span id="balance">0</span></h3>
 <h3>Dia: <span id="day">0</span></h3>
-
 <button onclick="nextDay()">Próximo Dia</button>
 
-<!-- Log -->
 <div id="log"></div>
 </div>
 
 <script>
-// VARAS CONFIG
+// --- VARAS CONFIG ---
 const rods = {
-  // Box Comum
   'fibra_comum': {name:'Fibra (Comum)', dailyFish:15, profitRate:0.05, type:'principal', box:'comum', level:1, chanceBase:50},
   'incomum_comum': {name:'Incomum (Box Comum)', dailyFish:15, profitRate:0.0667, type:'secundaria', box:'comum', level:1, chanceBase:50},
-  // Box Incomum
+
   'incomum_incomum': {name:'Incomum (Incomum)', dailyFish:15, profitRate:0.10, type:'principal', box:'incomum', level:1, chanceBase:50},
   'rara_incomum': {name:'Rara (Box Incomum)', dailyFish:15, profitRate:0.1333, type:'secundaria', box:'incomum', level:1, chanceBase:50},
-  // Box Rara
+
   'rara_rara': {name:'Rara (Rara)', dailyFish:15, profitRate:0.15, type:'principal', box:'rara', level:1, chanceBase:50},
   'epica_rara': {name:'Épica (Box Rara)', dailyFish:15, profitRate:0.20, type:'secundaria', box:'rara', level:1, chanceBase:50},
-  // Box Épica
+
   'epica_epica': {name:'Épica (Épica)', dailyFish:15, profitRate:0.20, type:'principal', box:'epica', level:1, chanceBase:50},
   'lendaria_epica': {name:'Lendária (Box Épica)', dailyFish:15, profitRate:0.2667, type:'secundaria', box:'epica', level:1, chanceBase:50},
-  // Box Lendária
+
   'lendaria_lendaria': {name:'Lendária (Lendária)', dailyFish:15, profitRate:0.25, type:'principal', box:'lendaria', level:1, chanceBase:50},
   'mitica_lendaria': {name:'Mítica (Box Lendária)', dailyFish:15, profitRate:0.3333, type:'secundaria', box:'lendaria', level:1, chanceBase:50},
-  // Vara grátis
+
   'bambu': {name:'Bambu (Grátis)', dailyFish:15, profitRate:0.0667, type:'grátis', box:null, level:1, chanceBase:50}
 };
 
-// BOX CONFIG
+// --- BOX CONFIG ---
 const boxes = {
-  'comum': {price:15, rods:['fibra_comum','incomum_comum'], dropRates:[0.8,0.2]},
-  'incomum': {price:30, rods:['incomum_incomum','rara_incomum'], dropRates:[0.8,0.2]},
-  'rara': {price:45, rods:['rara_rara','epica_rara'], dropRates:[0.8,0.2]},
-  'epica': {price:60, rods:['epica_epica','lendaria_epica'], dropRates:[0.8,0.2]},
-  'lendaria': {price:75, rods:['lendaria_lendaria','mitica_lendaria'], dropRates:[0.8,0.2]}
+  'comum': {price:50, rods:['fibra_comum','incomum_comum'], dropRates:[0.8,0.2]},
+  'incomum': {price:100, rods:['incomum_incomum','rara_incomum'], dropRates:[0.8,0.2]},
+  'rara': {price:150, rods:['rara_rara','epica_rara'], dropRates:[0.8,0.2]},
+  'epica': {price:200, rods:['epica_epica','lendaria_epica'], dropRates:[0.8,0.2]},
+  'lendaria': {price:250, rods:['lendaria_lendaria','mitica_lendaria'], dropRates:[0.8,0.2]}
 };
 
-// JOGO
+// --- GAME STATE ---
 let bag = [];
 let balance = 0;
 let day = 0;
@@ -77,12 +73,13 @@ let bagDiv = document.getElementById('bag');
 let balanceSpan = document.getElementById('balance');
 let daySpan = document.getElementById('day');
 
+// --- FUNCTIONS ---
 function logMessage(msg) {
   log.innerHTML += msg+'<br>';
   log.scrollTop = log.scrollHeight;
 }
 
-// Comprar Box
+// Comprar box
 function buyBox(boxKey){
   const box = boxes[boxKey];
   if(!confirm(`Deseja comprar a Box ${boxKey} por ${box.price} SUN?`)) return;
@@ -98,24 +95,24 @@ function buyBox(boxKey){
     }
   }
   if(selectedRod){
-    bag.push({...selectedRod}); // clonando para exclusividade
+    bag.push({...selectedRod}); // clonar para exclusividade
     updateBag();
     logMessage(`Você recebeu a vara: ${selectedRod.name} → foi para sua bolsa`);
   }
 }
 
-// Atualizar Bolsa
+// Atualizar bolsa
 function updateBag(){
-  bagDiv.innerHTML = bag.map((r,i)=>`${i+1}. ${r.name} (Lvl ${r.level})`).join('<br>');
+  bagDiv.innerHTML = bag.map((r,i)=>`${i+1}. ${r.name} (Lvl ${r.level}, Chance ${r.chanceBase.toFixed(2)}%)`).join('<br>');
 }
 
-// Pesca diária
+// Próximo dia (pesca automática)
 function nextDay(){
   day +=1;
   daySpan.innerText = day;
   logMessage(`--- Dia ${day} ---`);
   let totalGain = 0;
-  bag.forEach((r,i)=>{
+  bag.forEach(r=>{
     const dailyGain = r.dailyFish * 1 * r.profitRate;
     totalGain += dailyGain;
     logMessage(`${r.name} pescou ${r.dailyFish} peixes → +${dailyGain.toFixed(2)} SUN`);
