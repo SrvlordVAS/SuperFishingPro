@@ -156,7 +156,7 @@ function updateUpgrade(){
     info.style.marginTop = "10px";
     info.style.fontSize = "14px";
     info.style.color = "#004466";
-    info.innerText = "💡 Upar a vara aumenta aleatoriamente de 80% a 120% do lucro atual, até o nível 10.";
+    info.innerText = "💡 Upar a vara aumenta aleatoriamente de 90% a 120% do lucro atual, até o nível 10.";
     upgradeDiv.appendChild(info);
 
     inventory.forEach((vara, idx) => {
@@ -190,8 +190,8 @@ function updateUpgrade(){
             if(vara.xp >= nextXP){
                 vara.level++;
                 vara.xp = 0;
-                // Aplica aumento aleatório 80-120%
-                const bonus = 0.8 + Math.random()*0.4;
+                // Aplica aumento aleatório 90-120%
+                const bonus = 0.9 + Math.random()*0.3;
                 vara.profit *= (1+bonus);
                 alert(`${vara.name} subiu para Nível ${vara.level}! Lucro aumentado em ${(bonus*100).toFixed(1)}%`);
             }
