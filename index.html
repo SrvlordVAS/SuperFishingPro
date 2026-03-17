@@ -8,20 +8,18 @@ body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 
 h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
 h3 { color:#004466; }
 #result { font-size:16px; margin:15px 0 20px 0; min-height:30px; }
-button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; font-size:14px; cursor:pointer; margin:2px; transition:0.2s; }
-button:hover { background-color:#0088cc; }
+button { cursor:pointer; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
 
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
-#bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
-
+#bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; border:none; background:#00aaff; color:white; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 
 /* ===== BOLSA ===== */
 #bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
 
-.bolsa-top {
+.bolsa-top, .bolsa-bottom {
   border:1px solid #004466;
   padding:8px;
   border-radius:8px;
@@ -29,36 +27,67 @@ button:hover { background-color:#0088cc; }
   margin-bottom:8px;
 }
 
-.bolsa-bottom {
-  border:1px solid #004466;
-  padding:8px;
-  border-radius:8px;
-  background:#d0f0ff;
+#bolsaMenu, #bolsaVaras {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  justify-content:center;
 }
 
-#bolsaMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
-#bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+.bag-item {
+  background:#00aaff;
+  color:white;
+  border:none;
+  border-radius:5px;
+  padding:5px 8px;
+}
 
 /* ===== SHOP ===== */
 #shopContainer { width:90%; max-width:400px; margin:0 auto; }
 
-.shop-top {
+.shop-top, .shop-bottom {
   border:1px solid #004466;
-  padding:8px;
-  border-radius:8px;
+  padding:10px;
+  border-radius:10px;
   background:#e0f7ff;
   margin-bottom:8px;
 }
 
-.shop-bottom {
-  border:1px solid #004466;
-  padding:8px;
-  border-radius:8px;
-  background:#d0f0ff;
+#shopMenu {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
 }
 
-#shopMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
-#shopContent { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+.box-card {
+  width:90px;
+  height:90px;
+  border-radius:10px;
+  background:linear-gradient(145deg,#00aaff,#0077aa);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:12px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 3px 6px rgba(0,0,0,0.3);
+}
+
+.box-card:hover {
+  transform:scale(1.05);
+}
+
+.box-selected {
+  border:3px solid gold;
+}
+
+#shopContent {
+  text-align:center;
+  font-size:14px;
+}
 </style>
 </head>
 <body>
@@ -97,7 +126,7 @@ button:hover { background-color:#0088cc; }
     </div>
 
     <div class="shop-bottom">
-      <div id="shopContent">Selecione uma box acima</div>
+      <div id="shopContent">Selecione uma box</div>
     </div>
   </div>
 </div>
@@ -138,7 +167,7 @@ function updateBolsaMenu(){
   raridades.forEach(r=>{
     const btn = document.createElement("button");
     btn.innerText = r;
-    btn.style.border = r===selectedRarity ? "2px solid gold" : "1px solid #004466";
+    btn.className = "bag-item";
 
     btn.onclick = ()=>{
       selectedRarity = r;
@@ -158,7 +187,7 @@ function updateBolsaVaras(){
     if(v.rarity === selectedRarity){
       const btn = document.createElement("button");
       btn.innerText = v.name;
-      btn.style.border = idx===currentVaraIndex ? "2px solid gold" : "1px solid #004466";
+      btn.className = "bag-item";
 
       btn.onclick = ()=> setActiveVara(idx);
       div.appendChild(btn);
@@ -223,12 +252,12 @@ skipButton.onclick = function(){
 
 // ===== SHOP =====
 const shopOptions = [
-  {name:"Box Comum", price:50},
-  {name:"Box Incomum", price:100},
-  {name:"Box Rara", price:150},
-  {name:"Box Épica", price:200},
-  {name:"Box Lendária", price:250},
-  {name:"Box Mítica", price:300}
+  "Box Comum",
+  "Box Incomum",
+  "Box Rara",
+  "Box Épica",
+  "Box Lendária",
+  "Box Mítica"
 ];
 
 let selectedShop = null;
@@ -238,18 +267,21 @@ function updateShopMenu(){
   menu.innerHTML = "";
 
   shopOptions.forEach(opt=>{
-    const btn = document.createElement("button");
-    btn.innerText = `${opt.name} ($${opt.price})`;
+    const box = document.createElement("div");
+    box.className = "box-card";
+    box.innerText = opt;
 
-    btn.style.border = selectedShop && selectedShop.name===opt.name ? "2px solid gold" : "1px solid #004466";
+    if(opt === selectedShop){
+      box.classList.add("box-selected");
+    }
 
-    btn.onclick = ()=>{
+    box.onclick = ()=>{
       selectedShop = opt;
       updateShopMenu();
       updateShopContent();
     };
 
-    menu.appendChild(btn);
+    menu.appendChild(box);
   });
 }
 
@@ -257,11 +289,11 @@ function updateShopContent(){
   const content = document.getElementById("shopContent");
 
   if(!selectedShop){
-    content.innerText = "Selecione uma box acima";
+    content.innerText = "Selecione uma box";
     return;
   }
 
-  content.innerText = `${selectedShop.name}\nPreço: $${selectedShop.price}\nConteúdo em breve`;
+  content.innerText = "Conteúdo da " + selectedShop + " (em breve)";
 }
 
 // ===== TABS =====
