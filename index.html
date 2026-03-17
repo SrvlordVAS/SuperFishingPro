@@ -75,7 +75,7 @@ let fishingTimeout = null;
 
 // ===== VARAS =====
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseProfit:0.07, canUpgrade:false}],
+  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseProfit:100, canUpgrade:false}],
   "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseProfit:100, canUpgrade:true}],
   "Fibra Reforçada":[{level:1, chance:50, maxRarity:"Comum", baseProfit:105, canUpgrade:true}],
   "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseProfit:100, canUpgrade:true}],
@@ -93,9 +93,7 @@ const varas = {
 // ===== PEIXES POR RARIDADE =====
 const fishes = {
   "Muito Comum":[
-    {name:"Sardinha", value:0.06},
-    {name:"Sardinha 2", value:0.06},
-    {name:"Sardinha 3", value:0.06}
+    {name:"Sardinha", value:0.06} // Apenas uma Sardinha
   ],
   "Comum":[
     {name:"Robalo", value:0.05},
@@ -129,12 +127,7 @@ const fishes = {
   ]
 };
 
-let inventory = [{name:"Bambu", profit:0.07}];
-let bolsa = [...inventory];
-let currentVaraIndex = 0;
-
-function getCurrentVara(){ return inventory[currentVaraIndex]; }
-
+// ===== FUNÇÃO DE CAPTURA =====
 function getRandomFishByVara(vara){
   const rarity = varas[vara.name][0].maxRarity;
   let possibleFishes = fishes[rarity];
