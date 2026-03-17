@@ -192,17 +192,70 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateSaldoDisplay(){ document.getElementById("saldoSFP").innerText=saldoSFP.toFixed(3); }
 
   // ================= TELEGRAM WALLET =================
-  document.addEventListener("DOMContentLoaded",()=>{ if(Telegram?.WebApp) connectWallet(); });
 
-  async function connectWallet(){
-    try{
-      userAddress=await Telegram.WebApp.getWalletAddress();
-      alert("Carteira conectada: "+userAddress);
-      // Pega saldo real do backend ou Telegram
-      saldoSFP=await getWalletBalance(userAddress); 
-      updateSaldoDisplay();
-    }catch(e){ alert("Falha ao conectar carteira"); }
+let _apiUrl = "";
+let _telegramId = "";
+
+// Recebe dados do Mini App (saldo real + API URL)
+window.addEventListener("message", function(event) {
+  if (event.origin !== "https://srvlordvas.github.io" && 
+      !event.origin.includes("replit")) return;
+
+  if (event.data?.type === "SFP_INIT") {
+    _telegramId = String(event.data.telegramId);
+    _apiUrl = event.data.apiUrl;
+    saldoSFP = Number(event.data.sfpBalance) || 0;
+    updateSaldoDisplay();
+    console.log("✅ Dados recebidos do Mini App:", _telegramId, saldoSFP);
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Tenta pegar telegramId direto do Telegram WebApp também
+  if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+    _telegramId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
+  }
+});
+
+// Busca saldo real do backend
+async function getWalletBalance(telegramId) {
+  if (!_apiUrl || !telegramId) return 0;
+  try {
+    const res = await fetch(`${_apiUrl}/users/${telegramId}`);
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return Number(data.sfpBalance) || 0;
+  } catch (e) {
+    console.error("Erro ao buscar saldo:", e);
+    return 0;
+  }
+}
+
+// Atualiza saldo no backend quando pesca ou compra
+async function sendToWallet(amount) {
+  if (!_apiUrl || !_telegramId) return;
+  try {
+    if (amount > 0) {
+      // Ganhou SFP (pescou)
+      await fetch(`${_apiUrl}/transactions/deposit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId: _telegramId, amountTon: amount / 100 })
+      });
+    } else if (amount < 0) {
+      // Gastou SFP (comprou item)
+      await fetch(`${_apiUrl}/transactions/withdraw`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId: _telegramId, amountSfp: Math.abs(amount) })
+      });
+    }
+    // Avisa o Mini App que o saldo mudou
+    window.parent.postMessage({ type: "SFP_BALANCE_UPDATED" }, "*");
+  } catch (e) {
+    console.error("Erro ao atualizar saldo:", e);
+  }
+}
 
   // Funções simuladas para envio e recebimento de tokens
   async function sendToWallet(amount){
