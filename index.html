@@ -17,9 +17,8 @@ button:hover { background-color:#0088cc; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 
 .selected { background-color:#ffcc00 !important; color:black !important; }
-.bag-item { cursor:pointer; }
 
-/* ===== BOLSA (CORRIGIDA) ===== */
+/* ===== BOLSA ===== */
 #bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
 
 .bolsa-top {
@@ -40,7 +39,7 @@ button:hover { background-color:#0088cc; }
 #bolsaMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
 #bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
 
-/* ===== SHOP (ISOLADO) ===== */
+/* ===== SHOP ===== */
 #shopContainer { width:90%; max-width:400px; margin:0 auto; }
 
 .shop-top {
@@ -98,7 +97,7 @@ button:hover { background-color:#0088cc; }
     </div>
 
     <div class="shop-bottom">
-      <div id="shopContent">Selecione uma opção acima</div>
+      <div id="shopContent">Selecione uma box acima</div>
     </div>
   </div>
 </div>
@@ -223,7 +222,15 @@ skipButton.onclick = function(){
 };
 
 // ===== SHOP =====
-const shopOptions = ["Comum","Incomum","Rara","Épica","Lendária"];
+const shopOptions = [
+  "Box Comum",
+  "Box Incomum",
+  "Box Rara",
+  "Box Épica",
+  "Box Lendária",
+  "Box Mítica"
+];
+
 let selectedShop = null;
 
 function updateShopMenu(){
@@ -233,6 +240,8 @@ function updateShopMenu(){
   shopOptions.forEach(opt=>{
     const btn = document.createElement("button");
     btn.innerText = opt;
+
+    btn.style.border = opt===selectedShop ? "2px solid gold" : "1px solid #004466";
 
     btn.onclick = ()=>{
       selectedShop = opt;
@@ -246,7 +255,13 @@ function updateShopMenu(){
 
 function updateShopContent(){
   const content = document.getElementById("shopContent");
-  content.innerHTML = selectedShop ? "Itens da categoria " + selectedShop : "Selecione uma opção acima";
+
+  if(!selectedShop){
+    content.innerText = "Selecione uma box acima";
+    return;
+  }
+
+  content.innerText = "Conteúdo da " + selectedShop + " (em breve)";
 }
 
 // ===== TABS =====
@@ -254,6 +269,8 @@ document.querySelectorAll(".tabButton").forEach(tab=>{
   tab.onclick = ()=>{
     document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
     document.getElementById(tab.dataset.target).classList.add("active");
+    document.querySelectorAll(".tabButton").forEach(t=>t.classList.remove("selected"));
+    tab.classList.add("selected");
   };
 });
 
