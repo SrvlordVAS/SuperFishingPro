@@ -17,20 +17,20 @@ button:hover { background-color:#0088cc; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 .bag-item { cursor:pointer; }
-#skipButton { display:none; }
 </style>
 </head>
 <body>
 
 <h1>🎣 Super Fishing</h1>
+<h3 id="dailyCount">Tentativas hoje: 0/15</h3>
 
 <!-- PESCA -->
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
-  <button id="skipButton">⏩ PULAR ESPERA</button>
-  <p id="currentVara">Vara ativa: Bambu</p>
-  <p id="varaStats">Profit: 100%</p>
+  <button id="skipButton" style="display:none;">⏩ PULAR ESPERA</button>
+  <p id="currentVara">Vara ativa: Nenhuma</p>
+  <p id="varaStats"></p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
     <div id="bolsa"></div>
@@ -40,9 +40,7 @@ button:hover { background-color:#0088cc; }
 <!-- LOJA -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
-  <div id="shopBoxes">
-    <h4>Em breve...</h4>
-  </div>
+  <p>Em breve...</p>
 </div>
 
 <!-- BOTTOM MENU -->
@@ -54,31 +52,42 @@ button:hover { background-color:#0088cc; }
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-  // ===== CONFIGURAÇÃO =====
-  const dailyLimit = 15;
-  let dailyCount = 0;
-  let fishingTimeout = null;
+let dailyCount = 0;
+const dailyLimit = 15;
+let fishingTimeout = null;
 
-  // ===== VARAS =====
-  const varas = {
-    "Bambu": { profit: 100, chance:50 }
-  };
+// ===== VARAS =====
+const varas = {
+  "Bambu": {profit: 100, captureRate:50, fishes:["Sardinha"]}
+};
 
-  // ===== PEIXES =====
-  const fishes = {
-    "Bambu": [
-      {name:"Sardinha", value:0.06}
-    ]
-  };
+// ===== PEIXES =====
+const fishData = {
+  "Sardinha": {value:0.06}
+};
 
-  // Inicialmente só a vara de Bambu
-  let bolsa = [{name:"Bambu", profit:100}];
-  let currentVaraIndex = 0;
+// ===== INVENTÁRIO =====
+let bolsa = [{name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"]}];
+let currentVaraIndex = 0;
 
-  function getCurrentVara(){ return bolsa[currentVaraIndex]; }
+// ===== FUNÇÕES =====
+function getCurrentVara(){ return bolsa[currentVaraIndex]; }
 
-  // ===== BOLSA =====
-  function updateBolsa(){
+function getRandomFishByVara(vara){
+  const possibleFishes = vara.fishes;
+  const fishName = possibleFishes[Math.floor(Math.random()*possibleFishes.length)];
+  if(Math.random()*100 <= vara.captureRate) return fishName;
+  return null;
+}
+
+// ===== BOLSA =====
+function setActiveVara(idx){
+    currentVaraIndex = idx;
+    updateVaraInfo();
+    updateBolsa();
+}
+
+function updateBolsa(){
     const bolsaDiv = document.getElementById("bolsa");
     bolsaDiv.innerHTML = "";
     bolsa.forEach((v, idx) => {
@@ -86,83 +95,78 @@ document.addEventListener("DOMContentLoaded", function(){
         btn.className = "bag-item";
         btn.innerText = v.name;
         btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
-        btn.onclick = () => {
-          currentVaraIndex = idx;
-          updateVaraInfo();
-          updateBolsa();
-        };
+        btn.onclick = () => setActiveVara(idx);
         bolsaDiv.appendChild(btn);
     });
+}
+
+// ===== PESCA =====
+const fishButton = document.getElementById("fishButton");
+const skipButton = document.getElementById("skipButton");
+const result = document.getElementById("result");
+
+function fishAction(){
+  if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
+  const vara = getCurrentVara();
+  if(!vara){ alert("Nenhuma vara ativa!"); return; }
+
+  const fishName = getRandomFishByVara(vara);
+  if(fishName){
+    const profit = fishData[fishName].value * (vara.profit/100);
+    alert(`🎉 Você pescou: ${fishName} e ganhou ${profit.toFixed(3)} SFP2`);
+  } else {
+    alert("O peixe escapou!");
   }
 
-  function updateVaraInfo(){
-    const vara = getCurrentVara();
-    document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
-    document.getElementById("varaStats").innerText = `Profit: ${vara.profit}%`;
-  }
+  dailyCount++;
+  document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
 
-  // ===== PESCA =====
-  const fishButton = document.getElementById("fishButton");
-  const skipButton = document.getElementById("skipButton");
-  const result = document.getElementById("result");
+  skipButton.style.display = "none";
+  fishButton.disabled = false;
+  result.innerText = "Clique em pescar";
+}
 
-  function getRandomFishByVara(vara){
-    const possibleFishes = fishes[vara.name] || [];
-    if(possibleFishes.length === 0) return null;
-    const fish = possibleFishes[Math.floor(Math.random()*possibleFishes.length)];
-    if(Math.random()*100 <= vara.chance) return fish;
-    return null;
-  }
-
-  function fishAction(){
-    if(dailyCount >= dailyLimit){ 
-      alert("Limite diário atingido!"); 
-      skipButton.style.display = "none";
-      return; 
-    }
-    const vara = getCurrentVara();
-    const fish = getRandomFishByVara(vara);
-    if(fish){
-      const ganho = fish.value * (vara.profit/100);
-      alert(`🎉 Você pescou: ${fish.name} e ganhou ${ganho.toFixed(2)} SFP2`);
-    } else {
-      alert("O peixe escapou!");
-    }
-    dailyCount++;
-    result.innerText = "Clique em pescar";
-    skipButton.style.display = "none";
-  }
-
-  fishButton.onclick = function(){
-    fishButton.disabled = true;
-    result.innerText = "Esperando o peixe morder a isca...";
-    skipButton.style.display = "inline-block";
-    fishingTimeout = setTimeout(()=>{
-      fishAction();
-      fishButton.disabled = false;
-    },5000);
-  };
-
-  skipButton.onclick = function(){
-    if(fishingTimeout) clearTimeout(fishingTimeout);
+fishButton.onclick = function(){
+  fishButton.disabled = true;
+  result.innerText = "Esperando o peixe morder a isca...";
+  skipButton.style.display = "inline-block";
+  fishingTimeout = setTimeout(()=>{
     fishAction();
-    fishButton.disabled = false;
-  };
+  },5000);
+};
 
-  // ===== TABS =====
-  const tabs = document.querySelectorAll(".tabButton");
-  tabs.forEach(tab=>{
-    tab.onclick = ()=>{
-      document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-      document.getElementById(tab.dataset.target).classList.add("active");
-      tabs.forEach(t=>t.classList.remove("selected"));
-      tab.classList.add("selected");
+skipButton.onclick = function(){
+  if(fishingTimeout) clearTimeout(fishingTimeout);
+  fishAction();
+};
+
+// ===== VARA ATIVA =====
+function updateVaraInfo(){
+    const vara = getCurrentVara();
+    if(!vara){
+        document.getElementById("currentVara").innerText = "Nenhuma vara ativa";
+        document.getElementById("varaStats").innerText = "";
+        return;
     }
-  });
+    document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
+    document.getElementById("varaStats").innerText = 
+        `Peixes que pode capturar: ${vara.fishes.join(", ")}\nTaxa de captura: ${vara.captureRate}%`;
+}
 
-  // ===== INICIALIZA =====
-  updateBolsa();
-  updateVaraInfo();
+// ===== TABS =====
+const tabs = document.querySelectorAll(".tabButton");
+tabs.forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(tab.dataset.target).classList.add("active");
+    tabs.forEach(t=>t.classList.remove("selected"));
+    tab.classList.add("selected");
+  }
+});
+
+// ===== INICIALIZA =====
+updateBolsa();
+updateVaraInfo();
 
 });
 </script>
