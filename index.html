@@ -18,23 +18,57 @@ button { cursor:pointer; }
 
 /* ===== BOLSA ===== */
 #bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
-.bolsa-top, .bolsa-bottom { border:1px solid #004466; padding:8px; border-radius:8px; background:#e0f7ff; margin-bottom:8px; }
+.bolsa-top, .bolsa-bottom {
+  border:1px solid #004466;
+  padding:8px;
+  border-radius:8px;
+  background:#e0f7ff;
+  margin-bottom:8px;
+}
 #bolsaMenu, #bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
-.bag-item { background:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; cursor:pointer; }
+.bag-item { background:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; }
 
 /* ===== SHOP ===== */
 #shopContainer { width:90%; max-width:400px; margin:0 auto; }
-.shop-top, .shop-bottom, .shop-buy { border:1px solid #004466; padding:10px; border-radius:10px; background:#e0f7ff; margin-bottom:8px; }
+.shop-top, .shop-bottom, .shop-buy {
+  border:1px solid #004466;
+  padding:10px;
+  border-radius:10px;
+  background:#e0f7ff;
+  margin-bottom:8px;
+}
 #shopMenu { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
-.box-card { width:90px; height:90px; border-radius:10px; background:linear-gradient(145deg,#00aaff,#0077aa); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; text-align:center; cursor:pointer; transition:0.2s; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
+.box-card {
+  width:90px;
+  height:90px;
+  border-radius:10px;
+  background:linear-gradient(145deg,#00aaff,#0077aa);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:12px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 3px 6px rgba(0,0,0,0.3);
+}
 .box-card:hover { transform:scale(1.05); }
 .box-selected { border:3px solid gold; }
 
 /* ===== CARTEIRA ===== */
-.walletBtn { padding:10px; border-radius:8px; border:none; background:#00aaff; color:white; font-size:14px; cursor:pointer; }
+.walletBtn {
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#00aaff;
+  color:white;
+  font-size:14px;
+  cursor:pointer;
+}
 .walletBtn:hover { background:#0077aa; }
+.walletSaldo { margin-top:5px; font-weight:bold; }
 
-input.walletInput { width:70%; padding:5px; margin:5px 0; border-radius:5px; border:1px solid #004466; }
 </style>
 </head>
 <body>
@@ -79,31 +113,14 @@ input.walletInput { width:70%; padding:5px; margin:5px 0; border-radius:5px; bor
 <div id="walletSection" class="section">
   <h3>💼 Carteira</h3>
   <div id="walletContent" style="display:flex; flex-direction:column; gap:10px; width:90%; max-width:400px; margin:0 auto;">
-    
-    <!-- Conectar Telegram Wallet -->
-    <div id="telegramLogin"></div>
-    <script async src="https://telegram.org/js/telegram-widget.js?7"
-        data-telegram-login="SEU_BOT_USERNAME"
-        data-size="large"
-        data-userpic="false"
-        data-auth-url="https://c85ef077-d2ea-4d79-ad3a-6d43d19c299b-00-3i25jj1vt3jj.spock.replit.dev/callback"
-        data-request-access="write">
-    </script>
-
-    <!-- Saldo -->
-    <p>Saldo SFP: <span id="sfpBalance">0</span></p>
-    <p>Saldo SFP2: <span id="sfp2Balance">0</span></p>
-
-    <!-- Depósito / Retirada -->
-    <input type="number" id="depositAmount" class="walletInput" placeholder="Valor para depositar SFP">
-    <button class="walletBtn" id="depositBtn">Depositar</button>
-
-    <input type="number" id="withdrawAmount" class="walletInput" placeholder="Valor para retirar SFP">
-    <button class="walletBtn" id="withdrawBtn">Retirar</button>
-
-    <!-- Conversão -->
-    <input type="number" id="convertAmount" class="walletInput" placeholder="Valor para converter">
-    <button class="walletBtn" id="convertBtn">Converter SFP ↔ SFP2</button>
+    <button class="walletBtn">Conectar carteira Telegram</button>
+    <span id="walletAddress">Carteira: Nenhuma</span>
+    <span class="walletSaldo" id="saldoSFP">Saldo SFP: 0</span>
+    <span class="walletSaldo" id="saldoSFP2">Saldo SFP2: 0</span>
+    <button class="walletBtn">Depositar SFP</button>
+    <button class="walletBtn">Retirar SFP</button>
+    <button class="walletBtn">Trocar SFP por SFP2</button>
+    <button class="walletBtn">Trocar SFP2 por SFP</button>
   </div>
 </div>
 
@@ -117,241 +134,236 @@ input.walletInput { width:70%; padding:5px; margin:5px 0; border-radius:5px; bor
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-  let dailyCount = 0;
-  const dailyLimit = 15;
-  let fishingTimeout = null;
+// ===== VARIÁVEIS =====
+let dailyCount = 0;
+const dailyLimit = 15;
+let fishingTimeout = null;
+let playerWallet = null;
+let saldoSFP = 0;
+let saldoSFP2 = 0;
 
-  // ===== SALDO =====
-  let sfp = 5000;
-  let sfp2 = 0;
+// ===== VARAS E PEIXES =====
+const raridades = ["Comum","Incomum","Rara","Épica","Lendária","Mítica"];
+let selectedRarity = "Vara Free";
+let currentVaraIndex = 0;
 
-  function updateBalances(){
-    document.getElementById("sfpBalance").innerText = sfp.toFixed(2);
-    document.getElementById("sfp2Balance").innerText = sfp2.toFixed(2);
-  }
+let bolsa = [
+  {name:"Bambu", captureRate:50, fishes:["Sardinha"], fishValues:[0.06], rarity:"Vara Free"}
+];
 
-  // ===== VARAS E PEIXES =====
-  const raridades = ["Comum","Incomum","Rara","Épica","Lendária","Mítica"];
-  let selectedRarity = "Comum";
+let boxes = [
+  {rarity:"Comum", price:50, varas:["Fibra","Fibra Reforçada"], fishes:["Tilápia","Bagre","Carpa"], fishValues:[0.083,0.111,0.167]},
+  {rarity:"Incomum", price:100, varas:["Grafite","Grafite Reforçada"], fishes:["Pargo","Dourado","Pescada"], fishValues:[0.167,0.222,0.333]},
+  {rarity:"Rara", price:150, varas:["Carbono","Carbono Reforçada"], fishes:["Robalo","Anchova","Garoupa"], fishValues:[0.25,0.333,0.5]},
+  {rarity:"Épica", price:200, varas:["Titânio","Titânio Reforçada"], fishes:["Atum","Dourado do Mar","Peixe-espada"], fishValues:[0.333,0.444,0.667]},
+  {rarity:"Lendária", price:250, varas:["Platina","Platina Reforçada"], fishes:["Tubarão Martelo","Tubarão Branco","Mero Gigante"], fishValues:[0.417,0.556,0.833]},
+  {rarity:"Mítica", price:300, varas:["Adamantium","Adamantium Reforçada"], fishes:["Tubarão Tigre","Tubarão Mako","Tubarão Martelo Gigante"], fishValues:[0.5,0.667,1.0]}
+];
 
-  let bolsa = [
-    {name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], fishValues:[0.06], rarity:"Vara Free"}
-  ];
+function getCurrentVara(){ return bolsa[currentVaraIndex]; }
+function setActiveVara(idx){ currentVaraIndex = idx; updateBolsaVaras(); updateVaraInfo(); }
 
-  let boxes = [
-    {rarity:"Comum", price:50, varas:["Fibra"], fishes:["Tilápia","Bagre","Carpa"], fishValues:[0.083,0.111,0.167]},
-    {rarity:"Incomum", price:100, varas:["Grafite"], fishes:["Pargo","Dourado","Pescada"], fishValues:[0.167,0.222,0.333]},
-    {rarity:"Rara", price:150, varas:["Carbono"], fishes:["Robalo","Anchova","Garoupa"], fishValues:[0.25,0.333,0.5]},
-    {rarity:"Épica", price:200, varas:["Titânio"], fishes:["Atum","Dourado do Mar","Peixe-espada"], fishValues:[0.333,0.444,0.667]},
-    {rarity:"Lendária", price:250, varas:["Platina"], fishes:["Tubarão Branco","Mero Gigante","Tubarão Martelo"], fishValues:[0.417,0.556,0.833]},
-    {rarity:"Mítica", price:300, varas:["Adamantium"], fishes:["Tubarão Tigre","Tubarão Mako","Tubarão Martelo Gigante"], fishValues:[0.5,0.667,1.0]}
-  ];
+// ===== BOLSA =====
+function updateBolsaMenu(){
+  const menu = document.getElementById("bolsaMenu");
+  menu.innerHTML = "";
 
-  let currentVaraIndex = 0;
-  function getCurrentVara(){ return bolsa[currentVaraIndex]; }
-
-  function setActiveVara(idx){
-    currentVaraIndex = idx;
+  const freeBtn = document.createElement("button");
+  freeBtn.innerText = "Vara Free";
+  freeBtn.className = "bag-item";
+  freeBtn.onclick = ()=>{
+    selectedRarity = "Vara Free"; 
+    updateBolsaMenu();
     updateBolsaVaras();
-    updateVaraInfo();
-  }
+  };
+  menu.appendChild(freeBtn);
 
-  // ===== BOLSA =====
-  function updateBolsaMenu(){
-    const menu = document.getElementById("bolsaMenu");
-    menu.innerHTML = "";
-
-    const freeBtn = document.createElement("button");
-    freeBtn.innerText = "Vara Free";
-    freeBtn.className = "bag-item";
-    freeBtn.onclick = ()=>{
-      selectedRarity = "Vara Free"; 
+  raridades.forEach(r=>{
+    const btn = document.createElement("button");
+    btn.innerText = r;
+    btn.className = "bag-item";
+    btn.onclick = ()=>{
+      selectedRarity = r;
       updateBolsaMenu();
       updateBolsaVaras();
     };
-    menu.appendChild(freeBtn);
+    menu.appendChild(btn);
+  });
+}
 
-    raridades.forEach(r=>{
+function updateBolsaVaras(){
+  const div = document.getElementById("bolsaVaras");
+  div.innerHTML = "";
+  bolsa.forEach((v, idx)=>{
+    if((v.rarity === selectedRarity) || (selectedRarity === "Vara Free" && v.name === "Bambu")){
       const btn = document.createElement("button");
-      btn.innerText = r;
+      btn.innerText = v.name;
       btn.className = "bag-item";
-      btn.onclick = ()=>{
-        selectedRarity = r;
-        updateBolsaMenu();
-        updateBolsaVaras();
-      };
-      menu.appendChild(btn);
-    });
-  }
-
-  function updateBolsaVaras(){
-    const div = document.getElementById("bolsaVaras");
-    div.innerHTML = "";
-
-    bolsa.forEach((v, idx)=>{
-      if((v.rarity === selectedRarity) || (selectedRarity === "Vara Free" && v.name === "Bambu")){
-        const btn = document.createElement("button");
-        btn.innerText = v.name;
-        btn.className = "bag-item";
-        btn.onclick = ()=> setActiveVara(idx);
-        div.appendChild(btn);
-      }
-    });
-  }
-
-  // ===== VARA INFO =====
-  function updateVaraInfo(){
-    const vara = getCurrentVara();
-    if(!vara) return;
-
-    document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
-    document.getElementById("varaStats").innerText =
-      `Peixes: ${vara.fishes.join(", ")} | Taxa: ${vara.captureRate}%`;
-  }
-
-  // ===== PESCA =====
-  function getRandomFishByVara(vara){
-    const rnd = Math.random()*100;
-    const fishList = vara.fishes;
-    const fishValues = vara.fishValues;
-    const idx = Math.floor(Math.random()*fishList.length);
-    if(rnd <= vara.captureRate){
-      sfp2 += fishValues[idx];
-      updateBalances();
-      return {name:fishList[idx], value:fishValues[idx]};
+      btn.onclick = ()=> setActiveVara(idx);
+      div.appendChild(btn);
     }
-    return null;
+  });
+}
+
+// ===== VARA INFO =====
+function updateVaraInfo(){
+  const vara = getCurrentVara();
+  if(!vara) return;
+  document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
+  document.getElementById("varaStats").innerText =
+    `Peixes: ${vara.fishes.join(", ")} | Taxa: ${vara.captureRate}%`;
+}
+
+// ===== PESCA =====
+function getRandomFishByVara(vara){
+  const rnd = Math.random()*100;
+  const fishList = vara.fishes;
+  const fishValues = vara.fishValues;
+  const idx = Math.floor(Math.random()*fishList.length);
+  if(rnd <= vara.captureRate){
+    saldoSFP2 += fishValues[idx]; // Adiciona diretamente no SFP2
+    document.getElementById("saldoSFP2").innerText = `Saldo SFP2: ${saldoSFP2.toFixed(3)}`;
+    return {name:fishList[idx], value:fishValues[idx]};
   }
+  return null;
+}
 
-  const fishButton = document.getElementById("fishButton");
-  const skipButton = document.getElementById("skipButton");
-  const result = document.getElementById("result");
+const fishButton = document.getElementById("fishButton");
+const skipButton = document.getElementById("skipButton");
+const result = document.getElementById("result");
 
-  function fishAction(){
-    if(dailyCount >= 15){ alert("Limite diário atingido!"); return; }
-
-    const vara = getCurrentVara();
-    const fish = getRandomFishByVara(vara);
-
-    if(fish){
-      alert(`🎉 Você pescou: ${fish.name} | Valor: ${fish.value.toFixed(3)} SFP2`);
-    } else {
-      alert("O peixe escapou!");
-    }
-
-    dailyCount++;
-    document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
-    skipButton.style.display = "none";
-    fishButton.disabled = false;
-    result.innerText = "Clique em pescar";
+function fishAction(){
+  if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
+  const vara = getCurrentVara();
+  const fish = getRandomFishByVara(vara);
+  if(fish){
+    alert(`🎉 Você pescou: ${fish.name} | Valor: ${fish.value.toFixed(3)} SFP2`);
+  } else {
+    alert("O peixe escapou!");
   }
+  dailyCount++;
+  document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
+  skipButton.style.display = "none";
+  fishButton.disabled = false;
+  result.innerText = "Clique em pescar";
+}
 
-  fishButton.onclick = function(){
-    if(dailyCount >= 15){ alert("Limite diário atingido!"); return; }
-    fishButton.disabled = true;
-    result.innerText = "Esperando...";
-    skipButton.style.display = "inline-block";
-    fishingTimeout = setTimeout(fishAction, 5000);
+fishButton.onclick = function(){
+  if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
+  fishButton.disabled = true;
+  result.innerText = "Esperando...";
+  skipButton.style.display = "inline-block";
+  fishingTimeout = setTimeout(fishAction, 5000);
+};
+
+skipButton.onclick = function(){
+  clearTimeout(fishingTimeout);
+  fishAction();
+};
+
+// ===== SHOP =====
+let selectedShop = null;
+
+function updateShopMenu(){
+  const menu = document.getElementById("shopMenu");
+  menu.innerHTML = "";
+  boxes.forEach(box=>{
+    const card = document.createElement("div");
+    card.className = "box-card";
+    card.innerText = "Box " + box.rarity;
+    if(selectedShop === box) card.classList.add("box-selected");
+    card.onclick = ()=>{
+      selectedShop = box;
+      updateShopMenu();
+      updateShopContent();
+    };
+    menu.appendChild(card);
+  });
+}
+
+function updateShopContent(){
+  const content = document.getElementById("shopContent");
+  if(!selectedShop){ content.innerText = "Selecione uma box"; return; }
+  content.innerText = `Varas na box: ${selectedShop.varas.join(", ")}\nTaxa de drop: 80/20\nPreço da box: ${selectedShop.price} SFP2`;
+}
+
+document.getElementById("buyBox").onclick = function(){
+  if(!selectedShop) { alert("Selecione uma box primeiro"); return; }
+  if(saldoSFP2 < selectedShop.price){ alert("Saldo SFP2 insuficiente"); return; }
+
+  saldoSFP2 -= selectedShop.price;
+  document.getElementById("saldoSFP2").innerText = `Saldo SFP2: ${saldoSFP2.toFixed(3)}`;
+
+  const dropRnd = Math.random()*100;
+  let varaRecebida = dropRnd <= 80 ? selectedShop.varas[0] : selectedShop.varas[1];
+  bolsa.push({name:varaRecebida, captureRate: dropRnd <= 80 ? 50 : 60, fishes:selectedShop.fishes, fishValues:selectedShop.fishValues, rarity:selectedShop.rarity});
+  alert(`🎉 Parabéns! Você ganhou a vara ${varaRecebida}`);
+  updateBolsaVaras();
+};
+
+// ===== TABS =====
+document.querySelectorAll(".tabButton").forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(tab.dataset.target).classList.add("active");
+    document.querySelectorAll(".tabButton").forEach(t=>t.classList.remove("selected"));
+    tab.classList.add("selected");
   };
+});
 
-  skipButton.onclick = function(){
-    clearTimeout(fishingTimeout);
-    fishAction();
-  };
-
-  // ===== SHOP =====
-  let selectedShop = null;
-  function updateShopMenu(){
-    const menu = document.getElementById("shopMenu");
-    menu.innerHTML = "";
-
-    boxes.forEach(box=>{
-      const card = document.createElement("div");
-      card.className = "box-card";
-      card.innerText = "Box " + box.rarity;
-
-      if(selectedShop === box) card.classList.add("box-selected");
-
-      card.onclick = ()=>{
-        selectedShop = box;
-        updateShopMenu();
-        updateShopContent();
-      };
-
-      menu.appendChild(card);
-    });
-  }
-
-  function updateShopContent(){
-    const content = document.getElementById("shopContent");
-    if(!selectedShop){
-      content.innerText = "Selecione uma box";
+// ===== CARTEIRA =====
+document.querySelectorAll(".walletBtn").forEach(btn=>{
+  btn.onclick = ()=>{
+    const text = btn.innerText;
+    if(text.includes("Conectar carteira Telegram")){
+      const wallet = prompt("Cole o endereço da sua carteira externa:");
+      if(wallet){ playerWallet = wallet; document.getElementById("walletAddress").innerText = `Carteira: ${wallet}`; }
       return;
     }
-    content.innerText = `Varas na box: ${selectedShop.varas.join(", ")}\nTaxa de drop: 80/20\nPreço da box: ${selectedShop.price} SFP2`;
-  }
+    if(!playerWallet){ alert("Conecte sua carteira primeiro!"); return; }
 
-  document.getElementById("buyBox").onclick = function(){
-    if(!selectedShop) { alert("Selecione uma box primeiro"); return; }
-    if(sfp2 < selectedShop.price){ alert("Saldo insuficiente"); return; }
+    const amount = prompt(`Quanto deseja ${text}?`);
+    if(!amount || isNaN(amount)) return;
 
-    sfp2 -= selectedShop.price;
-    updateBalances();
-    const dropRnd = Math.random()*100;
-    let varaRecebida = dropRnd <= 80 ? selectedShop.varas[0] : selectedShop.varas[0]; // só 1 vara por box
-    bolsa.push({name:varaRecebida, captureRate:50, fishes:selectedShop.fishes, fishValues:selectedShop.fishValues, rarity:selectedShop.rarity});
-    alert(`🎉 Parabéns! Você ganhou a vara ${varaRecebida}`);
-    updateBolsaVaras();
+    if(text.includes("Depositar")){ 
+      // Aqui você chamaria sua API/contrato para enviar SFP
+      saldoSFP += parseFloat(amount); 
+      document.getElementById("saldoSFP").innerText = `Saldo SFP: ${saldoSFP.toFixed(3)}`;
+      alert(`Deposito de ${amount} SFP recebido na carteira ${playerWallet}`);
+    }
+
+    if(text.includes("Retirar")){
+      if(saldoSFP < amount){ alert("Saldo insuficiente!"); return; }
+      saldoSFP -= parseFloat(amount);
+      document.getElementById("saldoSFP").innerText = `Saldo SFP: ${saldoSFP.toFixed(3)}`;
+      alert(`Retirada de ${amount} SFP enviada para a carteira ${playerWallet}`);
+    }
+
+    if(text.includes("Trocar SFP por SFP2")){
+      if(saldoSFP < amount){ alert("Saldo insuficiente!"); return; }
+      saldoSFP -= parseFloat(amount);
+      saldoSFP2 += parseFloat(amount);
+      document.getElementById("saldoSFP").innerText = `Saldo SFP: ${saldoSFP.toFixed(3)}`;
+      document.getElementById("saldoSFP2").innerText = `Saldo SFP2: ${saldoSFP2.toFixed(3)}`;
+      alert(`Convertido ${amount} SFP → SFP2`);
+    }
+
+    if(text.includes("Trocar SFP2 por SFP")){
+      if(saldoSFP2 < amount){ alert("Saldo insuficiente!"); return; }
+      saldoSFP2 -= parseFloat(amount);
+      saldoSFP += parseFloat(amount);
+      document.getElementById("saldoSFP").innerText = `Saldo SFP: ${saldoSFP.toFixed(3)}`;
+      document.getElementById("saldoSFP2").innerText = `Saldo SFP2: ${saldoSFP2.toFixed(3)}`;
+      alert(`Convertido ${amount} SFP2 → SFP`);
+    }
   };
+});
 
-  // ===== CONVERSÃO =====
-  document.getElementById("convertBtn").onclick = function(){
-    let amt = parseFloat(document.getElementById("convertAmount").value);
-    if(isNaN(amt) || amt <= 0) return alert("Digite um valor válido");
-    if(amt > sfp) return alert("Saldo insuficiente");
-    sfp -= amt;
-    sfp2 += amt; // conversão 1:1
-    updateBalances();
-    alert(`✅ Convertido ${amt} SFP → SFP2`);
-  };
-
-  // ===== DEPÓSITO / RETIRADA =====
-  document.getElementById("depositBtn").onclick = function(){
-    let amt = parseFloat(document.getElementById("depositAmount").value);
-    if(isNaN(amt) || amt <= 0) return alert("Digite um valor válido");
-    sfp -= amt;
-    sfp2 += amt; // simulando depósito on-chain
-    updateBalances();
-    alert(`✅ Depositado ${amt} SFP`);
-  };
-
-  document.getElementById("withdrawBtn").onclick = function(){
-    let amt = parseFloat(document.getElementById("withdrawAmount").value);
-    if(isNaN(amt) || amt <= 0) return alert("Digite um valor válido");
-    if(amt > sfp2) return alert("Saldo insuficiente");
-    sfp2 -= amt;
-    sfp += amt;
-    updateBalances();
-    alert(`✅ Retirado ${amt} SFP2`);
-  };
-
-  // ===== TABS =====
-  document.querySelectorAll(".tabButton").forEach(tab=>{
-    tab.onclick = ()=>{
-      document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-      document.getElementById(tab.dataset.target).classList.add("active");
-      document.querySelectorAll(".tabButton").forEach(t=>t.classList.remove("selected"));
-      tab.classList.add("selected");
-    };
-  });
-
-  // INIT
-  updateBolsaMenu();
-  updateBolsaVaras();
-  updateVaraInfo();
-  updateShopMenu();
-  updateBalances();
-
+// ===== INIT =====
+updateBolsaMenu();
+updateBolsaVaras();
+updateVaraInfo();
+updateShopMenu();
 });
 </script>
 
