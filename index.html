@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <title>Super Fishing</title>
 <style>
-  body{font-family:'Comic Sans MS', Arial, sans-serif;margin:0;padding:0;background:#d0f0f0;}
-  .aba{padding:10px;cursor:pointer;display:inline-block;background:#66b3ff;margin-right:5px;border-radius:5px;color:#fff;}
-  .conteudo{display:none;padding:10px;}
-  .ativo{display:block;}
-  button{padding:5px 10px;margin:5px;}
-  input{padding:5px;margin:5px;width:80px;}
-  .box{border:1px solid #000;padding:5px;margin:5px;border-radius:5px;background:#fff;}
+body{font-family:'Comic Sans MS', Arial, sans-serif;margin:0;padding:0;background:#d0f0f0;}
+.aba{padding:10px;cursor:pointer;display:inline-block;background:#66b3ff;margin-right:5px;border-radius:5px;color:#fff;}
+.conteudo{display:none;padding:10px;}
+.ativo{display:block;}
+button{padding:5px 10px;margin:5px;}
+input{padding:5px;margin:5px;width:80px;}
+.box{border:1px solid #000;padding:5px;margin:5px;border-radius:5px;background:#fff;}
 </style>
 </head>
 <body>
@@ -38,7 +38,7 @@
 
 <div id="bolsa" class="conteudo">
   <h2>Bolsa</h2>
-  <p>Vara Free (Bambu): <span id="varasFree"></span></p>
+  <p>Vara Free: <span id="varasFree"></span></p>
   <p>Outras Varas: <span id="varasNormais"></span></p>
 </div>
 
@@ -47,11 +47,9 @@
   <p>SFP: <span id="saldoSFP">5000</span></p>
   <p>SFP2: <span id="saldoSFP2">0</span></p>
 
-  <!-- Conversão SFP → SFP2 -->
   <input type="number" id="inputSFPtoSFP2" placeholder="Valor SFP">
   <button onclick="trocarSFP2()">Converter para SFP2</button><br>
 
-  <!-- Conversão SFP2 → SFP -->
   <input type="number" id="inputSFP2toSFP" placeholder="Valor SFP2">
   <button onclick="trocarSFP()">Converter para SFP</button>
 </div>
@@ -66,7 +64,7 @@ let varasFree = ["Vara de Bambu"];
 let varasNormais = [];
 let ativaVara = null;
 
-/* Peixes reais por raridade */
+/* Peixes reais por raridade com valores ROI */
 const peixes = {
   comum: [
     {nome:"Tilápia",valor:0.83},
@@ -89,9 +87,9 @@ const peixes = {
     {nome:"Atum",valor:100}
   ],
   lendaria: [
-    {nome:"Tubarão Martelo",valor:200},
-    {nome:"Tubarão Branco",valor:300},
-    {nome:"Tubarão Tigre",valor:400}
+    {nome:"Tubarão Branco",valor:200},
+    {nome:"Tubarão Tigre",valor:300},
+    {nome:"Tubarão Martelo",valor:400}
   ],
   mitica: [
     {nome:"Tubarão Mako",valor:500},
@@ -137,14 +135,8 @@ function abrirAba(id){
 
 /* Pescar */
 function pescar(){
-  if(contadorPesca>=15){
-    alert("Limite diário de pesca atingido!");
-    return;
-  }
-  if(!ativaVara){
-    alert("Ative uma vara primeiro!");
-    return;
-  }
+  if(contadorPesca>=15){alert("Limite diário de pesca atingido!");return;}
+  if(!ativaVara){alert("Ative uma vara primeiro!");return;}
   contadorPesca++;
   const raridade = ativaVara.raridade;
   const peixesDaVara = peixes[raridade];
@@ -157,16 +149,13 @@ function pescar(){
 /* Ativar Vara */
 function ativarVara(nome,raridade){
   ativaVara = {nome,raridade};
-  alert(`✅ Vara ativa: ${nome}`);
+  alert(`🎣 Parabéns, você ativou a vara ${nome}`);
 }
 
 /* Comprar Box */
 function comprarBox(index){
   const box = boxes[index];
-  if(saldoSFP<box.preco){
-    alert("Saldo insuficiente");
-    return;
-  }
+  if(saldoSFP<box.preco){alert("Saldo insuficiente");return;}
   saldoSFP -= box.preco;
   // Drop 80/20 apenas 1 vara
   const rnd = Math.random()*100;
@@ -174,10 +163,7 @@ function comprarBox(index){
   let dropVara=null;
   for(let i=0;i<box.drop.length;i++){
     acumulado+=box.percent[i];
-    if(rnd<=acumulado){
-      dropVara=box.drop[i];
-      break;
-    }
+    if(rnd<=acumulado){dropVara=box.drop[i];break;}
   }
   varasNormais.push(dropVara);
   alert(`🎉 Parabéns! Você ganhou a vara ${dropVara}`);
