@@ -11,12 +11,16 @@ h3 { color:#004466; }
 button { cursor:pointer; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:8px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:14px; border-radius:10px 10px 0 0; }
-#bottomMenu button { flex:1; margin:0 5px; padding:10px 0; font-size:14px; border:none; border-radius:15px; background:#00aaff; color:white; }
+
+/* ===== BOTTOM MENU ===== */
+#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:14px; border-radius:10px 10px 0 0;}
+#bottomMenu button { flex:1; margin:0 5px; padding:10px 5px; font-size:16px; border:none; border-radius:10px; background:#00aaff; color:white; transition:0.2s; }
+#bottomMenu button:hover { background:#0088cc; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 
 /* ===== BOLSA ===== */
 #bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
+
 .bolsa-top, .bolsa-bottom {
   border:1px solid #004466;
   padding:8px;
@@ -24,26 +28,77 @@ button { cursor:pointer; }
   background:#e0f7ff;
   margin-bottom:8px;
 }
-#bolsaMenu, #bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
-.bag-item { background:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; }
+
+#bolsaMenu, #bolsaVaras {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  justify-content:center;
+}
+
+.bag-item {
+  background:#00aaff;
+  color:white;
+  border:none;
+  border-radius:5px;
+  padding:5px 8px;
+}
 
 /* ===== SHOP ===== */
 #shopContainer { width:90%; max-width:400px; margin:0 auto; }
-.shop-top, .shop-bottom, #buyBox { border:1px solid #004466; padding:10px; border-radius:10px; background:#e0f7ff; margin-bottom:8px; }
-#shopMenu { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
-.box-card { width:90px; height:90px; border-radius:10px; background:linear-gradient(145deg,#00aaff,#0077aa); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; text-align:center; cursor:pointer; transition:0.2s; box-shadow:0 3px 6px rgba(0,0,0,0.3); }
-.box-card:hover { transform:scale(1.05); }
-.box-selected { border:3px solid gold; }
+
+.shop-top, .shop-bottom, #buyContainer {
+  border:1px solid #004466;
+  padding:10px;
+  border-radius:10px;
+  background:#e0f7ff;
+  margin-bottom:8px;
+}
+
+#shopMenu {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+}
+
+.box-card {
+  width:90px;
+  height:90px;
+  border-radius:10px;
+  background:linear-gradient(145deg,#00aaff,#0077aa);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:12px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 3px 6px rgba(0,0,0,0.3);
+}
+
+.box-card:hover {
+  transform:scale(1.05);
+}
+
+.box-selected {
+  border:3px solid gold;
+}
+
+#shopContent {
+  text-align:center;
+  font-size:14px;
+}
 
 /* ===== CARTEIRA ===== */
-#wallet { font-size:16px; margin-top:10px; }
+#wallet { border:1px solid #004466; padding:8px; margin:8px auto; width:90%; max-width:400px; border-radius:5px; background:#e0f7ff; text-align:center; font-size:16px;}
 </style>
 </head>
 <body>
 
 <h1>🎣 Super Fishing</h1>
 <h3 id="dailyCount">Tentativas hoje: 0/15</h3>
-<h3 id="wallet">SFP2: 5000</h3>
 
 <!-- PESCA -->
 <div id="pesca" class="section active">
@@ -55,9 +110,11 @@ button { cursor:pointer; }
 
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
+
     <div class="bolsa-top">
       <div id="bolsaMenu"></div>
     </div>
+
     <div class="bolsa-bottom">
       <div id="bolsaVaras"></div>
     </div>
@@ -67,63 +124,69 @@ button { cursor:pointer; }
 <!-- SHOP -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
+
   <div id="shopContainer">
     <div class="shop-top">
       <div id="shopMenu"></div>
     </div>
+
     <div class="shop-bottom">
       <div id="shopContent">Selecione uma box</div>
     </div>
-    <div id="buyBox">
-      <button id="buyButton">Comprar Vara</button>
+
+    <div id="buyContainer">
+      <button id="buyButton" style="width:90%; padding:10px; font-size:16px; border-radius:10px; background:#00aaff; color:white;">Comprar Box</button>
     </div>
   </div>
 </div>
 
 <!-- CARTEIRA -->
-<div id="walletSection" class="section">
-  <h3>Carteira</h3>
-  <p id="walletContent">Saldo: 5000 SFP2</p>
-</div>
+<div id="wallet">SFP2: 5000</div>
 
-<!-- MENU -->
+<!-- BOTTOM MENU -->
 <div id="bottomMenu">
   <button class="tabButton selected" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
-  <button class="tabButton" data-target="walletSection">💰 Carteira</button>
+  <button class="tabButton" data-target="wallet">💰 Carteira</button>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
+// ===== VARIÁVEIS =====
 let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
 let walletBalance = 5000;
 
-// ===== VARAS =====
+// ===== VARAS & PEIXES =====
 let bolsa = [
-  {name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}
+  {name:"Vara Telescópica", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"},
+  {name:"Vara Telescópica Reforçada", profit:105, captureRate:60, fishes:["Sardinha"], rarity:"Muito Comum"}
 ];
 let currentVaraIndex = 0;
+
 const raridades = ["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let selectedRarity = "Muito Comum";
 
 // ===== PEIXES =====
-let fishData = {
-  "Sardinha": {value:0.06}
+const fishData = {
+  "Sardinha": {value:1},
+  "Peixe Comum 1": {value:1}, "Peixe Comum 2": {value:1}, "Peixe Comum 3": {value:1},
+  "Peixe Incomum 1": {value:1}, "Peixe Incomum 2": {value:1}, "Peixe Incomum 3": {value:1},
+  "Peixe Raro 1": {value:1}, "Peixe Raro 2": {value:1}, "Peixe Raro 3": {value:1},
+  "Peixe Épico 1": {value:1}, "Peixe Épico 2": {value:1}, "Peixe Épico 3": {value:1},
+  "Peixe Lendário 1": {value:1}, "Peixe Lendário 2": {value:1}, "Peixe Lendário 3": {value:1},
+  "Peixe Mítico 1": {value:1}, "Peixe Mítico 2": {value:1}, "Peixe Mítico 3": {value:1}
 };
 
-// ===== BOLSA =====
+// ===== FUNÇÕES BOLSA =====
 function getCurrentVara(){ return bolsa[currentVaraIndex]; }
 
 function setActiveVara(idx){
-  if(idx === currentVaraIndex) return;
-  if(confirm(`Deseja tornar a vara "${bolsa[idx].name}" ativa?`)){
-    currentVaraIndex = idx;
-    updateBolsaVaras();
-    updateVaraInfo();
-  }
+  currentVaraIndex = idx;
+  updateBolsaVaras();
+  updateVaraInfo();
 }
 
 function updateBolsaMenu(){
@@ -160,42 +223,37 @@ function updateVaraInfo(){
   const vara = getCurrentVara();
   if(!vara) return;
   document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
-  document.getElementById("varaStats").innerText = 
-    `Peixes: ${vara.fishes.join(", ")} | Taxa de captura: ${vara.captureRate}%`;
+  document.getElementById("varaStats").innerText =
+    `Peixes: ${vara.fishes.join(", ")} | Taxa: ${vara.captureRate}%`;
 }
 
 // ===== PESCA =====
-const fishButton = document.getElementById("fishButton");
-const skipButton = document.getElementById("skipButton");
-const result = document.getElementById("result");
-
 function getRandomFishByVara(vara){
   if(Math.random()*100 <= vara.captureRate){
-    return vara.fishes[0];
+    return vara.fishes[Math.floor(Math.random()*vara.fishes.length)];
   }
   return null;
 }
 
+const fishButton = document.getElementById("fishButton");
+const skipButton = document.getElementById("skipButton");
+const result = document.getElementById("result");
+
 function fishAction(){
   if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
-
   const vara = getCurrentVara();
-  if(!vara){ alert("Nenhuma vara ativa!"); return; }
-
   const fish = getRandomFishByVara(vara);
   if(fish){
-    const profit = fishData[fish].value * (vara.profit/100);
+    let profit = fishData[fish].value * (vara.profit/100);
     walletBalance += profit;
-    alert(`🎉 Você pescou: ${fish} e ganhou ${profit.toFixed(2)} SFP2`);
     document.getElementById("walletContent").innerText = `Saldo: ${walletBalance.toFixed(2)} SFP2`;
     document.getElementById("wallet").innerText = `SFP2: ${walletBalance.toFixed(2)}`;
+    alert(`🎉 Você pescou: ${fish} e ganhou ${profit.toFixed(2)} SFP2`);
   } else {
     alert("O peixe escapou!");
   }
-
   dailyCount++;
   document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
-
   skipButton.style.display = "none";
   fishButton.disabled = false;
   result.innerText = "Clique em pescar";
@@ -203,7 +261,7 @@ function fishAction(){
 
 fishButton.onclick = function(){
   fishButton.disabled = true;
-  result.innerText = "Esperando o peixe morder a isca...";
+  result.innerText = "Esperando...";
   skipButton.style.display = "inline-block";
   fishingTimeout = setTimeout(fishAction, 5000);
 };
@@ -215,12 +273,12 @@ skipButton.onclick = function(){
 
 // ===== SHOP =====
 const shopOptions = [
-  "Vara Comum",
-  "Vara Incomum",
-  "Vara Rara",
-  "Vara Épica",
-  "Vara Lendária",
-  "Vara Mítica"
+  "Box Comum",
+  "Box Incomum",
+  "Box Rara",
+  "Box Épica",
+  "Box Lendária",
+  "Box Mítica"
 ];
 
 let selectedShop = null;
@@ -231,7 +289,7 @@ function updateShopMenu(){
   shopOptions.forEach(opt=>{
     const box = document.createElement("div");
     box.className = "box-card";
-    box.innerText = opt;
+    box.innerText = opt.replace("Box","Box");
     if(opt === selectedShop) box.classList.add("box-selected");
     box.onclick = ()=>{
       selectedShop = opt;
@@ -244,24 +302,30 @@ function updateShopMenu(){
 
 function updateShopContent(){
   const content = document.getElementById("shopContent");
-  if(!selectedShop){
-    content.innerText = "Selecione uma box";
-    return;
+  if(!selectedShop){ content.innerText = "Selecione uma box"; return; }
+
+  let varasInBox = [];
+  if(selectedShop.includes("Comum")){
+    varasInBox = ["Vara Telescópica (50%)","Vara Telescópica Reforçada (60%)"];
+  } else if(selectedShop.includes("Incomum")){
+    varasInBox = ["Vara Incomum","Vara Incomum Reforçada"];
+  } else if(selectedShop.includes("Rara")){
+    varasInBox = ["Vara Rara","Vara Rara Reforçada"];
+  } else if(selectedShop.includes("Épica")){
+    varasInBox = ["Vara Épica","Vara Épica Reforçada"];
+  } else if(selectedShop.includes("Lendária")){
+    varasInBox = ["Vara Lendária","Vara Lendária Reforçada"];
+  } else if(selectedShop.includes("Mítica")){
+    varasInBox = ["Vara Mítica","Vara Mítica Reforçada"];
   }
-  const dropInfo = selectedShop.includes("Comum") ? "Vara Telescópica 80% | Vara Telescópica Reforçada 20%" :
-                   selectedShop.includes("Incomum") ? "Vara de Bambu 80% | Vara de Bambu Reforçada 20%" :
-                   selectedShop.includes("Rara") ? "Vara Rara 80% | Vara Rara Reforçada 20%" :
-                   selectedShop.includes("Épica") ? "Vara Épica 80% | Vara Épica Reforçada 20%" :
-                   selectedShop.includes("Lendária") ? "Vara Lendária 80% | Vara Lendária Reforçada 20%" :
-                   "Vara Mítica 80% | Vara Mítica Reforçada 20%";
 
-  const price = selectedShop.includes("Comum") ? 50 :
-                selectedShop.includes("Incomum") ? 100 :
-                selectedShop.includes("Rara") ? 150 :
-                selectedShop.includes("Épica") ? 200 :
-                selectedShop.includes("Lendária") ? 250 : 300;
-
-  content.innerText = `${dropInfo}\nPreço: ${price} SFP2`;
+  content.innerText = `Conteúdo:\n${varasInBox.join("\n")}\nPreço: ${
+    selectedShop.includes("Comum")?50:
+    selectedShop.includes("Incomum")?100:
+    selectedShop.includes("Rara")?150:
+    selectedShop.includes("Épica")?200:
+    selectedShop.includes("Lendária")?250:300
+  } SFP2`;
 }
 
 // ===== COMPRAR =====
@@ -274,10 +338,49 @@ document.getElementById("buyButton").onclick = function(){
               selectedShop.includes("Lendária") ? 250 : 300;
 
   if(walletBalance < price){ alert("Saldo insuficiente!"); return; }
+
   walletBalance -= price;
   document.getElementById("walletContent").innerText = `Saldo: ${walletBalance.toFixed(2)} SFP2`;
   document.getElementById("wallet").innerText = `SFP2: ${walletBalance.toFixed(2)}`;
-  alert(`Você comprou a ${selectedShop}!`);
+
+  let newVaras = [];
+  if(selectedShop.includes("Comum")){
+    newVaras = [
+      {name:"Vara Telescópica", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Comum"},
+      {name:"Vara Telescópica Reforçada", profit:105, captureRate:60, fishes:["Sardinha"], rarity:"Comum"}
+    ];
+  } else if(selectedShop.includes("Incomum")){
+    newVaras = [
+      {name:"Vara Incomum", profit:100, captureRate:50, fishes:["Peixe Incomum 1"], rarity:"Incomum"},
+      {name:"Vara Incomum Reforçada", profit:105, captureRate:60, fishes:["Peixe Incomum 1"], rarity:"Incomum"}
+    ];
+  } else if(selectedShop.includes("Rara")){
+    newVaras = [
+      {name:"Vara Rara", profit:100, captureRate:50, fishes:["Peixe Raro 1"], rarity:"Rara"},
+      {name:"Vara Rara Reforçada", profit:105, captureRate:60, fishes:["Peixe Raro 1"], rarity:"Rara"}
+    ];
+  } else if(selectedShop.includes("Épica")){
+    newVaras = [
+      {name:"Vara Épica", profit:100, captureRate:50, fishes:["Peixe Épico 1"], rarity:"Épica"},
+      {name:"Vara Épica Reforçada", profit:105, captureRate:60, fishes:["Peixe Épico 1"], rarity:"Épica"}
+    ];
+  } else if(selectedShop.includes("Lendária")){
+    newVaras = [
+      {name:"Vara Lendária", profit:100, captureRate:50, fishes:["Peixe Lendário 1"], rarity:"Lendária"},
+      {name:"Vara Lendária Reforçada", profit:105, captureRate:60, fishes:["Peixe Lendário 1"], rarity:"Lendária"}
+    ];
+  } else if(selectedShop.includes("Mítica")){
+    newVaras = [
+      {name:"Vara Mítica", profit:100, captureRate:50, fishes:["Peixe Mítico 1"], rarity:"Mítica"},
+      {name:"Vara Mítica Reforçada", profit:105, captureRate:60, fishes:["Peixe Mítico 1"], rarity:"Mítica"}
+    ];
+  }
+
+  bolsa.push(...newVaras);
+  updateBolsaVaras();
+  updateBolsaMenu();
+
+  alert(`Você comprou a ${selectedShop} e recebeu as varas!`);
 };
 
 // ===== TABS =====
@@ -290,12 +393,12 @@ document.querySelectorAll(".tabButton").forEach(tab=>{
   };
 });
 
-// INIT
+// ===== INIT =====
 updateBolsaMenu();
 updateBolsaVaras();
 updateVaraInfo();
 updateShopMenu();
-updateShopContent();
+
 });
 </script>
 </body>
