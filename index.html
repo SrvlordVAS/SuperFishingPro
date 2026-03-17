@@ -75,19 +75,19 @@ let fishingTimeout = null;
 
 // ===== VARAS =====
 const varas = {
-  "Bambu":[{level:1, chance:50, maxRarity:"Muito Comum", baseProfit:0.08, canUpgrade:false}],
-  "Fibra":[{level:1, chance:50, maxRarity:"Comum", baseProfit:5, canUpgrade:true}],
-  "Fibra Reforçada":[{level:1, chance:50, maxRarity:"Comum", baseProfit:6.25, canUpgrade:true}],
-  "Grafite":[{level:1, chance:50, maxRarity:"Incomum", baseProfit:10, canUpgrade:true}],
-  "Grafite Reforçada":[{level:1, chance:50, maxRarity:"Incomum", baseProfit:12.5, canUpgrade:true}],
-  "Carbono":[{level:1, chance:50, maxRarity:"Raro", baseProfit:15, canUpgrade:true}],
-  "Carbono Reforçada":[{level:1, chance:50, maxRarity:"Raro", baseProfit:18.75, canUpgrade:true}],
-  "Titânio":[{level:1, chance:50, maxRarity:"Épico", baseProfit:20, canUpgrade:true}],
-  "Titânio Reforçada":[{level:1, chance:50, maxRarity:"Épico", baseProfit:25, canUpgrade:true}],
-  "Platina":[{level:1, chance:50, maxRarity:"Lendário", baseProfit:25, canUpgrade:true}],
-  "Platina Reforçada":[{level:1, chance:50, maxRarity:"Lendário", baseProfit:31.25, canUpgrade:true}],
-  "Adamantium":[{level:1, chance:50, maxRarity:"Mítico", baseProfit:30, canUpgrade:true}],
-  "Adamantium Reforçada":[{level:1, chance:50, maxRarity:"Mítico", baseProfit:37.5, canUpgrade:true}]
+  "Bambu":[{maxRarity:"Muito Comum", baseProfit:0.08}],
+  "Fibra":[{maxRarity:"Comum", baseProfit:25}],
+  "Fibra Reforçada":[{maxRarity:"Comum", baseProfit:21}],
+  "Grafite":[{maxRarity:"Incomum", baseProfit:25}],
+  "Grafite Reforçada":[{maxRarity:"Incomum", baseProfit:21}],
+  "Carbono":[{maxRarity:"Raro", baseProfit:25}],
+  "Carbono Reforçada":[{maxRarity:"Raro", baseProfit:21}],
+  "Titânio":[{maxRarity:"Épico", baseProfit:25}],
+  "Titânio Reforçada":[{maxRarity:"Épico", baseProfit:21}],
+  "Platina":[{maxRarity:"Lendário", baseProfit:25}],
+  "Platina Reforçada":[{maxRarity:"Lendário", baseProfit:21}],
+  "Adamantium":[{maxRarity:"Mítico", baseProfit:25}],
+  "Adamantium Reforçada":[{maxRarity:"Mítico", baseProfit:21}]
 };
 
 // ===== PEIXES =====
@@ -122,8 +122,7 @@ function getRandomFishByVara(vara){
     return idx <= maxRarityIdx && idx >= minRarityIdx;
   });
   const fish = allowed[Math.floor(Math.random()*allowed.length)];
-  const chance = varas[vara.name][0].chance;
-  if(Math.random()*100 <= chance) return fish; 
+  if(Math.random()*100 <= 50) return fish; // chance fixa 50%
   else return null;
 }
 
@@ -140,7 +139,7 @@ function updateBolsa(){
     bolsa.forEach((v, idx) => {
         const btn = document.createElement("button");
         btn.className = "bag-item";
-        btn.innerText = v.name;
+        btn.innerText = `${v.name} (Profit: ${v.profit.toFixed(2)}%)`;
         btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
         btn.onclick = () => setActiveVara(idx);
         bolsaDiv.appendChild(btn);
@@ -153,7 +152,7 @@ const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
 
 function fishAction(){
-  if(dailyCount >= 15){ alert("Limite diário atingido!"); return; }
+  if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
   const vara = getCurrentVara();
   if(!vara){ alert("Nenhuma vara ativa!"); return; }
 
@@ -199,11 +198,19 @@ const boxChances = {
 };
 
 function addVaraToInventory(varaName){
-    const baseProfit = varas[varaName][0].baseProfit;
+    let baseProfit;
+    if(varaName === "Bambu"){
+        baseProfit = 0.08;
+    } else {
+        baseProfit = varas[varaName][0].baseProfit;
+        const randomFactor = 0.95 + Math.random()*0.10; // ±5%
+        baseProfit = parseFloat((baseProfit*randomFactor).toFixed(2));
+    }
     const newVara = {name: varaName, profit: baseProfit};
     inventory.push(newVara);
     bolsa.push(newVara);
     updateBolsa();
+    return baseProfit;
 }
 
 boxTypes.forEach(type=>{
@@ -217,8 +224,8 @@ boxTypes.forEach(type=>{
         for(const item of boxChances[type]){
             acc += item.chance;
             if(rand <= acc){
-                addVaraToInventory(item.name);
-                alert(`🎉 Você recebeu: ${item.name}`);
+                const profit = addVaraToInventory(item.name);
+                alert(`🎉 Você recebeu: ${item.name} (Profit: ${profit.toFixed(2)}%)`);
                 break;
             }
         }
