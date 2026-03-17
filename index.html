@@ -78,6 +78,7 @@ button { cursor:pointer; }
 
 .box-card:hover { transform:scale(1.05); }
 .box-selected { border:3px solid gold; }
+
 </style>
 </head>
 <body>
@@ -95,12 +96,8 @@ button { cursor:pointer; }
 
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-    <div class="bolsa-top">
-      <div id="bolsaMenu"></div>
-    </div>
-    <div class="bolsa-bottom">
-      <div id="bolsaVaras"></div>
-    </div>
+    <div class="bolsa-top"><div id="bolsaMenu"></div></div>
+    <div class="bolsa-bottom"><div id="bolsaVaras"></div></div>
   </div>
 </div>
 
@@ -108,9 +105,7 @@ button { cursor:pointer; }
 <div id="shopSection" class="section">
   <h3>Loja</h3>
   <div id="shopContainer">
-    <div class="shop-top">
-      <div id="shopMenu"></div>
-    </div>
+    <div class="shop-top"><div id="shopMenu"></div></div>
     <div class="shop-bottom" id="shopContent">Selecione uma box</div>
     <div class="shop-buy">
       <button id="buyBox">Comprar Box</button>
@@ -127,14 +122,16 @@ button { cursor:pointer; }
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
+  // ================= VARIÁVEIS GLOBAIS =================
   let dailyCount = 0;
   const dailyLimit = 15;
   let fishingTimeout = null;
+  let userAddress = null;
+  let selectedRarity = "Comum";
   let currentVaraIndex = 0;
 
+  // ===== VARAS E PEIXES =====
   const raridades = ["Comum","Incomum","Rara","Épica","Lendária","Mítica"];
-  let selectedRarity = "Comum";
-
   let bolsa = [
     {name:"Bambu", captureRate:50, fishes:["Sardinha"], fishValues:[0.06], rarity:"Vara Free"}
   ];
@@ -148,6 +145,7 @@ document.addEventListener("DOMContentLoaded", function(){
     {rarity:"Mítica", price:300, varas:["Adamantium","Adamantium Reforçada"], fishes:["Tubarão Tigre","Tubarão Mako","Tubarão Martelo Gigante"], fishValues:[0.5,0.667,1.0]}
   ];
 
+  // ================= FUNÇÕES BOLSA =================
   function getCurrentVara(){ return bolsa[currentVaraIndex]; }
 
   function setActiveVara(idx){
@@ -160,6 +158,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const menu = document.getElementById("bolsaMenu");
     menu.innerHTML = "";
 
+    // Aba "Vara Free" fixa
     const freeBtn = document.createElement("button");
     freeBtn.innerText = "Vara Free";
     freeBtn.className = "bag-item";
@@ -186,6 +185,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateBolsaVaras(){
     const div = document.getElementById("bolsaVaras");
     div.innerHTML = "";
+
     bolsa.forEach((v, idx)=>{
       if((v.rarity === selectedRarity) || (selectedRarity === "Vara Free" && v.name === "Bambu")){
         const btn = document.createElement("button");
@@ -205,45 +205,56 @@ document.addEventListener("DOMContentLoaded", function(){
       `Peixes: ${vara.fishes.join(", ")} | Taxa: ${vara.captureRate}%`;
   }
 
-  function getRandomFishByVara(vara){
-    const rnd = Math.random()*100;
+  // ================= PESCA =================
+  async function fishAction(){
+    if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
+    if(!userAddress){ alert("Conecte sua carteira primeiro"); return; }
+
+    const vara = getCurrentVara();
     const fishList = vara.fishes;
     const fishValues = vara.fishValues;
     const idx = Math.floor(Math.random()*fishList.length);
+    const rnd = Math.random()*100;
+
     if(rnd <= vara.captureRate){
-      return {name:fishList[idx], value:fishValues[idx]};
+      // Envia SFP pra carteira externa via Telegram WebApp
+      try{
+        await Telegram.WebApp.sendToken({ to:userAddress, token:"SFP", amount:fishValues[idx] });
+        alert(`🎉 Você pescou: ${fishList[idx]} | Valor: ${fishValues[idx].toFixed(3)} SFP enviado para sua carteira`);
+      }catch(e){
+        alert("Erro ao enviar SFP para carteira");
+      }
+    } else {
+      alert("O peixe escapou!");
     }
-    return null;
-  }
 
-  const fishButton = document.getElementById("fishButton");
-  const skipButton = document.getElementById("skipButton");
-  const result = document.getElementById("result");
-
-  function fishAction(){
-    if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
-    const vara = getCurrentVara();
-    const fish = getRandomFishByVara(vara);
-    if(fish){ alert(`🎉 Você pescou: ${fish.name} | Valor: ${fish.value.toFixed(3)}`); }
-    else{ alert("O peixe escapou!"); }
     dailyCount++;
     document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
     skipButton.style.display = "none";
     fishButton.disabled = false;
-    result.innerText = "Clique em pescar";
+    document.getElementById("result").innerText = "Clique em pescar";
   }
+
+  const fishButton = document.getElementById("fishButton");
+  const skipButton = document.getElementById("skipButton");
 
   fishButton.onclick = function(){
     if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
+    if(!userAddress){ alert("Conecte sua carteira primeiro"); return; }
     fishButton.disabled = true;
-    result.innerText = "Esperando...";
+    document.getElementById("result").innerText = "Esperando...";
     skipButton.style.display = "inline-block";
     fishingTimeout = setTimeout(fishAction, 5000);
   };
 
-  skipButton.onclick = function(){ clearTimeout(fishingTimeout); fishAction(); };
+  skipButton.onclick = function(){
+    clearTimeout(fishingTimeout);
+    fishAction();
+  };
 
+  // ================= SHOP =================
   let selectedShop = null;
+
   function updateShopMenu(){
     const menu = document.getElementById("shopMenu");
     menu.innerHTML = "";
@@ -264,26 +275,43 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateShopContent(){
     const content = document.getElementById("shopContent");
     if(!selectedShop){ content.innerText = "Selecione uma box"; return; }
-    content.innerText = `Varas na box: ${selectedShop.varas.join(", ")}\nPreço da box: ${selectedShop.price}`;
+    content.innerText = `Varas na box: ${selectedShop.varas.join(", ")}\nTaxa de drop: 80/20\nPreço da box: ${selectedShop.price} SFP`;
   }
 
-  document.getElementById("buyBox").onclick = function(){
-    if(!selectedShop) { alert("Selecione uma box primeiro"); return; }
-    const dropRnd = Math.random()*100;
-    let varaRecebida = dropRnd <= 80 ? selectedShop.varas[0] : selectedShop.varas[1];
-    bolsa.push({name:varaRecebida, captureRate: dropRnd <= 80 ? 50 : 60, fishes:selectedShop.fishes, fishValues:selectedShop.fishValues, rarity:selectedShop.rarity});
-    alert(`🎉 Parabéns! Você ganhou a vara ${varaRecebida}`);
-    updateBolsaVaras();
+  document.getElementById("buyBox").onclick = async function(){
+    if(!selectedShop){ alert("Selecione uma box primeiro"); return; }
+    if(!userAddress){ alert("Conecte sua carteira primeiro"); return; }
+
+    try{
+      // Tenta enviar SFP para comprar a box
+      await Telegram.WebApp.sendToken({ to:"GAME_WALLET_ADDRESS", token:"SFP", amount:selectedShop.price });
+      // Ganha a vara
+      const dropRnd = Math.random()*100;
+      let varaRecebida = dropRnd <= 80 ? selectedShop.varas[0] : selectedShop.varas[1];
+      bolsa.push({name:varaRecebida, captureRate: dropRnd<=80 ? 50 : 60, fishes:selectedShop.fishes, fishValues:selectedShop.fishValues, rarity:selectedShop.rarity});
+      alert(`🎉 Parabéns! Você comprou a box e recebeu a vara ${varaRecebida}`);
+      updateBolsaVaras();
+    }catch(e){ alert("Erro ao gastar SFP na carteira"); }
   };
 
-  document.querySelectorAll(".tabButton").forEach(tab=>{
-    tab.onclick = ()=>{
-      document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-      document.getElementById(tab.dataset.target).classList.add("active");
-      document.querySelectorAll(".tabButton").forEach(t=>t.classList.remove("selected"));
-      tab.classList.add("selected");
-    };
+  // ================= CONEXÃO CARTEIRA =================
+  document.addEventListener("DOMContentLoaded", ()=>{
+    if(Telegram && Telegram.WebApp){
+      Telegram.WebApp.ready();
+    }
   });
+
+  // Botão conectar carteira
+  const connectWalletBtn = document.createElement("button");
+  connectWalletBtn.innerText = "Conectar Carteira Telegram";
+  connectWalletBtn.className = "bag-item";
+  connectWalletBtn.onclick = async function(){
+    try{
+      userAddress = await Telegram.WebApp.getWalletAddress();
+      alert("Carteira conectada: " + userAddress);
+    }catch(e){ alert("Falha ao conectar carteira"); }
+  };
+  document.getElementById("bolsaMenu").appendChild(connectWalletBtn);
 
   // ================= INIT =================
   updateBolsaMenu();
@@ -291,6 +319,7 @@ document.addEventListener("DOMContentLoaded", function(){
   updateVaraInfo();
   updateShopMenu();
   updateShopContent();
+
 });
 </script>
 </body>
