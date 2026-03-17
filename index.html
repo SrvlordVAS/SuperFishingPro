@@ -119,11 +119,9 @@ button { cursor:pointer; }
 
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-
     <div class="bolsa-top">
       <div id="bolsaMenu"></div>
     </div>
-
     <div class="bolsa-bottom">
       <div id="bolsaVaras"></div>
     </div>
@@ -133,16 +131,13 @@ button { cursor:pointer; }
 <!-- SHOP -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
-
   <div id="shopContainer">
     <div class="shop-top">
       <div id="shopMenu"></div>
     </div>
-
     <div class="shop-bottom">
       <div id="shopContent">Selecione uma box</div>
     </div>
-
     <div id="shopBuy">
       <button id="buyButton">Comprar Vara(s)</button>
     </div>
@@ -172,40 +167,34 @@ let fishingTimeout = null;
 // ===== VARAS =====
 let bolsa = [{name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}];
 let currentVaraIndex = 0;
-
 const raridades = ["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let selectedRarity = "Muito Comum";
 
-// ===== PEIXES =====
-const fishData = {
-  "Sardinha": {value:0.06}
-};
-
-// ===== SHOP =====
+// ===== SHOP BOXES =====
 const shopBoxes = [
   {name:"Box Comum", price:50, varas:[
-    {name:"Vara Telescópica", type:"normal", captureRate:50, fishes:["Peixe Comum 1","Peixe Comum 2","Peixe Comum 3"], drop:[80,20]},
-    {name:"Vara Telescópica Reforçada", type:"reforçada", captureRate:60, fishes:["Peixe Comum 1","Peixe Comum 2","Peixe Comum 3"], drop:[35,35,30]}
+    {name:"Vara Telescópica", type:"normal", drop:80},
+    {name:"Vara Telescópica Reforçada", type:"reforçada", drop:20}
   ]},
   {name:"Box Incomum", price:100, varas:[
-    {name:"Vara Intermediária", type:"normal", captureRate:50, fishes:["Peixe Incomum 1","Peixe Incomum 2","Peixe Incomum 3"], drop:[80,20]},
-    {name:"Vara Intermediária Reforçada", type:"reforçada", captureRate:60, fishes:["Peixe Incomum 1","Peixe Incomum 2","Peixe Incomum 3"], drop:[35,35,30]}
+    {name:"Vara Intermediária", type:"normal", drop:80},
+    {name:"Vara Intermediária Reforçada", type:"reforçada", drop:20}
   ]},
   {name:"Box Rara", price:150, varas:[
-    {name:"Vara Especial", type:"normal", captureRate:50, fishes:["Peixe Raro 1","Peixe Raro 2","Peixe Raro 3"], drop:[80,20]},
-    {name:"Vara Especial Reforçada", type:"reforçada", captureRate:60, fishes:["Peixe Raro 1","Peixe Raro 2","Peixe Raro 3"], drop:[35,35,30]}
+    {name:"Vara Especial", type:"normal", drop:80},
+    {name:"Vara Especial Reforçada", type:"reforçada", drop:20}
   ]},
   {name:"Box Épica", price:200, varas:[
-    {name:"Vara Épica", type:"normal", captureRate:50, fishes:["Peixe Épico 1","Peixe Épico 2","Peixe Épico 3"], drop:[80,20]},
-    {name:"Vara Épica Reforçada", type:"reforçada", captureRate:60, fishes:["Peixe Épico 1","Peixe Épico 2","Peixe Épico 3"], drop:[35,35,30]}
+    {name:"Vara Épica", type:"normal", drop:80},
+    {name:"Vara Épica Reforçada", type:"reforçada", drop:20}
   ]},
   {name:"Box Lendária", price:250, varas:[
-    {name:"Vara Lendária", type:"normal", captureRate:50, fishes:["Peixe Lendário 1","Peixe Lendário 2","Peixe Lendário 3"], drop:[80,20]},
-    {name:"Vara Lendária Reforçada", type:"reforçada", captureRate:60, fishes:["Peixe Lendário 1","Peixe Lendário 2","Peixe Lendário 3"], drop:[35,35,30]}
+    {name:"Vara Lendária", type:"normal", drop:80},
+    {name:"Vara Lendária Reforçada", type:"reforçada", drop:20}
   ]},
   {name:"Box Mítica", price:300, varas:[
-    {name:"Vara Mítica", type:"normal", captureRate:50, fishes:["Peixe Mítico 1","Peixe Mítico 2","Peixe Mítico 3"], drop:[80,20]},
-    {name:"Vara Mítica Reforçada", type:"reforçada", captureRate:60, fishes:["Peixe Mítico 1","Peixe Mítico 2","Peixe Mítico 3"], drop:[35,35,30]}
+    {name:"Vara Mítica", type:"normal", drop:80},
+    {name:"Vara Mítica Reforçada", type:"reforçada", drop:20}
   ]}
 ];
 
@@ -259,13 +248,13 @@ function updateVaraInfo(){
   const vara = getCurrentVara();
   if(!vara) return;
   document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
-  document.getElementById("varaStats").innerText = `Peixes: ${vara.fishes.join(", ")}`;
+  document.getElementById("varaStats").innerText = `Peixes: ${vara.fishes ? vara.fishes.join(", ") : "-"}`;
 }
 
 // ===== PESCA =====
 function getRandomFishByVara(vara){
-  if(Math.random()*100 <= vara.captureRate){
-    return vara.fishes[Math.floor(Math.random()*vara.fishes.length)];
+  if(Math.random()*100 <= (vara.captureRate||50)){
+    return vara.fishes ? vara.fishes[Math.floor(Math.random()*vara.fishes.length)] : "Sardinha";
   }
   return null;
 }
@@ -282,7 +271,7 @@ function fishAction(){
   const fish = getRandomFishByVara(vara);
   if(fish){
     alert(`🎉 Você pescou: ${fish}`);
-    wallet += 1; // preço fixo do peixe
+    wallet += 1;
     document.getElementById("walletBalance").innerText = wallet;
   } else {
     alert("O peixe escapou!");
@@ -290,7 +279,6 @@ function fishAction(){
 
   dailyCount++;
   document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
-
   skipButton.style.display = "none";
   fishButton.disabled = false;
   result.innerText = "Clique em pescar";
@@ -332,9 +320,9 @@ function updateShopContent(){
     content.innerText = "Selecione uma box";
     return;
   }
-  let txt = `Preço: ${selectedBox.price} SFP2\nVaras:\n`;
+  let txt = `Preço: ${selectedBox.price} SFP2\nVaras dentro (Drop 80/20):\n`;
   selectedBox.varas.forEach(v=>{
-    txt += `${v.name} (Drop ${v.drop.join("/")})\n`;
+    txt += `${v.name}\n`;
   });
   content.innerText = txt;
 }
@@ -345,14 +333,15 @@ document.getElementById("buyButton").onclick = function(){
   wallet -= selectedBox.price;
   document.getElementById("walletBalance").innerText = wallet;
 
-  selectedBox.varas.forEach(v=>{
-    bolsa.push(v);
-    alert(`Parabéns! Você ganhou a ${v.name}`);
-  });
-
+  // escolher vara com base em drop 80/20
+  const rand = Math.random()*100;
+  const chosenVara = rand <= selectedBox.varas[0].drop ? selectedBox.varas[0] : selectedBox.varas[1];
+  chosenVara.rarity = selectedBox.name.split(" ")[1]; // define raridade
+  bolsa.push(chosenVara);
+  alert(`Parabéns! Você ganhou a ${chosenVara.name}`);
   updateBolsaVaras();
 };
-  
+
 // ===== TABS =====
 document.querySelectorAll(".tabButton").forEach(tab=>{
   tab.onclick = ()=>{
