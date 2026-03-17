@@ -95,13 +95,7 @@ button { cursor:pointer; }
   cursor:pointer;
 }
 .walletBtn:hover { background:#0077aa; }
-
-#saldoDisplay {
-  font-size:16px;
-  margin-bottom:10px;
-  color:#004466;
-  font-weight:bold;
-}
+.wallet-input { padding:5px; border-radius:5px; border:1px solid #004466; flex:1; }
 </style>
 </head>
 <body>
@@ -120,11 +114,9 @@ button { cursor:pointer; }
 
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-
     <div class="bolsa-top">
       <div id="bolsaMenu"></div>
     </div>
-
     <div class="bolsa-bottom">
       <div id="bolsaVaras"></div>
     </div>
@@ -134,12 +126,10 @@ button { cursor:pointer; }
 <!-- SHOP -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
-
   <div id="shopContainer">
     <div class="shop-top">
       <div id="shopMenu"></div>
     </div>
-
     <div class="shop-bottom" id="shopContent">Selecione uma box</div>
     <div class="shop-buy">
       <button id="buyBox">Comprar Box</button>
@@ -151,11 +141,27 @@ button { cursor:pointer; }
 <div id="walletSection" class="section">
   <h3>💼 Carteira</h3>
   <div id="walletContent" style="display:flex; flex-direction:column; gap:10px; width:90%; max-width:400px; margin:0 auto;">
-    <button class="walletBtn">Conectar carteira Telegram</button>
-    <button class="walletBtn">Depositar SFP</button>
-    <button class="walletBtn">Retirar SFP</button>
-    <button class="walletBtn">Trocar SFP por SFP2</button>
-    <button class="walletBtn">Trocar SFP2 por SFP</button>
+    <button class="walletBtn" onclick="alert('✅ Carteira Telegram conectada (simulada)')">Conectar carteira Telegram</button>
+
+    <div style="display:flex; gap:5px;">
+      <input type="number" id="inputDeposit" class="wallet-input" placeholder="Valor SFP">
+      <button class="walletBtn" onclick="depositSFP()">Depositar</button>
+    </div>
+
+    <div style="display:flex; gap:5px;">
+      <input type="number" id="inputRetirar" class="wallet-input" placeholder="Valor SFP">
+      <button class="walletBtn" onclick="retirarSFP()">Retirar</button>
+    </div>
+
+    <div style="display:flex; gap:5px;">
+      <input type="number" id="inputSFPtoSFP2" class="wallet-input" placeholder="Valor SFP">
+      <button class="walletBtn" onclick="trocarSFP2()">SFP → SFP2</button>
+    </div>
+
+    <div style="display:flex; gap:5px;">
+      <input type="number" id="inputSFP2toSFP" class="wallet-input" placeholder="Valor SFP2">
+      <button class="walletBtn" onclick="trocarSFP()">SFP2 → SFP</button>
+    </div>
   </div>
 </div>
 
@@ -190,8 +196,8 @@ let boxes = [
   {rarity:"Comum", price:50, varas:["Fibra","Fibra Reforçada"], fishes:["Tilápia","Bagre","Carpa"], fishValues:[0.083,0.111,0.167]},
   {rarity:"Incomum", price:100, varas:["Grafite","Grafite Reforçada"], fishes:["Pargo","Dourado","Pescada"], fishValues:[0.167,0.222,0.333]},
   {rarity:"Rara", price:150, varas:["Carbono","Carbono Reforçada"], fishes:["Robalo","Anchova","Garoupa"], fishValues:[0.25,0.333,0.5]},
-  {rarity:"Épica", price:200, varas:["Titânio","Titânio Reforçada"], fishes:["Atum","Dourado do Mar","Peixe-espada"], fishValues:[0.333,0.444,0.667]},
-  {rarity:"Lendária", price:250, varas:["Platina","Platina Reforçada"], fishes:["Tubarão Martelo","Tubarão Branco","Mero Gigante"], fishValues:[0.417,0.556,0.833]},
+  {rarity:"Épica", price:200, varas:["Titânio","Titânio Reforçada"], fishes:["Atum","Peixe-espada","Dourado do Mar"], fishValues:[0.333,0.444,0.667]},
+  {rarity:"Lendária", price:250, varas:["Platina","Platina Reforçada"], fishes:["Tubarão Branco","Mero Gigante","Tubarão Martelo"], fishValues:[0.417,0.556,0.833]},
   {rarity:"Mítica", price:300, varas:["Adamantium","Adamantium Reforçada"], fishes:["Tubarão Tigre","Tubarão Mako","Tubarão Martelo Gigante"], fishValues:[0.5,0.667,1.0]}
 ];
 
@@ -255,7 +261,7 @@ function updateVaraInfo(){
   const vara = getCurrentVara();
   if(!vara) return;
   document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
-  document.getElementById("varaStats").innerText = `Peixes: ${vara.fishes.join(", ")} | Taxa: ${vara.captureRate}%`;
+  document.getElementById("varaStats").innerText = `Peixes: ${vara.fishes.join(", ")} | Taxa de captura: ${vara.captureRate}%`;
 }
 
 // ===== PESCA =====
@@ -368,48 +374,46 @@ document.querySelectorAll(".tabButton").forEach(tab=>{
   };
 });
 
-// ===== CARTEIRA =====
-const walletBtns = document.querySelectorAll(".walletBtn");
-walletBtns.forEach(btn=>{
-  btn.onclick = ()=>{
-    const action = btn.innerText;
-    switch(action){
-      case "Conectar carteira Telegram":
-        alert("✅ Carteira Telegram conectada (simulada)"); break;
+// ===== CARTEIRA FUNCIONAL =====
+function depositSFP(){
+  const val = parseFloat(document.getElementById("inputDeposit").value);
+  if(isNaN(val)||val<=0){ alert("Valor inválido"); return; }
+  saldoSFP += val;
+  alert(`✅ Depositado ${val} SFP`);
+  atualizarSaldos();
+  document.getElementById("inputDeposit").value = "";
+}
 
-      case "Depositar SFP":
-        let deposit = parseFloat(prompt("Quanto de SFP deseja depositar?"));
-        if(isNaN(deposit)||deposit<=0){alert("Valor inválido"); return;}
-        saldoSFP += deposit;
-        alert(`✅ Depositado ${deposit} SFP`); break;
+function retirarSFP(){
+  const val = parseFloat(document.getElementById("inputRetirar").value);
+  if(isNaN(val)||val<=0||val>saldoSFP){ alert("Valor inválido"); return; }
+  saldoSFP -= val;
+  alert(`✅ Retirado ${val} SFP`);
+  atualizarSaldos();
+  document.getElementById("inputRetirar").value = "";
+}
 
-      case "Retirar SFP":
-        let retirar = parseFloat(prompt("Quanto de SFP deseja retirar?"));
-        if(isNaN(retirar)||retirar<=0||retirar>saldoSFP){alert("Valor inválido"); return;}
-        saldoSFP -= retirar;
-        alert(`✅ Retirado ${retirar} SFP`); break;
+function trocarSFP2(){
+  const val = parseFloat(document.getElementById("inputSFPtoSFP2").value);
+  if(isNaN(val)||val<=0||val>saldoSFP){ alert("Valor inválido"); return; }
+  saldoSFP -= val;
+  saldoSFP2 += val;
+  alert(`✅ Convertido ${val} SFP para ${val} SFP2`);
+  atualizarSaldos();
+  document.getElementById("inputSFPtoSFP2").value = "";
+}
 
-      case "Trocar SFP por SFP2":
-        let troca1 = parseFloat(prompt("Quanto de SFP deseja trocar por SFP2?"));
-        if(isNaN(troca1)||troca1<=0||troca1>saldoSFP){alert("Valor inválido"); return;}
-        saldoSFP -= troca1;
-        saldoSFP2 += troca1;
-        alert(`✅ Convertido ${troca1} SFP para ${troca1} SFP2`); break;
+function trocarSFP(){
+  const val = parseFloat(document.getElementById("inputSFP2toSFP").value);
+  if(isNaN(val)||val<=0||val>saldoSFP2){ alert("Valor inválido"); return; }
+  saldoSFP2 -= val;
+  saldoSFP += val;
+  alert(`✅ Convertido ${val} SFP2 para ${val} SFP`);
+  atualizarSaldos();
+  document.getElementById("inputSFP2toSFP").value = "";
+}
 
-      case "Trocar SFP2 por SFP":
-        let troca2 = parseFloat(prompt("Quanto de SFP2 deseja trocar por SFP?"));
-        if(isNaN(troca2)||troca2<=0||troca2>saldoSFP2){alert("Valor inválido"); return;}
-        saldoSFP2 -= troca2;
-        saldoSFP += troca2;
-        alert(`✅ Convertido ${troca2} SFP2 para ${troca2} SFP`); break;
-
-      default: alert("Ação não reconhecida");
-    }
-    atualizarSaldos();
-  };
-});
-
-// INIT
+// ===== INIT =====
 updateBolsaMenu();
 updateBolsaVaras();
 updateVaraInfo();
