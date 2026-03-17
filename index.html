@@ -8,7 +8,7 @@
 body {
   font-family:'Comic Sans MS', Arial;
   margin:0;
-  padding:20px 0 80px 0;
+  padding:20px 0 100px 0;
   background:linear-gradient(to bottom,#87ceeb,#ffffff);
   text-align:center;
 }
@@ -21,22 +21,36 @@ h3 { color:#004466; }
 
 button { cursor:pointer; }
 
-/* MENU */
+/* MENU BONITO */
 #bottomMenu {
   position: fixed;
-  bottom:0;
+  bottom:10px;
+  left:0;
   width:100%;
-  background:#00aaff;
   display:flex;
+  justify-content:center;
+  gap:10px;
 }
+
 #bottomMenu button {
-  flex:1;
+  width:120px;
+  height:50px;
   border:none;
-  background:#00aaff;
+  border-radius:25px;
+  background:linear-gradient(145deg,#00aaff,#0077aa);
   color:white;
+  font-size:16px;
+  font-weight:bold;
+  box-shadow:0 4px 8px rgba(0,0,0,0.3);
+  transition:0.2s;
 }
+
+#bottomMenu button:active {
+  transform:scale(0.95);
+}
+
 .selected {
-  background:#ffcc00 !important;
+  background:linear-gradient(145deg,#ffcc00,#ffaa00) !important;
   color:black !important;
 }
 
@@ -138,17 +152,14 @@ button { cursor:pointer; }
 
   <div id="shopContainer">
 
-    <!-- BOXES -->
     <div class="shop-top">
       <div id="shopMenu"></div>
     </div>
 
-    <!-- INFO -->
     <div class="shop-middle">
       <div id="shopContent">Selecione um equipamento</div>
     </div>
 
-    <!-- COMPRAR -->
     <div class="shop-bottom">
       <button id="buyButton" style="display:none;">💰 Comprar</button>
     </div>
@@ -158,8 +169,8 @@ button { cursor:pointer; }
 
 <!-- MENU -->
 <div id="bottomMenu">
-  <button class="tabButton selected" data-target="pesca">🎣</button>
-  <button class="tabButton" data-target="shopSection">🏪</button>
+  <button class="tabButton selected" data-target="pesca">🎣 Pescar</button>
+  <button class="tabButton" data-target="shopSection">🏪 Loja</button>
 </div>
 
 <script>
@@ -191,7 +202,7 @@ const shopVaras = [
 
 let selectedShopVara = null;
 
-// BOLSA MENU
+// BOLSA
 function updateBolsaMenu(){
   const menu = document.getElementById("bolsaMenu");
   menu.innerHTML = "";
@@ -267,7 +278,7 @@ skipButton.onclick = ()=>{
   fishAction();
 };
 
-// SHOP UI
+// SHOP
 function updateShopMenu(){
   const menu = document.getElementById("shopMenu");
   menu.innerHTML = "";
@@ -309,7 +320,6 @@ function updateShopContent(){
   btn.style.display = "inline";
 }
 
-// COMPRAR
 document.getElementById("buyButton").onclick = ()=>{
   if(selectedShopVara){
     bolsa.push(selectedShopVara);
