@@ -223,12 +223,12 @@ skipButton.onclick = function(){
 
 // ===== SHOP =====
 const shopOptions = [
-  "Box Comum",
-  "Box Incomum",
-  "Box Rara",
-  "Box Épica",
-  "Box Lendária",
-  "Box Mítica"
+  {name:"Box Comum", price:50},
+  {name:"Box Incomum", price:100},
+  {name:"Box Rara", price:150},
+  {name:"Box Épica", price:200},
+  {name:"Box Lendária", price:250},
+  {name:"Box Mítica", price:300}
 ];
 
 let selectedShop = null;
@@ -239,9 +239,9 @@ function updateShopMenu(){
 
   shopOptions.forEach(opt=>{
     const btn = document.createElement("button");
-    btn.innerText = opt;
+    btn.innerText = `${opt.name} ($${opt.price})`;
 
-    btn.style.border = opt===selectedShop ? "2px solid gold" : "1px solid #004466";
+    btn.style.border = selectedShop && selectedShop.name===opt.name ? "2px solid gold" : "1px solid #004466";
 
     btn.onclick = ()=>{
       selectedShop = opt;
@@ -261,7 +261,7 @@ function updateShopContent(){
     return;
   }
 
-  content.innerText = "Conteúdo da " + selectedShop + " (em breve)";
+  content.innerText = `${selectedShop.name}\nPreço: $${selectedShop.price}\nConteúdo em breve`;
 }
 
 // ===== TABS =====
