@@ -61,11 +61,12 @@
 let saldoSFP = 5000;
 let saldoSFP2 = 0;
 let contadorPesca = 0;
+
 let varasFree = ["Vara de Bambu"];
 let varasNormais = [];
 let ativaVara = null;
 
-/* Peixes por raridade e valor para ROI */
+/* Peixes reais por raridade */
 const peixes = {
   comum: [
     {nome:"Tilápia",valor:0.83},
@@ -99,7 +100,7 @@ const peixes = {
   ]
 };
 
-/* Varas por raridade */
+/* Varas reais */
 const varas = {
   comum:["Fibra"],
   incomum:["Grafite"],
@@ -109,7 +110,7 @@ const varas = {
   mitica:["Adamantium"]
 };
 
-/* Boxes */
+/* Boxes com drop 80/20 de uma vara apenas */
 const boxes = [
   {nome:"Box Comum",raridade:"comum",preco:50,drop:[varas.comum[0],varas.comum[0]+" Reforçada"],percent:[80,20]},
   {nome:"Box Incomum",raridade:"incomum",preco:150,drop:[varas.incomum[0],varas.incomum[0]+" Reforçada"],percent:[80,20]},
@@ -120,8 +121,6 @@ const boxes = [
 ];
 
 /* ===================== Funções ===================== */
-
-/* Atualiza display de saldos e bolsas */
 function atualizarSaldos(){
   document.getElementById("saldoSFP").innerText = saldoSFP.toFixed(2);
   document.getElementById("saldoSFP2").innerText = saldoSFP2.toFixed(2);
@@ -169,13 +168,14 @@ function comprarBox(index){
     return;
   }
   saldoSFP -= box.preco;
+  // Drop 80/20 apenas 1 vara
   const rnd = Math.random()*100;
-  let acumulado = 0;
-  let dropVara = null;
+  let acumulado=0;
+  let dropVara=null;
   for(let i=0;i<box.drop.length;i++){
-    acumulado += box.percent[i];
+    acumulado+=box.percent[i];
     if(rnd<=acumulado){
-      dropVara = box.drop[i];
+      dropVara=box.drop[i];
       break;
     }
   }
@@ -209,11 +209,11 @@ function trocarSFP(){
 
 /* Criar Loja Boxes */
 function renderLoja(){
-  const div = document.getElementById("boxes");
+  const div=document.getElementById("boxes");
   boxes.forEach((box,i)=>{
-    const boxDiv = document.createElement("div");
+    const boxDiv=document.createElement("div");
     boxDiv.className="box";
-    boxDiv.innerHTML = `
+    boxDiv.innerHTML=`
       <b>${box.nome}</b><br>
       Varas: ${box.drop.join(", ")}<br>
       % Drop: ${box.percent.join("/")}<br>
@@ -226,7 +226,7 @@ function renderLoja(){
 }
 
 /* Inicializar */
-window.onload = function(){
+window.onload=function(){
   atualizarSaldos();
   renderLoja();
 }
