@@ -11,97 +11,27 @@ h3 { color:#004466; }
 button { cursor:pointer; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
-
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:14px; border-radius:10px 10px 0 0; }
 #bottomMenu button { flex:1; margin:0 5px; padding:10px 0; font-size:14px; border:none; border-radius:10px; background:#00aaff; color:white; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
-
-/* ===== BOLSA ===== */
-#bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
-
-.bolsa-top, .bolsa-bottom {
-  border:1px solid #004466;
-  padding:8px;
-  border-radius:8px;
-  background:#e0f7ff;
-  margin-bottom:8px;
-}
-
-#bolsaMenu, #bolsaVaras {
-  display:flex;
-  flex-wrap:wrap;
-  gap:5px;
-  justify-content:center;
-}
-
-.bag-item {
-  background:#00aaff;
-  color:white;
-  border:none;
-  border-radius:5px;
-  padding:5px 8px;
-}
-
-/* ===== SHOP ===== */
-#shopContainer { width:90%; max-width:400px; margin:0 auto; }
-
-.shop-top, .shop-bottom, .shop-buy {
-  border:1px solid #004466;
-  padding:10px;
-  border-radius:10px;
-  background:#e0f7ff;
-  margin-bottom:8px;
-}
-
-#shopMenu {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  justify-content:center;
-}
-
-.box-card {
-  width:90px;
-  height:90px;
-  border-radius:10px;
-  background:linear-gradient(145deg,#00aaff,#0077aa);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:white;
-  font-size:12px;
-  text-align:center;
-  cursor:pointer;
-  transition:0.2s;
-  box-shadow:0 3px 6px rgba(0,0,0,0.3);
-}
-
-.box-card:hover {
-  transform:scale(1.05);
-}
-
-.box-selected {
-  border:3px solid gold;
-}
-
-/* ===== CARTEIRA ===== */
-.walletBtn {
-  padding:10px;
-  border-radius:8px;
-  border:none;
-  background:#00aaff;
-  color:white;
-  font-size:14px;
-  cursor:pointer;
-}
+#bolsaContainer, #shopContainer { width:90%; max-width:400px; margin:0 auto; }
+.bolsa-top, .bolsa-bottom, .shop-top, .shop-bottom, .shop-buy { border:1px solid #004466; padding:8px; border-radius:8px; background:#e0f7ff; margin-bottom:8px; }
+#bolsaMenu, #bolsaVaras, #shopMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+.bag-item, .box-card { background:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; cursor:pointer; text-align:center; }
+.box-card { width:90px; height:90px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 3px 6px rgba(0,0,0,0.3); transition:0.2s; }
+.box-card:hover { transform:scale(1.05); }
+.box-selected { border:3px solid gold; }
+.walletBtn { padding:10px; border-radius:8px; border:none; background:#00aaff; color:white; font-size:14px; cursor:pointer; }
 .walletBtn:hover { background:#0077aa; }
 input{width:70px;padding:5px;margin-left:5px;}
+#saldoDisplay { margin:10px 0; font-weight:bold; }
 </style>
 </head>
 <body>
 
 <h1>🎣 Super Fishing</h1>
 <h3 id="dailyCount">Tentativas hoje: 0/15</h3>
+<div id="saldoDisplay">Saldo SFP: 5000 | Saldo SFP2: 0</div>
 
 <!-- PESCA -->
 <div id="pesca" class="section active">
@@ -113,12 +43,8 @@ input{width:70px;padding:5px;margin-left:5px;}
 
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-    <div class="bolsa-top">
-      <div id="bolsaMenu"></div>
-    </div>
-    <div class="bolsa-bottom">
-      <div id="bolsaVaras"></div>
-    </div>
+    <div class="bolsa-top"><div id="bolsaMenu"></div></div>
+    <div class="bolsa-bottom"><div id="bolsaVaras"></div></div>
   </div>
 </div>
 
@@ -126,13 +52,9 @@ input{width:70px;padding:5px;margin-left:5px;}
 <div id="shopSection" class="section">
   <h3>Loja</h3>
   <div id="shopContainer">
-    <div class="shop-top">
-      <div id="shopMenu"></div>
-    </div>
+    <div class="shop-top"><div id="shopMenu"></div></div>
     <div class="shop-bottom" id="shopContent">Selecione uma box</div>
-    <div class="shop-buy">
-      <button id="buyBox">Comprar Box</button>
-    </div>
+    <div class="shop-buy"><button id="buyBox">Comprar Box</button></div>
   </div>
 </div>
 
@@ -141,22 +63,10 @@ input{width:70px;padding:5px;margin-left:5px;}
   <h3>💼 Carteira</h3>
   <div id="walletContent" style="display:flex; flex-direction:column; gap:10px; width:90%; max-width:400px; margin:0 auto;">
     <button class="walletBtn">Conectar carteira Telegram</button>
-    <div>
-      <button class="walletBtn" onclick="depositSFP()">Depositar SFP</button>
-      <input type="number" id="depositInput" placeholder="Valor">
-    </div>
-    <div>
-      <button class="walletBtn" onclick="withdrawSFP()">Retirar SFP</button>
-      <input type="number" id="withdrawInput" placeholder="Valor">
-    </div>
-    <div>
-      <button class="walletBtn" onclick="convertToSFP2()">Trocar SFP por SFP2</button>
-      <input type="number" id="convInput1" placeholder="Valor">
-    </div>
-    <div>
-      <button class="walletBtn" onclick="convertToSFP()">Trocar SFP2 por SFP</button>
-      <input type="number" id="convInput2" placeholder="Valor">
-    </div>
+    <div><button class="walletBtn" onclick="depositSFP()">Depositar SFP</button><input type="number" id="depositInput" placeholder="Valor"></div>
+    <div><button class="walletBtn" onclick="withdrawSFP()">Retirar SFP</button><input type="number" id="withdrawInput" placeholder="Valor"></div>
+    <div><button class="walletBtn" onclick="convertToSFP2()">Trocar SFP por SFP2</button><input type="number" id="convInput1" placeholder="Valor"></div>
+    <div><button class="walletBtn" onclick="convertToSFP()">Trocar SFP2 por SFP</button><input type="number" id="convInput2" placeholder="Valor"></div>
   </div>
 </div>
 
@@ -206,8 +116,6 @@ function setActiveVara(idx){
 function updateBolsaMenu(){
   const menu = document.getElementById("bolsaMenu");
   menu.innerHTML = "";
-
-  // Vara Free
   const freeBtn = document.createElement("button");
   freeBtn.innerText = "Vara Free";
   freeBtn.className = "bag-item";
@@ -234,7 +142,6 @@ function updateBolsaMenu(){
 function updateBolsaVaras(){
   const div = document.getElementById("bolsaVaras");
   div.innerHTML = "";
-
   bolsa.forEach((v, idx)=>{
     if((v.rarity === selectedRarity) || (selectedRarity === "Vara Free" && v.name === "Bambu")){
       const btn = document.createElement("button");
@@ -260,6 +167,7 @@ function getRandomFishByVara(vara){
   const rnd = Math.random()*100;
   if(rnd <= vara.captureRate){
     saldoSFP2 += vara.fishValues[idx];
+    updateSaldoDisplay();
     return {name:vara.fishes[idx], value:vara.fishValues[idx]};
   }
   return null;
@@ -273,9 +181,8 @@ function fishAction(){
   if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
   const vara = getCurrentVara();
   const fish = getRandomFishByVara(vara);
-  if(fish){
-    alert(`🎉 Você pescou: ${fish.name} | Valor: ${fish.value.toFixed(3)} SFP2`);
-  } else { alert("O peixe escapou!"); }
+  if(fish){ alert(`🎉 Você pescou: ${fish.name} | Valor: ${fish.value.toFixed(3)} SFP2`); }
+  else{ alert("O peixe escapou!"); }
   dailyCount++;
   document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
   skipButton.style.display = "none";
@@ -319,17 +226,48 @@ function updateShopContent(){
 }
 
 document.getElementById("buyBox").onclick = function(){
-  if(!selectedShop) { alert("Selecione uma box primeiro"); return; }
-  if(saldoSFP < selectedShop.price){ alert("Saldo insuficiente"); return; }
+  if(!selectedShop){ alert("Selecione uma box"); return; }
+  if(saldoSFP<selectedShop.price){ alert("Saldo insuficiente"); return; }
   saldoSFP -= selectedShop.price;
-  // drop 80/20 uma única vara
   const rnd = Math.random()*100;
-  const varaDrop = rnd <= 80 ? selectedShop.varas[0] : selectedShop.varas[1];
-  bolsa.push({name:varaDrop, captureRate: rnd<=80?50:60, fishes:selectedShop.fishes, fishValues:selectedShop.fishValues, rarity:selectedShop.rarity});
+  const varaDrop = rnd<=80?selectedShop.varas[0]:selectedShop.varas[1];
+  bolsa.push({name:varaDrop, captureRate:rnd<=80?50:60, fishes:selectedShop.fishes, fishValues:selectedShop.fishValues, rarity:selectedShop.rarity});
   alert(`🎉 Parabéns! Você ganhou a vara ${varaDrop}`);
   updateBolsaVaras();
   updateVaraInfo();
+  updateSaldoDisplay();
 };
+
+// ===== CARTEIRA =====
+function depositSFP(){
+  const val=parseFloat(document.getElementById("depositInput").value);
+  if(isNaN(val)||val<=0){alert("Valor inválido"); return;}
+  saldoSFP += val; updateSaldoDisplay();
+  alert(`✅ Deposito de ${val} SFP realizado`); document.getElementById("depositInput").value="";
+}
+function withdrawSFP(){
+  const val=parseFloat(document.getElementById("withdrawInput").value);
+  if(isNaN(val)||val<=0||val>saldoSFP){alert("Saldo inválido"); return;}
+  saldoSFP -= val; updateSaldoDisplay();
+  alert(`✅ Retirada de ${val} SFP realizada`); document.getElementById("withdrawInput").value="";
+}
+function convertToSFP2(){
+  const val=parseFloat(document.getElementById("convInput1").value);
+  if(isNaN(val)||val<=0||val>saldoSFP){alert("Saldo inválido"); return;}
+  saldoSFP -= val; saldoSFP2 += val; updateSaldoDisplay();
+  alert(`✅ Convertido ${val} SFP para ${val} SFP2`); document.getElementById("convInput1").value="";
+}
+function convertToSFP(){
+  const val=parseFloat(document.getElementById("convInput2").value);
+  if(isNaN(val)||val<=0||val>saldoSFP2){alert("Saldo inválido"); return;}
+  saldoSFP2 -= val; saldoSFP += val; updateSaldoDisplay();
+  alert(`✅ Convertido ${val} SFP2 para ${val} SFP`); document.getElementById("convInput2").value="";
+}
+
+// ===== SALDO =====
+function updateSaldoDisplay(){
+  document.getElementById("saldoDisplay").innerText = `Saldo SFP: ${saldoSFP.toFixed(3)} | Saldo SFP2: ${saldoSFP2.toFixed(3)}`;
+}
 
 // ===== TABS =====
 document.querySelectorAll(".tabButton").forEach(tab=>{
@@ -341,43 +279,12 @@ document.querySelectorAll(".tabButton").forEach(tab=>{
   };
 });
 
-// ===== CARTEIRA =====
-function depositSFP(){
-  const val=parseFloat(document.getElementById("depositInput").value);
-  if(isNaN(val)||val<=0){alert("Valor inválido"); return;}
-  saldoSFP += val;
-  alert(`✅ Deposito de ${val} SFP realizado`);
-  document.getElementById("depositInput").value="";
-}
-function withdrawSFP(){
-  const val=parseFloat(document.getElementById("withdrawInput").value);
-  if(isNaN(val)||val<=0||val>saldoSFP){alert("Saldo inválido"); return;}
-  saldoSFP -= val;
-  alert(`✅ Retirada de ${val} SFP realizada`);
-  document.getElementById("withdrawInput").value="";
-}
-function convertToSFP2(){
-  const val=parseFloat(document.getElementById("convInput1").value);
-  if(isNaN(val)||val<=0||val>saldoSFP){alert("Saldo inválido"); return;}
-  saldoSFP -= val;
-  saldoSFP2 += val;
-  alert(`✅ Convertido ${val} SFP para ${val} SFP2`);
-  document.getElementById("convInput1").value="";
-}
-function convertToSFP(){
-  const val=parseFloat(document.getElementById("convInput2").value);
-  if(isNaN(val)||val<=0||val>saldoSFP2){alert("Saldo inválido"); return;}
-  saldoSFP2 -= val;
-  saldoSFP += val;
-  alert(`✅ Convertido ${val} SFP2 para ${val} SFP`);
-  document.getElementById("convInput2").value="";
-}
-
 // ===== INIT =====
 updateBolsaMenu();
 updateBolsaVaras();
 updateVaraInfo();
 updateShopMenu();
+updateSaldoDisplay();
 
 });
 </script>
