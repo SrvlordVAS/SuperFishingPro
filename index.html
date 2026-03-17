@@ -6,15 +6,18 @@
 <style>
 body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 80px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
 h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
+h3 { color:#004466; }
+#result { font-size:16px; margin:15px 0 20px 0; min-height:30px; }
+button { display:inline-block; background-color:#00aaff; color:white; border:none; border-radius:5px; padding:5px 8px; font-size:14px; cursor:pointer; margin:2px; transition:0.2s; }
+button:hover { background-color:#0088cc; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
-button { padding:5px 10px; margin:3px; cursor:pointer; border:none; border-radius:5px; background:#00aaff; color:white; transition:0.2s; }
-button:hover { background:#0088cc; }
-#bolsa { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:10px; }
-.bag-item { padding:5px 10px; border:1px solid #004466; border-radius:5px; cursor:pointer; }
-.selected { border:2px solid gold !important; }
+#bolsa { border:1px solid #004466; padding:8px; margin:8px auto; width:90%; max-width:400px; border-radius:5px; background:#e0f7ff; text-align:left; display:flex; flex-wrap:wrap; gap:5px; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
+.selected { background-color:#ffcc00 !important; color:black !important; }
+.bag-item { cursor:pointer; }
+#skipButton { display:none; }
 </style>
 </head>
 <body>
@@ -25,8 +28,9 @@ button:hover { background:#0088cc; }
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
-  <button id="skipButton" style="display:none;">⏩ PULAR ESPERA</button>
-  <p id="currentVara">Vara ativa: Nenhuma</p>
+  <button id="skipButton">⏩ PULAR ESPERA</button>
+  <p id="currentVara">Vara ativa: Bambu</p>
+  <p id="varaStats">Profit: 100%</p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
     <div id="bolsa"></div>
@@ -37,9 +41,7 @@ button:hover { background:#0088cc; }
 <div id="shopSection" class="section">
   <h3>Loja</h3>
   <div id="shopBoxes">
-    <h4>Abra uma box:</h4>
-    <button id="boxComum">📦 Box Comum</button>
-    <button id="boxRara">📦 Box Rara</button>
+    <h4>Em breve...</h4>
   </div>
 </div>
 
@@ -52,90 +54,98 @@ button:hover { background:#0088cc; }
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-// ===== CONFIGURAÇÕES INICIAIS =====
-let currentVaraIndex = 0;
-let inventory = []; // inventário vazio
-let bolsa = [];     // bolsa de varas
+  // ===== CONFIGURAÇÃO =====
+  const dailyLimit = 15;
+  let dailyCount = 0;
+  let fishingTimeout = null;
 
-// ===== VARAS =====
-const varasBase = ["Bambu","Fibra","Fibra Reforçada"]; // exemplo
-function getCurrentVara(){ return inventory[currentVaraIndex]; }
+  // ===== VARAS =====
+  const varas = {
+    "Bambu": { profit: 100, chance:50 }
+  };
 
-// ===== BOLSA =====
-function setActiveVara(idx){
-    currentVaraIndex = idx;
-    updateBolsa();
-    updateCurrentVara();
-}
+  // Inicialmente só a vara de Bambu
+  let bolsa = [{name:"Bambu", profit:100}];
+  let currentVaraIndex = 0;
 
-function updateBolsa(){
+  function getCurrentVara(){ return bolsa[currentVaraIndex]; }
+
+  // ===== BOLSA =====
+  function updateBolsa(){
     const bolsaDiv = document.getElementById("bolsa");
     bolsaDiv.innerHTML = "";
-    bolsa.forEach((v, idx)=>{
+    bolsa.forEach((v, idx) => {
         const btn = document.createElement("button");
         btn.className = "bag-item";
-        btn.innerText = v;
-        if(idx===currentVaraIndex) btn.classList.add("selected");
-        btn.onclick = ()=>setActiveVara(idx);
+        btn.innerText = v.name;
+        btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
+        btn.onclick = () => {
+          currentVaraIndex = idx;
+          updateVaraInfo();
+          updateBolsa();
+        };
         bolsaDiv.appendChild(btn);
     });
-}
-
-function updateCurrentVara(){
-    const vara = getCurrentVara();
-    document.getElementById("currentVara").innerText = `Vara ativa: ${vara?vara:"Nenhuma"}`;
-}
-
-// ===== PESCA =====
-const fishButton = document.getElementById("fishButton");
-const skipButton = document.getElementById("skipButton");
-const result = document.getElementById("result");
-let fishingTimeout = null;
-
-fishButton.onclick = function(){
-  if(!getCurrentVara()){ alert("Escolha uma vara!"); return; }
-  fishButton.disabled = true;
-  result.innerText = "Esperando o peixe morder a isca...";
-  skipButton.style.display = "inline-block";
-
-  fishingTimeout = setTimeout(()=>{
-    result.innerText = "Você pegou um peixe!";
-    fishButton.disabled = false;
-    skipButton.style.display = "none";
-  },5000);
-};
-
-skipButton.onclick = function(){
-  if(fishingTimeout) clearTimeout(fishingTimeout);
-  result.innerText = "O peixe fugiu!";
-  fishButton.disabled = false;
-  skipButton.style.display = "none";
-};
-
-// ===== LOJA =====
-document.getElementById("boxComum").onclick = function(){
-    let vara = prompt("Digite o nome da vara que quer receber da box Comum:");
-    if(vara) { inventory.push(vara); bolsa.push(vara); updateBolsa(); updateCurrentVara(); alert(`Você recebeu a vara: ${vara}`); }
-};
-document.getElementById("boxRara").onclick = function(){
-    let vara = prompt("Digite o nome da vara que quer receber da box Rara:");
-    if(vara) { inventory.push(vara); bolsa.push(vara); updateBolsa(); updateCurrentVara(); alert(`Você recebeu a vara: ${vara}`); }
-};
-
-// ===== TABS =====
-const tabs = document.querySelectorAll(".tabButton");
-tabs.forEach(tab=>{
-  tab.onclick = ()=>{
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.getElementById(tab.dataset.target).classList.add("active");
-    tabs.forEach(t=>t.classList.remove("selected"));
-    tab.classList.add("selected");
   }
-});
 
-// ===== INICIALIZA =====
-updateBolsa();
-updateCurrentVara();
+  function updateVaraInfo(){
+    const vara = getCurrentVara();
+    document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
+    document.getElementById("varaStats").innerText = `Profit: ${vara.profit}%`;
+  }
+
+  // ===== PESCA =====
+  const fishButton = document.getElementById("fishButton");
+  const skipButton = document.getElementById("skipButton");
+  const result = document.getElementById("result");
+
+  function fishAction(){
+    if(dailyCount >= dailyLimit){ 
+      alert("Limite diário atingido!"); 
+      return; 
+    }
+    const vara = getCurrentVara();
+    const captured = Math.random()*100 <= vara.chance;
+    if(captured){
+      alert("🎉 Peixe capturado!");
+    } else {
+      alert("O peixe escapou!");
+    }
+    dailyCount++;
+    result.innerText = "Clique em pescar";
+    skipButton.style.display = "none";
+  }
+
+  fishButton.onclick = function(){
+    fishButton.disabled = true;
+    result.innerText = "Esperando o peixe morder a isca...";
+    skipButton.style.display = "inline-block";
+    fishingTimeout = setTimeout(()=>{
+      fishAction();
+      fishButton.disabled = false;
+    },5000);
+  };
+
+  skipButton.onclick = function(){
+    if(fishingTimeout) clearTimeout(fishingTimeout);
+    fishAction();
+    fishButton.disabled = false;
+  };
+
+  // ===== TABS =====
+  const tabs = document.querySelectorAll(".tabButton");
+  tabs.forEach(tab=>{
+    tab.onclick = ()=>{
+      document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+      document.getElementById(tab.dataset.target).classList.add("active");
+      tabs.forEach(t=>t.classList.remove("selected"));
+      tab.classList.add("selected");
+    }
+  });
+
+  // ===== INICIALIZA =====
+  updateBolsa();
+  updateVaraInfo();
 
 });
 </script>
