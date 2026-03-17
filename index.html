@@ -16,9 +16,8 @@ button { cursor:pointer; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; border:none; background:#00aaff; color:white; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
 
-/* ===== BOLSA ===== */
+/* BOLSA */
 #bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
-
 .bolsa-top, .bolsa-bottom {
   border:1px solid #004466;
   padding:8px;
@@ -26,14 +25,12 @@ button { cursor:pointer; }
   background:#e0f7ff;
   margin-bottom:8px;
 }
-
 #bolsaMenu, #bolsaVaras {
   display:flex;
   flex-wrap:wrap;
   gap:5px;
   justify-content:center;
 }
-
 .bag-item {
   background:#00aaff;
   color:white;
@@ -42,9 +39,8 @@ button { cursor:pointer; }
   padding:5px 8px;
 }
 
-/* ===== SHOP ===== */
+/* SHOP */
 #shopContainer { width:90%; max-width:400px; margin:0 auto; }
-
 .shop-top, .shop-bottom {
   border:1px solid #004466;
   padding:10px;
@@ -52,41 +48,18 @@ button { cursor:pointer; }
   background:#e0f7ff;
   margin-bottom:8px;
 }
-
 #shopMenu {
   display:flex;
   flex-wrap:wrap;
-  gap:8px;
+  gap:5px;
   justify-content:center;
 }
-
-.box-card {
-  width:90px;
-  height:90px;
-  border-radius:10px;
-  background:linear-gradient(145deg,#00aaff,#0077aa);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+.shop-btn {
+  background:#00aaff;
   color:white;
-  font-size:12px;
-  text-align:center;
-  cursor:pointer;
-  transition:0.2s;
-  box-shadow:0 3px 6px rgba(0,0,0,0.3);
-}
-
-.box-card:hover {
-  transform:scale(1.05);
-}
-
-.box-selected {
-  border:3px solid gold;
-}
-
-#shopContent {
-  text-align:center;
-  font-size:14px;
+  border:none;
+  border-radius:5px;
+  padding:6px 10px;
 }
 </style>
 </head>
@@ -105,14 +78,8 @@ button { cursor:pointer; }
 
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-
-    <div class="bolsa-top">
-      <div id="bolsaMenu"></div>
-    </div>
-
-    <div class="bolsa-bottom">
-      <div id="bolsaVaras"></div>
-    </div>
+    <div class="bolsa-top"><div id="bolsaMenu"></div></div>
+    <div class="bolsa-bottom"><div id="bolsaVaras"></div></div>
   </div>
 </div>
 
@@ -126,7 +93,9 @@ button { cursor:pointer; }
     </div>
 
     <div class="shop-bottom">
-      <div id="shopContent">Selecione uma box</div>
+      <div id="shopContent">Selecione uma vara</div>
+      <br>
+      <button id="buyButton" style="display:none;">💰 Comprar Vara</button>
     </div>
   </div>
 </div>
@@ -145,11 +114,23 @@ const dailyLimit = 15;
 let fishingTimeout = null;
 
 // ===== VARAS =====
-let bolsa = [{name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}];
+let bolsa = [{name:"Bambu", captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}];
 let currentVaraIndex = 0;
 
 const raridades = ["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let selectedRarity = "Muito Comum";
+
+// ===== SHOP VARAS =====
+const shopVaras = [
+  {name:"Vara Comum", rarity:"Comum", fishes:["Peixe Comum"], captureRate:50},
+  {name:"Vara Incomum", rarity:"Incomum", fishes:["Peixe Incomum"], captureRate:50},
+  {name:"Vara Rara", rarity:"Rara", fishes:["Peixe Raro"], captureRate:50},
+  {name:"Vara Épica", rarity:"Épica", fishes:["Peixe Épico"], captureRate:50},
+  {name:"Vara Lendária", rarity:"Lendária", fishes:["Peixe Lendário"], captureRate:50},
+  {name:"Vara Mítica", rarity:"Mítica", fishes:["Peixe Mítico"], captureRate:50}
+];
+
+let selectedShopVara = null;
 
 // ===== BOLSA =====
 function getCurrentVara(){ return bolsa[currentVaraIndex]; }
@@ -168,13 +149,11 @@ function updateBolsaMenu(){
     const btn = document.createElement("button");
     btn.innerText = r;
     btn.className = "bag-item";
-
     btn.onclick = ()=>{
       selectedRarity = r;
       updateBolsaMenu();
       updateBolsaVaras();
     };
-
     menu.appendChild(btn);
   });
 }
@@ -188,7 +167,6 @@ function updateBolsaVaras(){
       const btn = document.createElement("button");
       btn.innerText = v.name;
       btn.className = "bag-item";
-
       btn.onclick = ()=> setActiveVara(idx);
       div.appendChild(btn);
     }
@@ -241,7 +219,6 @@ fishButton.onclick = function(){
   fishButton.disabled = true;
   result.innerText = "Esperando...";
   skipButton.style.display = "inline-block";
-
   fishingTimeout = setTimeout(fishAction, 5000);
 };
 
@@ -251,50 +228,47 @@ skipButton.onclick = function(){
 };
 
 // ===== SHOP =====
-const shopOptions = [
-  "Box Comum",
-  "Box Incomum",
-  "Box Rara",
-  "Box Épica",
-  "Box Lendária",
-  "Box Mítica"
-];
-
-let selectedShop = null;
-
 function updateShopMenu(){
   const menu = document.getElementById("shopMenu");
   menu.innerHTML = "";
 
-  shopOptions.forEach(opt=>{
-    const box = document.createElement("div");
-    box.className = "box-card";
-    box.innerText = opt;
+  shopVaras.forEach(v=>{
+    const btn = document.createElement("button");
+    btn.className = "shop-btn";
+    btn.innerText = v.name;
 
-    if(opt === selectedShop){
-      box.classList.add("box-selected");
-    }
-
-    box.onclick = ()=>{
-      selectedShop = opt;
-      updateShopMenu();
+    btn.onclick = ()=>{
+      selectedShopVara = v;
       updateShopContent();
     };
 
-    menu.appendChild(box);
+    menu.appendChild(btn);
   });
 }
 
 function updateShopContent(){
   const content = document.getElementById("shopContent");
+  const buyBtn = document.getElementById("buyButton");
 
-  if(!selectedShop){
-    content.innerText = "Selecione uma box";
+  if(!selectedShopVara){
+    content.innerText = "Selecione uma vara";
+    buyBtn.style.display = "none";
     return;
   }
 
-  content.innerText = "Conteúdo da " + selectedShop + " (em breve)";
+  content.innerText =
+    `${selectedShopVara.name}\nRaridade: ${selectedShopVara.rarity}\nPeixes: ${selectedShopVara.fishes.join(", ")}`;
+
+  buyBtn.style.display = "inline-block";
 }
+
+document.getElementById("buyButton").onclick = function(){
+  if(selectedShopVara){
+    bolsa.push(selectedShopVara);
+    alert("✅ Vara comprada!");
+    updateBolsaVaras();
+  }
+};
 
 // ===== TABS =====
 document.querySelectorAll(".tabButton").forEach(tab=>{
