@@ -3,21 +3,46 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Super Fishing</title>
+
 <style>
-body { font-family:'Comic Sans MS', Arial, sans-serif; margin:0; padding:20px 0 80px 0; background:linear-gradient(to bottom,#87ceeb,#ffffff); text-align:center; }
-h1 { color:#006994; text-shadow:2px 2px #aee1f7; }
+body {
+  font-family:'Comic Sans MS', Arial;
+  margin:0;
+  padding:20px 0 80px 0;
+  background:linear-gradient(to bottom,#87ceeb,#ffffff);
+  text-align:center;
+}
+
+h1 { color:#006994; }
 h3 { color:#004466; }
-#result { font-size:16px; margin:15px 0 20px 0; min-height:30px; }
-button { cursor:pointer; }
-.section { display:none; margin-top:15px; }
+
+.section { display:none; }
 .section.active { display:block; }
 
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
-#bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; border:none; background:#00aaff; color:white; }
-.selected { background-color:#ffcc00 !important; color:black !important; }
+button { cursor:pointer; }
+
+/* MENU */
+#bottomMenu {
+  position: fixed;
+  bottom:0;
+  width:100%;
+  background:#00aaff;
+  display:flex;
+}
+#bottomMenu button {
+  flex:1;
+  border:none;
+  background:#00aaff;
+  color:white;
+}
+.selected {
+  background:#ffcc00 !important;
+  color:black !important;
+}
 
 /* BOLSA */
-#bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
+#bolsaContainer { width:90%; max-width:400px; margin:auto; }
+
 .bolsa-top, .bolsa-bottom {
   border:1px solid #004466;
   padding:8px;
@@ -25,12 +50,14 @@ button { cursor:pointer; }
   background:#e0f7ff;
   margin-bottom:8px;
 }
+
 #bolsaMenu, #bolsaVaras {
   display:flex;
   flex-wrap:wrap;
   gap:5px;
   justify-content:center;
 }
+
 .bag-item {
   background:#00aaff;
   color:white;
@@ -40,29 +67,47 @@ button { cursor:pointer; }
 }
 
 /* SHOP */
-#shopContainer { width:90%; max-width:400px; margin:0 auto; }
-.shop-top, .shop-bottom {
+#shopContainer { width:90%; max-width:400px; margin:auto; }
+
+.shop-top, .shop-middle, .shop-bottom {
   border:1px solid #004466;
   padding:10px;
   border-radius:10px;
-  background:#e0f7ff;
   margin-bottom:8px;
 }
+
+.shop-top { background:#e0f7ff; }
+.shop-middle { background:#d0f0ff; }
+.shop-bottom { background:#c0eaff; }
+
 #shopMenu {
   display:flex;
   flex-wrap:wrap;
-  gap:5px;
+  gap:8px;
   justify-content:center;
 }
-.shop-btn {
-  background:#00aaff;
+
+/* BOX */
+.box-card {
+  width:90px;
+  height:90px;
+  border-radius:10px;
+  background:linear-gradient(145deg,#00aaff,#0077aa);
+  display:flex;
+  align-items:center;
+  justify-content:center;
   color:white;
-  border:none;
-  border-radius:5px;
-  padding:6px 10px;
+  font-size:11px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.box-selected {
+  border:3px solid gold;
 }
 </style>
 </head>
+
 <body>
 
 <h1>🎣 Super Fishing</h1>
@@ -72,14 +117,18 @@ button { cursor:pointer; }
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
-  <button id="skipButton" style="display:none;">⏩ PULAR ESPERA</button>
-  <p id="currentVara">Vara ativa: Nenhuma</p>
+  <button id="skipButton" style="display:none;">⏩ PULAR</button>
+
+  <p id="currentVara"></p>
   <p id="varaStats"></p>
 
   <div id="bolsaContainer">
-    <h4>Bolsa de Varas:</h4>
-    <div class="bolsa-top"><div id="bolsaMenu"></div></div>
-    <div class="bolsa-bottom"><div id="bolsaVaras"></div></div>
+    <div class="bolsa-top">
+      <div id="bolsaMenu"></div>
+    </div>
+    <div class="bolsa-bottom">
+      <div id="bolsaVaras"></div>
+    </div>
   </div>
 </div>
 
@@ -88,22 +137,29 @@ button { cursor:pointer; }
   <h3>Loja</h3>
 
   <div id="shopContainer">
+
+    <!-- BOXES -->
     <div class="shop-top">
       <div id="shopMenu"></div>
     </div>
 
-    <div class="shop-bottom">
-      <div id="shopContent">Selecione uma vara</div>
-      <br>
-      <button id="buyButton" style="display:none;">💰 Comprar Vara</button>
+    <!-- INFO -->
+    <div class="shop-middle">
+      <div id="shopContent">Selecione um equipamento</div>
     </div>
+
+    <!-- COMPRAR -->
+    <div class="shop-bottom">
+      <button id="buyButton" style="display:none;">💰 Comprar</button>
+    </div>
+
   </div>
 </div>
 
 <!-- MENU -->
 <div id="bottomMenu">
-  <button class="tabButton selected" data-target="pesca">🎣 Pescar</button>
-  <button class="tabButton" data-target="shopSection">🏪 Loja</button>
+  <button class="tabButton selected" data-target="pesca">🎣</button>
+  <button class="tabButton" data-target="shopSection">🏪</button>
 </div>
 
 <script>
@@ -113,34 +169,29 @@ let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
 
-// ===== VARAS =====
-let bolsa = [{name:"Bambu", captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}];
+// VARAS
+let bolsa = [
+  {name:"Bambu", rarity:"Muito Comum", fishes:["Sardinha"], captureRate:50}
+];
+
 let currentVaraIndex = 0;
 
 const raridades = ["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let selectedRarity = "Muito Comum";
 
-// ===== SHOP VARAS =====
+// SHOP
 const shopVaras = [
-  {name:"Vara Comum", rarity:"Comum", fishes:["Peixe Comum"], captureRate:50},
-  {name:"Vara Incomum", rarity:"Incomum", fishes:["Peixe Incomum"], captureRate:50},
-  {name:"Vara Rara", rarity:"Rara", fishes:["Peixe Raro"], captureRate:50},
-  {name:"Vara Épica", rarity:"Épica", fishes:["Peixe Épico"], captureRate:50},
-  {name:"Vara Lendária", rarity:"Lendária", fishes:["Peixe Lendário"], captureRate:50},
-  {name:"Vara Mítica", rarity:"Mítica", fishes:["Peixe Mítico"], captureRate:50}
+  {name:"Equipamento Comum", rarity:"Comum", fishes:["Peixe Comum"], captureRate:50},
+  {name:"Equipamento Incomum", rarity:"Incomum", fishes:["Peixe Incomum"], captureRate:50},
+  {name:"Equipamento Raro", rarity:"Rara", fishes:["Peixe Raro"], captureRate:50},
+  {name:"Equipamento Épico", rarity:"Épica", fishes:["Peixe Épico"], captureRate:50},
+  {name:"Equipamento Lendário", rarity:"Lendária", fishes:["Peixe Lendário"], captureRate:50},
+  {name:"Equipamento Mítico", rarity:"Mítica", fishes:["Peixe Mítico"], captureRate:50}
 ];
 
 let selectedShopVara = null;
 
-// ===== BOLSA =====
-function getCurrentVara(){ return bolsa[currentVaraIndex]; }
-
-function setActiveVara(idx){
-  currentVaraIndex = idx;
-  updateBolsaVaras();
-  updateVaraInfo();
-}
-
+// BOLSA MENU
 function updateBolsaMenu(){
   const menu = document.getElementById("bolsaMenu");
   menu.innerHTML = "";
@@ -162,121 +213,119 @@ function updateBolsaVaras(){
   const div = document.getElementById("bolsaVaras");
   div.innerHTML = "";
 
-  bolsa.forEach((v, idx)=>{
+  bolsa.forEach((v, i)=>{
     if(v.rarity === selectedRarity){
       const btn = document.createElement("button");
       btn.innerText = v.name;
       btn.className = "bag-item";
-      btn.onclick = ()=> setActiveVara(idx);
+      btn.onclick = ()=>{
+        currentVaraIndex = i;
+        updateVaraInfo();
+      };
       div.appendChild(btn);
     }
   });
 }
 
-// ===== VARA INFO =====
 function updateVaraInfo(){
-  const vara = getCurrentVara();
-  if(!vara) return;
-
-  document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
+  const v = bolsa[currentVaraIndex];
+  document.getElementById("currentVara").innerText = "Vara: " + v.name;
   document.getElementById("varaStats").innerText =
-    `Peixes: ${vara.fishes.join(", ")} | Taxa: ${vara.captureRate}%`;
+    "Peixes: " + v.fishes.join(", ") + " | Taxa: " + v.captureRate + "%";
 }
 
-// ===== PESCA =====
-function getRandomFishByVara(vara){
-  if(Math.random()*100 <= vara.captureRate){
-    return vara.fishes[0];
-  }
-  return null;
-}
-
-const fishButton = document.getElementById("fishButton");
-const skipButton = document.getElementById("skipButton");
-const result = document.getElementById("result");
-
+// PESCA
 function fishAction(){
-  if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
+  if(dailyCount >= dailyLimit){
+    alert("Limite diário atingido");
+    return;
+  }
 
-  const vara = getCurrentVara();
-  const fish = getRandomFishByVara(vara);
-
-  if(fish){
-    alert("🎉 Você pescou: " + fish);
+  const v = bolsa[currentVaraIndex];
+  if(Math.random()*100 <= v.captureRate){
+    alert("🎉 Pegou: " + v.fishes[0]);
   } else {
-    alert("O peixe escapou!");
+    alert("Escapou!");
   }
 
   dailyCount++;
-  document.getElementById("dailyCount").innerText = `Tentativas hoje: ${dailyCount}/15`;
+  document.getElementById("dailyCount").innerText =
+    "Tentativas hoje: " + dailyCount + "/15";
 
-  skipButton.style.display = "none";
   fishButton.disabled = false;
-  result.innerText = "Clique em pescar";
+  skipButton.style.display = "none";
 }
 
-fishButton.onclick = function(){
+fishButton.onclick = ()=>{
   fishButton.disabled = true;
-  result.innerText = "Esperando...";
-  skipButton.style.display = "inline-block";
-  fishingTimeout = setTimeout(fishAction, 5000);
+  skipButton.style.display = "inline";
+  fishingTimeout = setTimeout(fishAction, 3000);
 };
 
-skipButton.onclick = function(){
+skipButton.onclick = ()=>{
   clearTimeout(fishingTimeout);
   fishAction();
 };
 
-// ===== SHOP =====
+// SHOP UI
 function updateShopMenu(){
   const menu = document.getElementById("shopMenu");
   menu.innerHTML = "";
 
   shopVaras.forEach(v=>{
-    const btn = document.createElement("button");
-    btn.className = "shop-btn";
-    btn.innerText = v.name;
+    const box = document.createElement("div");
+    box.className = "box-card";
+    box.innerText = v.name;
 
-    btn.onclick = ()=>{
+    if(selectedShopVara === v){
+      box.classList.add("box-selected");
+    }
+
+    box.onclick = ()=>{
       selectedShopVara = v;
+      updateShopMenu();
       updateShopContent();
     };
 
-    menu.appendChild(btn);
+    menu.appendChild(box);
   });
 }
 
 function updateShopContent(){
   const content = document.getElementById("shopContent");
-  const buyBtn = document.getElementById("buyButton");
+  const btn = document.getElementById("buyButton");
 
   if(!selectedShopVara){
-    content.innerText = "Selecione uma vara";
-    buyBtn.style.display = "none";
+    content.innerText = "Selecione um equipamento";
+    btn.style.display = "none";
     return;
   }
 
   content.innerText =
-    `${selectedShopVara.name}\nRaridade: ${selectedShopVara.rarity}\nPeixes: ${selectedShopVara.fishes.join(", ")}`;
+    selectedShopVara.name +
+    "\nRaridade: " + selectedShopVara.rarity +
+    "\nPeixes: " + selectedShopVara.fishes.join(", ");
 
-  buyBtn.style.display = "inline-block";
+  btn.style.display = "inline";
 }
 
-document.getElementById("buyButton").onclick = function(){
+// COMPRAR
+document.getElementById("buyButton").onclick = ()=>{
   if(selectedShopVara){
     bolsa.push(selectedShopVara);
-    alert("✅ Vara comprada!");
+    alert("Comprado!");
     updateBolsaVaras();
   }
 };
 
-// ===== TABS =====
-document.querySelectorAll(".tabButton").forEach(tab=>{
-  tab.onclick = ()=>{
+// TABS
+document.querySelectorAll(".tabButton").forEach(btn=>{
+  btn.onclick = ()=>{
     document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.getElementById(tab.dataset.target).classList.add("active");
-    document.querySelectorAll(".tabButton").forEach(t=>t.classList.remove("selected"));
-    tab.classList.add("selected");
+    document.getElementById(btn.dataset.target).classList.add("active");
+
+    document.querySelectorAll(".tabButton").forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");
   };
 });
 
@@ -288,5 +337,6 @@ updateShopMenu();
 
 });
 </script>
+
 </body>
 </html>
