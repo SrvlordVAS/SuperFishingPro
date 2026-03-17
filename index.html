@@ -13,9 +13,20 @@ button:hover { background-color:#0088cc; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
 
-#bolsaContainer, #shopContainer { width:90%; max-width:400px; margin:0 auto; }
+#bolsa { border:1px solid #004466; padding:8px; margin:8px auto; width:90%; max-width:400px; border-radius:5px; background:#e0f7ff; text-align:left; }
+#bolsaMenu { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:5px; justify-content:center; }
+#bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; }
 
-#bolsaMenuBox, #shopMenuBox {
+#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
+#bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
+
+.selected { background-color:#ffcc00 !important; color:black !important; }
+.bag-item { cursor:pointer; }
+
+/* ===== SHOP (ISOLADO) ===== */
+#shopContainer { width:90%; max-width:400px; margin:0 auto; }
+
+.shop-box-top {
   border:1px solid #004466;
   padding:8px;
   border-radius:8px;
@@ -23,21 +34,15 @@ button:hover { background-color:#0088cc; }
   margin-bottom:8px;
 }
 
-#bolsaVarasBox, #shopContentBox {
+.shop-box-bottom {
   border:1px solid #004466;
   padding:8px;
   border-radius:8px;
   background:#d0f0ff;
 }
 
-#bolsaMenu, #shopMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
-#bolsaVaras, #shopContent { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
-
-#bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
-#bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
-
-.selected { background-color:#ffcc00 !important; color:black !important; }
-.bag-item { cursor:pointer; }
+#shopMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+#shopContent { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
 </style>
 </head>
 <body>
@@ -45,47 +50,38 @@ button:hover { background-color:#0088cc; }
 <h1>🎣 Super Fishing</h1>
 <h3 id="dailyCount">Tentativas hoje: 0/15</h3>
 
-<!-- PESCA -->
+<!-- PESCA (NÃO ALTERADA) -->
 <div id="pesca" class="section active">
   <p id="result">Clique em pescar</p>
   <button id="fishButton">🎣 PESCAR</button>
   <button id="skipButton" style="display:none;">⏩ PULAR ESPERA</button>
   <p id="currentVara">Vara ativa: Nenhuma</p>
   <p id="varaStats"></p>
-
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-
-    <div id="bolsaMenuBox">
+    <div id="bolsa">
       <div id="bolsaMenu"></div>
-    </div>
-
-    <div id="bolsaVarasBox">
       <div id="bolsaVaras"></div>
     </div>
   </div>
 </div>
 
-<!-- LOJA -->
+<!-- SHOP -->
 <div id="shopSection" class="section">
   <h3>Loja</h3>
 
   <div id="shopContainer">
-
-    <!-- MENU -->
-    <div id="shopMenuBox">
+    <div class="shop-box-top">
       <div id="shopMenu"></div>
     </div>
 
-    <!-- CONTEÚDO -->
-    <div id="shopContentBox">
+    <div class="shop-box-bottom">
       <div id="shopContent">Selecione uma opção acima</div>
     </div>
-
   </div>
 </div>
 
-<!-- MENU INFERIOR -->
+<!-- MENU -->
 <div id="bottomMenu">
   <button class="tabButton selected" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
@@ -152,7 +148,7 @@ tabs.forEach(tab=>{
   }
 });
 
-// INICIALIZA
+// INIT
 updateShopMenu();
 
 });
