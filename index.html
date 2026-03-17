@@ -393,21 +393,37 @@ function retirarSFP(){
   document.getElementById("inputRetirar").value = "";
 }
 
+// Converte SFP → SFP2
 function trocarSFP2(){
   const val = parseFloat(document.getElementById("inputSFPtoSFP2").value);
-  if(isNaN(val)||val<=0||val>saldoSFP){ alert("Valor inválido"); return; }
+  if(isNaN(val) || val <= 0){
+    alert("Valor inválido");
+    return;
+  }
+  if(val > saldoSFP){
+    alert("Saldo SFP insuficiente");
+    return;
+  }
   saldoSFP -= val;
-  saldoSFP2 += val;
+  saldoSFP2 += val; // 1:1 por enquanto
   alert(`✅ Convertido ${val} SFP para ${val} SFP2`);
   atualizarSaldos();
   document.getElementById("inputSFPtoSFP2").value = "";
 }
 
+// Converte SFP2 → SFP
 function trocarSFP(){
   const val = parseFloat(document.getElementById("inputSFP2toSFP").value);
-  if(isNaN(val)||val<=0||val>saldoSFP2){ alert("Valor inválido"); return; }
+  if(isNaN(val) || val <= 0){
+    alert("Valor inválido");
+    return;
+  }
+  if(val > saldoSFP2){
+    alert("Saldo SFP2 insuficiente");
+    return;
+  }
   saldoSFP2 -= val;
-  saldoSFP += val;
+  saldoSFP += val; // 1:1 por enquanto
   alert(`✅ Convertido ${val} SFP2 para ${val} SFP`);
   atualizarSaldos();
   document.getElementById("inputSFP2toSFP").value = "";
