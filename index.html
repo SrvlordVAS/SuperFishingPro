@@ -239,30 +239,48 @@ document.getElementById("buyBox").onclick = function(){
 };
 
 // ===== CARTEIRA =====
-function depositSFP(){
-  const val=parseFloat(document.getElementById("depositInput").value);
-  if(isNaN(val)||val<=0){alert("Valor inválido"); return;}
-  saldoSFP += val; updateSaldoDisplay();
-  alert(`✅ Deposito de ${val} SFP realizado`); document.getElementById("depositInput").value="";
-}
-function withdrawSFP(){
-  const val=parseFloat(document.getElementById("withdrawInput").value);
-  if(isNaN(val)||val<=0||val>saldoSFP){alert("Saldo inválido"); return;}
-  saldoSFP -= val; updateSaldoDisplay();
-  alert(`✅ Retirada de ${val} SFP realizada`); document.getElementById("withdrawInput").value="";
-}
-function convertToSFP2(){
-  const val=parseFloat(document.getElementById("convInput1").value);
-  if(isNaN(val)||val<=0||val>saldoSFP){alert("Saldo inválido"); return;}
-  saldoSFP -= val; saldoSFP2 += val; updateSaldoDisplay();
-  alert(`✅ Convertido ${val} SFP para ${val} SFP2`); document.getElementById("convInput1").value="";
-}
-function convertToSFP(){
-  const val=parseFloat(document.getElementById("convInput2").value);
-  if(isNaN(val)||val<=0||val>saldoSFP2){alert("Saldo inválido"); return;}
-  saldoSFP2 -= val; saldoSFP += val; updateSaldoDisplay();
-  alert(`✅ Convertido ${val} SFP2 para ${val} SFP`); document.getElementById("convInput2").value="";
-}
+document.addEventListener("DOMContentLoaded", function(){
+
+  // Selecionando inputs e botões da carteira
+  const depositInput = document.getElementById("depositInput");
+  const withdrawInput = document.getElementById("withdrawInput");
+  const convInput1 = document.getElementById("convInput1"); // SFP -> SFP2
+  const convInput2 = document.getElementById("convInput2"); // SFP2 -> SFP
+
+  document.querySelectorAll(".walletBtn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const text = btn.innerText;
+      if(text.includes("Depositar")){
+        const val = parseFloat(depositInput.value);
+        if(isNaN(val)||val<=0){ alert("Valor inválido"); return; }
+        saldoSFP += val; updateSaldoDisplay();
+        alert(`✅ Deposito de ${val} SFP realizado`);
+        depositInput.value="";
+      } else if(text.includes("Retirar")){
+        const val = parseFloat(withdrawInput.value);
+        if(isNaN(val)||val<=0||val>saldoSFP){ alert("Saldo inválido"); return; }
+        saldoSFP -= val; updateSaldoDisplay();
+        alert(`✅ Retirada de ${val} SFP realizada`);
+        withdrawInput.value="";
+      } else if(text.includes("SFP por SFP2")){
+        const val = parseFloat(convInput1.value);
+        if(isNaN(val)||val<=0||val>saldoSFP){ alert("Saldo inválido"); return; }
+        saldoSFP -= val; saldoSFP2 += val; updateSaldoDisplay();
+        alert(`✅ Convertido ${val} SFP para ${val} SFP2`);
+        convInput1.value="";
+      } else if(text.includes("SFP2 por SFP")){
+        const val = parseFloat(convInput2.value);
+        if(isNaN(val)||val<=0||val>saldoSFP2){ alert("Saldo inválido"); return; }
+        saldoSFP2 -= val; saldoSFP += val; updateSaldoDisplay();
+        alert(`✅ Convertido ${val} SFP2 para ${val} SFP`);
+        convInput2.value="";
+      } else {
+        alert(`Você clicou em: ${text}`);
+      }
+    };
+  });
+
+});
 
 // ===== SALDO =====
 function updateSaldoDisplay(){
