@@ -67,12 +67,10 @@ button { cursor:pointer; border:none; border-radius:10px; padding:8px 12px; }
 <body>
 
 <h1>🎣 Super Fishing</h1>
-<h3 id="dailyCount">0/15</h3>
 
 <div id="pesca" class="section active">
 <p id="result">Clique em pescar</p>
 <button id="fishButton">🎣 Pescar</button>
-<button id="skipButton" style="display:none;">⏩ Pular</button>
 
 <p id="currentVara"></p>
 <p id="varaStats"></p>
@@ -100,46 +98,64 @@ let bolsa = [
 ];
 
 const peixes={
-"Sardinha":{preco:0.06},
-
-"Anchova":{preco:1},"Tainha":{preco:1},"Cavala":{preco:1},
-"Robalo":{preco:1},"Garoupa":{preco:1},"Pargo":{preco:1},
-"Atum":{preco:1},"Peixe-Espada":{preco:1},"Salmão":{preco:1},
-"Tubarão":{preco:1},"Barracuda":{preco:1},"Peixe-Leão":{preco:1},
-"Baleia":{preco:1},"Lula Gigante":{preco:1},"Tubarão Branco":{preco:1},
-"Kraken":{preco:1},"Leviatã":{preco:1},"Serpente":{preco:1}
+"Sardinha":{preco:0.06}
 };
 
+// ===== BOX CONFIG =====
 const boxDrops={
-"Comum":[
+"Comum":{
+preco:50,
+drops:[
 {name:"Vara Telescópica",chance:80,fishes:["Anchova","Tainha","Cavala"]},
 {name:"Vara Telescópica Reforçada",chance:20,fishes:["Anchova","Tainha","Cavala"],captureRate:70}
-],
-"Incomum":[
+]
+},
+
+"Incomum":{
+preco:100,
+drops:[
 {name:"Vara de Molinete",chance:80,fishes:["Robalo","Garoupa","Pargo"]},
 {name:"Vara de Molinete Reforçada",chance:20,fishes:["Robalo","Garoupa","Pargo"],captureRate:70}
-],
-"Rara":[
+]
+},
+
+"Rara":{
+preco:150,
+drops:[
 {name:"Vara de Carretilha",chance:80,fishes:["Atum","Peixe-Espada","Salmão"]},
 {name:"Vara de Carretilha Reforçada",chance:20,fishes:["Atum","Peixe-Espada","Salmão"],captureRate:70}
-],
-"Épica":[
-{name:"Vara Pesada",chance:80,fishes:["Tubarão","Barracuda","Peixe-Leão"]},
-{name:"Vara Pesada Reforçada",chance:20,fishes:["Tubarão","Barracuda","Peixe-Leão"],captureRate:70}
-],
-"Lendária":[
+]
+},
+
+"Épica":{
+preco:200,
+drops:[
+{name:"Vara de Pesca Pesada",chance:80,fishes:["Tubarão","Barracuda","Peixe-Leão"]},
+{name:"Vara de Pesca Pesada Reforçada",chance:20,fishes:["Tubarão","Barracuda","Peixe-Leão"],captureRate:70}
+]
+},
+
+"Lendária":{
+preco:250,
+drops:[
 {name:"Vara Oceânica",chance:80,fishes:["Baleia","Lula Gigante","Tubarão Branco"]},
 {name:"Vara Oceânica Reforçada",chance:20,fishes:["Baleia","Lula Gigante","Tubarão Branco"],captureRate:70}
-],
-"Mítica":[
-{name:"Vara Suprema",chance:80,fishes:["Kraken","Leviatã","Serpente"]},
-{name:"Vara Suprema Reforçada",chance:20,fishes:["Kraken","Leviatã","Serpente"],captureRate:70}
 ]
+},
+
+"Mítica":{
+preco:300,
+drops:[
+{name:"Vara de Alto Desempenho",chance:80,fishes:["Kraken","Leviatã","Serpente"]},
+{name:"Vara de Alto Desempenho Reforçada",chance:20,fishes:["Kraken","Leviatã","Serpente"],captureRate:70}
+]
+}
 };
 
 let currentVaraIndex=0;
 let selectedRarity="Muito Comum";
 
+// ===== BOLSA =====
 function updateBolsaMenu(){
 let raridades=["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let div=document.getElementById("bolsaMenu");
@@ -173,44 +189,52 @@ document.getElementById("currentVara").innerText="Vara: "+v.name;
 document.getElementById("varaStats").innerText="Peixes: "+v.fishes+" | Taxa: "+(v.captureRate||50)+"%";
 }
 
-function pescar(){
+// ===== PESCA =====
+document.getElementById("fishButton").onclick=function(){
 let v=bolsa[currentVaraIndex];
 if(Math.random()*100 <= (v.captureRate||50)){
 alert("Pegou "+v.fishes[0]);
 }else alert("Escapou");
-}
+};
 
-document.getElementById("fishButton").onclick=pescar;
-
-// SHOP
+// ===== SHOP =====
 let shopMenu=document.getElementById("shopMenu");
 let selectedShop=null;
 
 Object.keys(boxDrops).forEach(r=>{
 let d=document.createElement("div");
 d.className="box-card";
-d.innerText="Equipamento "+r;
+d.innerText="Box "+r;
 d.onclick=()=>{selectedShop=r;updateShop();};
 shopMenu.appendChild(d);
 });
 
 function updateShop(){
 document.querySelectorAll(".box-card").forEach(b=>b.classList.remove("box-selected"));
+
 [...shopMenu.children].forEach(c=>{
 if(c.innerText.includes(selectedShop)) c.classList.add("box-selected");
 });
-document.getElementById("shopContent").innerText="Chance 80% normal / 20% reforçada";
+
+let data=boxDrops[selectedShop];
+
+document.getElementById("shopContent").innerHTML =
+`<b>Conteúdo:</b><br>
+🎣 ${data.drops[0].name} (80%)<br>
+🔥 ${data.drops[1].name} (20%)<br><br>
+💰 Preço: ${data.preco}`;
 }
 
+// ===== COMPRA =====
 document.getElementById("buyBtn").onclick=function(){
 if(!selectedShop)return alert("Escolha uma box");
 
-let drops=boxDrops[selectedShop];
+let data=boxDrops[selectedShop];
 let roll=Math.random()*100;
 let acum=0;
 let escolhido;
 
-for(let d of drops){
+for(let d of data.drops){
 acum+=d.chance;
 if(roll<=acum){escolhido=d;break;}
 }
@@ -226,7 +250,7 @@ alert("Você ganhou: "+escolhido.name);
 updateBolsaVaras();
 };
 
-// TABS
+// ===== TABS =====
 document.querySelectorAll(".tabButton").forEach(b=>{
 b.onclick=()=>{
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
