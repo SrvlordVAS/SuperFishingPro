@@ -84,10 +84,18 @@ button { cursor:pointer; }
   border:3px solid gold;
 }
 
-#shopContent {
-  text-align:center;
+/* ===== CARTEIRA ===== */
+.walletBtn {
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#00aaff;
+  color:white;
   font-size:14px;
+  cursor:pointer;
 }
+.walletBtn:hover { background:#0077aa; }
+
 </style>
 </head>
 <body>
@@ -132,10 +140,23 @@ button { cursor:pointer; }
   </div>
 </div>
 
+<!-- CARTEIRA -->
+<div id="walletSection" class="section">
+  <h3>💼 Carteira</h3>
+  <div id="walletContent" style="display:flex; flex-direction:column; gap:10px; width:90%; max-width:400px; margin:0 auto;">
+    <button class="walletBtn">Conectar carteira Telegram</button>
+    <button class="walletBtn">Depositar SFP</button>
+    <button class="walletBtn">Retirar SFP</button>
+    <button class="walletBtn">Trocar SFP por SFP2</button>
+    <button class="walletBtn">Trocar SFP2 por SFP</button>
+  </div>
+</div>
+
 <!-- MENU -->
 <div id="bottomMenu">
   <button class="tabButton selected" data-target="pesca">🎣 Pescar</button>
   <button class="tabButton" data-target="shopSection">🏪 Loja</button>
+  <button class="tabButton" data-target="walletSection">💼 Carteira</button>
 </div>
 
 <script>
@@ -151,7 +172,7 @@ const raridades = ["Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let selectedRarity = "Comum";
 
 let bolsa = [
-  {name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}
+  {name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], fishValues:[0.06], rarity:"Vara Free"}
 ];
 
 let boxes = [
@@ -183,7 +204,7 @@ function updateBolsaMenu(){
   freeBtn.innerText = "Vara Free";
   freeBtn.className = "bag-item";
   freeBtn.onclick = ()=>{
-    selectedRarity = "Vara Free"; // mostra só a vara de bambu
+    selectedRarity = "Vara Free"; 
     updateBolsaMenu();
     updateBolsaVaras();
   };
@@ -210,7 +231,6 @@ function updateBolsaVaras(){
   div.innerHTML = "";
 
   bolsa.forEach((v, idx)=>{
-    // Mostrar varas da raridade selecionada ou só a vara free
     if((v.rarity === selectedRarity) || (selectedRarity === "Vara Free" && v.name === "Bambu")){
       const btn = document.createElement("button");
       btn.innerText = v.name;
@@ -333,6 +353,13 @@ document.querySelectorAll(".tabButton").forEach(tab=>{
     document.getElementById(tab.dataset.target).classList.add("active");
     document.querySelectorAll(".tabButton").forEach(t=>t.classList.remove("selected"));
     tab.classList.add("selected");
+  };
+});
+
+// ===== BOTÕES CARTEIRA TESTE =====
+document.querySelectorAll(".walletBtn").forEach(btn=>{
+  btn.onclick = ()=>{
+    alert(`Você clicou em: ${btn.innerText}`);
   };
 });
 
