@@ -12,11 +12,30 @@ button { display:inline-block; background-color:#00aaff; color:white; border:non
 button:hover { background-color:#0088cc; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
-#bolsa { border:1px solid #004466; padding:8px; margin:8px auto; width:90%; max-width:400px; border-radius:5px; background:#e0f7ff; text-align:left; }
-#bolsaMenu { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:5px; justify-content:center; }
-#bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; }
+
+#bolsaContainer { width:90%; max-width:400px; margin:0 auto; }
+
+#bolsaMenuBox {
+  border:1px solid #004466;
+  padding:8px;
+  border-radius:8px;
+  background:#e0f7ff;
+  margin-bottom:8px;
+}
+
+#bolsaVarasBox {
+  border:1px solid #004466;
+  padding:8px;
+  border-radius:8px;
+  background:#d0f0ff;
+}
+
+#bolsaMenu { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+#bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
+
 .selected { background-color:#ffcc00 !important; color:black !important; }
 .bag-item { cursor:pointer; }
 </style>
@@ -33,10 +52,17 @@ button:hover { background-color:#0088cc; }
   <button id="skipButton" style="display:none;">⏩ PULAR ESPERA</button>
   <p id="currentVara">Vara ativa: Nenhuma</p>
   <p id="varaStats"></p>
+
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-    <div id="bolsa">
+
+    <!-- MENU DE RARIDADES -->
+    <div id="bolsaMenuBox">
       <div id="bolsaMenu"></div>
+    </div>
+
+    <!-- VARAS -->
+    <div id="bolsaVarasBox">
       <div id="bolsaVaras"></div>
     </div>
   </div>
@@ -61,25 +87,25 @@ let dailyCount = 0;
 const dailyLimit = 15;
 let fishingTimeout = null;
 
-// ===== VARAS =====
+// VARAS
 const varas = {
   "Bambu": {profit: 100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}
 };
 
-// ===== PEIXES =====
+// PEIXES
 const fishData = {
   "Sardinha": {value:0.06}
 };
 
-// ===== INVENTÁRIO =====
+// INVENTÁRIO
 let bolsa = [{name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}];
 let currentVaraIndex = 0;
 
-// ===== MENU DE RARIDADES =====
+// MENU DE RARIDADES
 const raridades = ["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
 let selectedRarity = "Muito Comum";
 
-// ===== FUNÇÕES =====
+// FUNÇÕES
 function getCurrentVara(){ return bolsa[currentVaraIndex]; }
 
 function getRandomFishByVara(vara){
@@ -89,7 +115,7 @@ function getRandomFishByVara(vara){
   return null;
 }
 
-// ===== BOLSA =====
+// BOLSA
 function setActiveVara(idx){
     currentVaraIndex = idx;
     updateVaraInfo();
@@ -127,7 +153,7 @@ function updateBolsaVaras(){
     });
 }
 
-// ===== PESCA =====
+// PESCA
 const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
@@ -167,7 +193,7 @@ skipButton.onclick = function(){
   fishAction();
 };
 
-// ===== VARA ATIVA =====
+// VARA ATIVA
 function updateVaraInfo(){
     const vara = getCurrentVara();
     if(!vara){
@@ -180,7 +206,7 @@ function updateVaraInfo(){
         `Peixes que pode capturar: ${vara.fishes.join(", ")}\nTaxa de captura: ${vara.captureRate}%`;
 }
 
-// ===== TABS =====
+// TABS
 const tabs = document.querySelectorAll(".tabButton");
 tabs.forEach(tab=>{
   tab.onclick = ()=>{
@@ -191,7 +217,7 @@ tabs.forEach(tab=>{
   }
 });
 
-// ===== INICIALIZA =====
+// INICIALIZA
 updateBolsaMenu();
 updateBolsaVaras();
 updateVaraInfo();
