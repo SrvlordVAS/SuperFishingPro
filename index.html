@@ -194,8 +194,20 @@ document.getElementById("fishButton").onclick=function(){
 let v=bolsa[currentVaraIndex];
 
 if(Math.random()*100 <= (v.captureRate||50)){
-let peixeAleatorio = v.fishes[Math.floor(Math.random() * v.fishes.length)];
-alert("Pegou " + peixeAleatorio);
+
+let rand = Math.random()*100;
+let peixe;
+
+if(rand <= 35){
+  peixe = v.fishes[0];
+}else if(rand <= 70){
+  peixe = v.fishes[1];
+}else{
+  peixe = v.fishes[2];
+}
+
+alert("Pegou " + peixe);
+
 }else{
 alert("Escapou");
 }
