@@ -192,9 +192,13 @@ document.getElementById("varaStats").innerText="Peixes: "+v.fishes+" | Taxa: "+(
 // ===== PESCA =====
 document.getElementById("fishButton").onclick=function(){
 let v=bolsa[currentVaraIndex];
+
 if(Math.random()*100 <= (v.captureRate||50)){
-alert("Pegou "+v.fishes[0]);
-}else alert("Escapou");
+let peixeAleatorio = v.fishes[Math.floor(Math.random() * v.fishes.length)];
+alert("Pegou " + peixeAleatorio);
+}else{
+alert("Escapou");
+}
 };
 
 // ===== SHOP =====
