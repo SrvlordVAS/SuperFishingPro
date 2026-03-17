@@ -12,7 +12,9 @@ button { display:inline-block; background-color:#00aaff; color:white; border:non
 button:hover { background-color:#0088cc; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
-#bolsa { border:1px solid #004466; padding:8px; margin:8px auto; width:90%; max-width:400px; border-radius:5px; background:#e0f7ff; text-align:left; display:flex; flex-wrap:wrap; gap:5px; }
+#bolsa { border:1px solid #004466; padding:8px; margin:8px auto; width:90%; max-width:400px; border-radius:5px; background:#e0f7ff; text-align:left; }
+#bolsaMenu { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:5px; justify-content:center; }
+#bolsaVaras { display:flex; flex-wrap:wrap; gap:5px; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
@@ -33,7 +35,10 @@ button:hover { background-color:#0088cc; }
   <p id="varaStats"></p>
   <div id="bolsaContainer">
     <h4>Bolsa de Varas:</h4>
-    <div id="bolsa"></div>
+    <div id="bolsa">
+      <div id="bolsaMenu"></div>
+      <div id="bolsaVaras"></div>
+    </div>
   </div>
 </div>
 
@@ -58,7 +63,7 @@ let fishingTimeout = null;
 
 // ===== VARAS =====
 const varas = {
-  "Bambu": {profit: 100, captureRate:50, fishes:["Sardinha"]}
+  "Bambu": {profit: 100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}
 };
 
 // ===== PEIXES =====
@@ -67,8 +72,12 @@ const fishData = {
 };
 
 // ===== INVENTÁRIO =====
-let bolsa = [{name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"]}];
+let bolsa = [{name:"Bambu", profit:100, captureRate:50, fishes:["Sardinha"], rarity:"Muito Comum"}];
 let currentVaraIndex = 0;
+
+// ===== MENU DE RARIDADES =====
+const raridades = ["Muito Comum","Comum","Incomum","Rara","Épica","Lendária","Mítica"];
+let selectedRarity = "Muito Comum";
 
 // ===== FUNÇÕES =====
 function getCurrentVara(){ return bolsa[currentVaraIndex]; }
@@ -84,19 +93,37 @@ function getRandomFishByVara(vara){
 function setActiveVara(idx){
     currentVaraIndex = idx;
     updateVaraInfo();
-    updateBolsa();
+    updateBolsaVaras();
 }
 
-function updateBolsa(){
-    const bolsaDiv = document.getElementById("bolsa");
-    bolsaDiv.innerHTML = "";
-    bolsa.forEach((v, idx) => {
+function updateBolsaMenu(){
+    const menuDiv = document.getElementById("bolsaMenu");
+    menuDiv.innerHTML = "";
+    raridades.forEach(r => {
         const btn = document.createElement("button");
-        btn.className = "bag-item";
-        btn.innerText = v.name;
-        btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
-        btn.onclick = () => setActiveVara(idx);
-        bolsaDiv.appendChild(btn);
+        btn.innerText = r;
+        btn.style.border = r===selectedRarity ? "2px solid gold" : "1px solid #004466";
+        btn.onclick = ()=>{
+            selectedRarity = r;
+            updateBolsaVaras();
+            updateBolsaMenu();
+        };
+        menuDiv.appendChild(btn);
+    });
+}
+
+function updateBolsaVaras(){
+    const varasDiv = document.getElementById("bolsaVaras");
+    varasDiv.innerHTML = "";
+    bolsa.forEach((v, idx)=>{
+        if(v.rarity === selectedRarity){
+            const btn = document.createElement("button");
+            btn.className = "bag-item";
+            btn.innerText = v.name;
+            btn.style.border = idx === currentVaraIndex ? "2px solid gold" : "1px solid #004466";
+            btn.onclick = () => setActiveVara(idx);
+            varasDiv.appendChild(btn);
+        }
     });
 }
 
@@ -165,7 +192,8 @@ tabs.forEach(tab=>{
 });
 
 // ===== INICIALIZA =====
-updateBolsa();
+updateBolsaMenu();
+updateBolsaVaras();
 updateVaraInfo();
 
 });
