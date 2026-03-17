@@ -12,9 +12,11 @@ button { display:inline-block; background-color:#00aaff; color:white; border:non
 button:hover { background-color:#0088cc; }
 .section { display:none; margin-top:15px; }
 .section.active { display:block; }
+#bolsa { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:10px; }
 #bottomMenu { position: fixed; bottom:0; left:0; width:100%; background:#00aaff; display:flex; justify-content:space-around; padding:5px 0; box-shadow:0 -2px 5px rgba(0,0,0,0.3); font-size:12px; }
 #bottomMenu button { flex:1; margin:0 2px; padding:5px 0; font-size:12px; }
 .selected { background-color:#ffcc00 !important; color:black !important; }
+.bag-item { cursor:pointer; border:1px solid #004466; padding:2px 5px; border-radius:3px; }
 </style>
 </head>
 <body>
@@ -30,6 +32,10 @@ button:hover { background-color:#0088cc; }
   <button id="skipButton">⏩ PULAR ESPERA</button>
   <p id="currentVara">Vara ativa: Bambu</p>
   <p id="varaStats"></p>
+  <div>
+    <h4>Bolsa de Varas:</h4>
+    <div id="bolsa"></div>
+  </div>
 </div>
 
 <!-- LOJA -->
@@ -86,17 +92,40 @@ const fishes = {
   "Mítico":[ {name:"Marlim Azul", value:0.08}, {name:"Marlim Dourado", value:0.11}, {name:"Marlim Negro", value:0.16} ]
 };
 
-// ===== FUNÇÃO DE CAPTURA =====
-function getRandomFish(varaName){
-  const rarity = varas[varaName].maxRarity;
-  const possibleFishes = fishes[rarity];
-  if(!possibleFishes || possibleFishes.length===0) return null;
-  const fish = possibleFishes[Math.floor(Math.random()*possibleFishes.length)];
-  return Math.random()*100 <= varas[varaName].chance ? fish : null;
+// ===== BOLSA =====
+let bolsa = [{name:"Bambu", profit:100}]; // Começa com Bambu ativo
+let currentVaraIndex = 0;
+
+function setActiveVara(idx){
+    currentVaraIndex = idx;
+    updateVaraInfo();
+    updateBolsaUI();
+}
+
+function updateBolsaUI(){
+    const bolsaDiv = document.getElementById("bolsa");
+    bolsaDiv.innerHTML = "";
+    bolsa.forEach((v, idx)=>{
+        const btn = document.createElement("button");
+        btn.className = "bag-item";
+        btn.innerText = v.name;
+        btn.style.border = idx===currentVaraIndex ? "2px solid gold" : "1px solid #004466";
+        btn.onclick = ()=>setActiveVara(idx);
+        bolsaDiv.appendChild(btn);
+    });
 }
 
 // ===== PESCA =====
-const activeVara = "Bambu"; // Vara inicial
+function getCurrentVara(){ return bolsa[currentVaraIndex]; }
+
+function getRandomFish(vara){
+  const rarity = varas[vara.name].maxRarity;
+  const possibleFishes = fishes[rarity];
+  if(!possibleFishes || possibleFishes.length===0) return null;
+  const fish = possibleFishes[Math.floor(Math.random()*possibleFishes.length)];
+  return Math.random()*100 <= 50 ? fish : null; // 50% chance captura
+}
+
 const fishButton = document.getElementById("fishButton");
 const skipButton = document.getElementById("skipButton");
 const result = document.getElementById("result");
@@ -104,10 +133,11 @@ const result = document.getElementById("result");
 function fishAction(){
   if(dailyCount >= dailyLimit){ alert("Limite diário atingido!"); return; }
 
-  const fish = getRandomFish(activeVara);
+  const vara = getCurrentVara();
+  const fish = getRandomFish(vara);
   if(fish){
-    sunBalance += fish.value*(varas[activeVara].profit/100);
-    alert(`🎉 Você pescou: ${fish.name} e ganhou ${(fish.value*(varas[activeVara].profit/100)).toFixed(3)} SFP2`);
+    sunBalance += fish.value*(vara.profit/100);
+    alert(`🎉 Você pescou: ${fish.name} e ganhou ${(fish.value*(vara.profit/100)).toFixed(3)} SFP2`);
   } else {
     alert("O peixe escapou!");
   }
@@ -133,6 +163,16 @@ skipButton.onclick = function(){
   fishButton.disabled = false;
 };
 
+function updateVaraInfo(){
+  const vara = getCurrentVara();
+  const rarity = varas[vara.name].maxRarity;
+  const fishNames = fishes[rarity].map(f=>f.name).join(", ");
+  document.getElementById("currentVara").innerText = `Vara ativa: ${vara.name}`;
+  document.getElementById("varaStats").innerText = `Peixes que pode pegar: ${fishNames}`;
+}
+
+function updateWalletUI(){ document.getElementById("money").innerText = `Saldo SFP2: ${sunBalance.toFixed(3)}`; }
+
 // ===== LOJA =====
 const boxTypes = ["Comum","Incomum","Rara","Epica","Lendaria","Mitica"];
 const boxCosts = {"Comum":50,"Incomum":100,"Rara":150,"Epica":200,"Lendaria":250,"Mitica":300};
@@ -156,6 +196,8 @@ boxTypes.forEach(type=>{
         for(const item of boxChances[type]){
             acc += item.chance;
             if(rand <= acc){
+                bolsa.push({name:item.name, profit:varas[item.name].profit});
+                setActiveVara(bolsa.length-1);
                 alert(`🎉 Você recebeu: ${item.name}`);
                 break;
             }
@@ -163,9 +205,6 @@ boxTypes.forEach(type=>{
         updateWalletUI();
     }
 });
-
-// ===== WALLET =====
-function updateWalletUI(){ document.getElementById("money").innerText = `Saldo SFP2: ${sunBalance.toFixed(3)}`; }
 
 // ===== TABS =====
 const tabs = document.querySelectorAll(".tabButton");
@@ -178,10 +217,10 @@ tabs.forEach(tab=>{
   }
 });
 
-// ===== INFO VARA =====
-document.getElementById("varaStats").innerText = "Peixes que pode pegar: Sardinha";
-
 updateWalletUI();
+updateVaraInfo();
+updateBolsaUI();
+
 });
 </script>
 </body>
