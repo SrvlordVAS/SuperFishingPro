@@ -64,6 +64,13 @@ document.addEventListener("DOMContentLoaded", function(){
     "Bambu": { profit: 100, chance:50 }
   };
 
+  // ===== PEIXES =====
+  const fishes = {
+    "Bambu": [
+      {name:"Sardinha", value:0.06}
+    ]
+  };
+
   // Inicialmente só a vara de Bambu
   let bolsa = [{name:"Bambu", profit:100}];
   let currentVaraIndex = 0;
@@ -99,15 +106,25 @@ document.addEventListener("DOMContentLoaded", function(){
   const skipButton = document.getElementById("skipButton");
   const result = document.getElementById("result");
 
+  function getRandomFishByVara(vara){
+    const possibleFishes = fishes[vara.name] || [];
+    if(possibleFishes.length === 0) return null;
+    const fish = possibleFishes[Math.floor(Math.random()*possibleFishes.length)];
+    if(Math.random()*100 <= vara.chance) return fish;
+    return null;
+  }
+
   function fishAction(){
     if(dailyCount >= dailyLimit){ 
       alert("Limite diário atingido!"); 
+      skipButton.style.display = "none";
       return; 
     }
     const vara = getCurrentVara();
-    const captured = Math.random()*100 <= vara.chance;
-    if(captured){
-      alert("🎉 Peixe capturado!");
+    const fish = getRandomFishByVara(vara);
+    if(fish){
+      const ganho = fish.value * (vara.profit/100);
+      alert(`🎉 Você pescou: ${fish.name} e ganhou ${ganho.toFixed(2)} SFP2`);
     } else {
       alert("O peixe escapou!");
     }
